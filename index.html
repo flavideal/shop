@@ -113,19 +113,20 @@
 
         <div id="registerFields" style="display: none;">
     <input type="text" id="regName" placeholder="Full Name">
-    <input type="email" id="regEmail" placeholder="Email Address"> <input type="text" id="regMobile" placeholder="Mobile Number">
+    <input type="email" id="regEmail" placeholder="Email Address"> 
+    <input type="text" id="regMobile" placeholder="Mobile Number">
     <input type="password" id="regPin" placeholder="Create 6-Digit PIN">
-    <button class="login-btn" onclick="handleRegister()">Send OTP to Email</button>
+    <button id="regBtn" class="login-btn" onclick="handleRegister()">Send OTP to Email</button>
 </div>
 
-        <div id="otpFields" style="display: none;">
-            <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your mobile number.</p>
-            <input type="text" id="otpInput" placeholder="Enter OTP Code" maxlength="6" style="text-align: center; letter-spacing: 5px; font-weight: bold;">
-            <button class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
-            <p style="font-size: 12px; margin-top: 15px;">
-                Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
-            </p>
-        </div>
+<div id="otpFields" style="display: none;">
+    <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your email.</p>
+    <input type="text" id="otpInput" placeholder="Enter OTP Code" maxlength="6" style="text-align: center; letter-spacing: 5px; font-weight: bold;">
+    <button id="verifyBtn" class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
+    <p style="font-size: 12px; margin-top: 15px;">
+        Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
+    </p>
+</div>
     </div>
 </div>
     
@@ -192,43 +193,50 @@ function showLogin() {
 }
 
 async function handleRegister() {
-    // 1. Kunin ang input values mula sa modal
+    const regBtn = document.getElementById('regBtn');
     const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
     const mobile = document.getElementById('regMobile').value;
     const pin = document.getElementById('regPin').value;
 
-    // 2. Check kung may kulang na fields
-    if (!name || !mobile || !pin) {
+    if (!name || !email || !mobile || !pin) {
         alert("Please fill up all fields.");
         return;
     }
 
+    // --- START LOADING ---
+    regBtn.disabled = true;
+    regBtn.innerText = "Please wait... Sending OTP";
+    regBtn.style.opacity = "0.7";
+
     const data = {
-    action: "register",
-    name: document.getElementById('regName').value,
-    email: document.getElementById('regEmail').value,
-    mobile: document.getElementById('regMobile').value,
-    pin: document.getElementById('regPin').value
-};
+        action: "register",
+        name: name,
+        email: email,
+        mobile: mobile,
+        pin: pin
+    };
 
     try {
-        // 3. I-send ang data sa Apps Script
-        // Gumamit tayo ng 'no-cors' mode para hindi i-block ng browser
-        const response = await fetch(webAppUrl, {
+        await fetch(webAppUrl, {
             method: 'POST',
             mode: 'no-cors', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
-        // 4. Dahil 'no-cors', hindi natin mababasa ang "OTP Sent" na text, 
-        // pero basta hindi nag-error ang fetch, itutuloy na natin sa OTP box.
-        alert("Registration request sent! Please check your phone for the OTP.");
+        // SUCCESS
+        alert("OTP has been sent to your email!");
         showOTPBox(); 
         
     } catch (error) {
         console.error("Error:", error);
         alert("Error connecting to server. Please try again.");
+    } finally {
+        // --- RESET BUTTON ---
+        regBtn.disabled = false;
+        regBtn.innerText = "Send OTP to Email";
+        regBtn.style.opacity = "1";
     }
 }
 
@@ -240,10 +248,22 @@ function showOTPBox() {
 }
 
 async function verifyOTP() {
+    const verifyBtn = document.getElementById('verifyBtn');
+    const otpInput = document.getElementById('otpInput').value;
+
+    if (!otpInput) {
+        alert("Please enter the OTP code.");
+        return;
+    }
+
+    // --- START LOADING ---
+    verifyBtn.disabled = true;
+    verifyBtn.innerText = "Verifying... Please wait";
+
     const data = {
         action: "verify",
         mobile: document.getElementById('regMobile').value,
-        otp: document.getElementById('otpInput').value
+        otp: otpInput
     };
 
     try {
@@ -255,13 +275,17 @@ async function verifyOTP() {
         const result = await response.text();
         
         if (result === "Verified") {
-            alert("Account verified successfully! You can now login.");
-            showLogin(); // Ibalik sa login screen
+            alert("Account verified successfully!");
+            showLogin();
         } else {
             alert("Invalid OTP code. Please try again.");
         }
     } catch (error) {
-        console.error("Verification error:", error);
+        alert("Connection error. Please try again.");
+    } finally {
+        // --- RESET BUTTON ---
+        verifyBtn.disabled = false;
+        verifyBtn.innerText = "Verify & Complete";
     }
 }
 </script>
