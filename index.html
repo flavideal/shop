@@ -116,6 +116,75 @@
             .nav-links { display: block; color: white; }
             .hero h1 { font-size: 4rem; }
         }
+
+        /* --- PRODUCT GRID --- */
+.product-container {
+    padding: 40px 5%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns sa mobile */
+    gap: 15px;
+}
+
+.product-card {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.sale-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--golden-yellow);
+    color: var(--forest-green);
+    font-weight: bold;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    z-index: 10;
+}
+
+.product-image {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.product-name {
+    font-weight: bold;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.price-regular {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 12px;
+}
+
+.price-cash {
+    color: var(--forest-green);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.installment-text {
+    font-size: 11px;
+    color: #555;
+    background: #f1f1f1;
+    padding: 5px;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+@media (min-width: 768px) {
+    .product-container { grid-template-columns: repeat(4, 1fr); } /* 4 columns sa desktop */
+}
     </style>
 </head>
 <body>
@@ -138,12 +207,59 @@
         <button class="cta-btn">Shop Now</button>
     </section>
 
+    <section class="product-container" id="product-list">
+    </section>
+
     <div class="mobile-nav">
         <div class="item"><i class="fas fa-home"></i><br>Home</div>
         <div class="item"><i class="fas fa-th-large"></i><br>Shop</div>
         <div class="item"><i class="fas fa-percent"></i><br>Offers</div>
         <div class="item"><i class="fas fa-user"></i><br>Account</div>
     </div>
+
+<script>
+    // Sample Data (Sa actual, ito ay manggagaling sa Apps Script mo)
+    const products = [
+        {
+            id: "ip17-pro",
+            name: "iPhone 17 Pro",
+            reg_price: 80000,
+            cash_price: 75000,
+            inst_price: 75000,
+            interest: 0.05, // 5% monthly interest
+            proc_fee: 300,
+            path: "assets/products/iphone17/photo1.jpg",
+            stock: 5
+        }
+    ];
+
+    function displayProducts() {
+        const container = document.getElementById('product-list');
+        
+        products.forEach(p => {
+            // Installment Computation Logic
+            const months = 12;
+            const monthlyInterest = p.inst_price * p.interest;
+            const monthlyPayment = (p.inst_price / months) + monthlyInterest;
+
+            const card = `
+                <div class="product-card">
+                    ${p.cash_price < p.reg_price ? '<span class="sale-badge">SALE</span>' : ''}
+                    <img src="${p.path}" class="product-image" alt="${p.name}">
+                    <div class="product-name">${p.name}</div>
+                    <div class="price-regular">₱${p.reg_price.toLocaleString()}</div>
+                    <div class="price-cash">₱${p.cash_price.toLocaleString()}</div>
+                    <div class="installment-text">
+                        As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b> for 12 mos
+                    </div>
+                </div>
+            `;
+            container.innerHTML += card;
+        });
+    }
+
+    window.onload = displayProducts;
+</script>
 
 </body>
 </html>
