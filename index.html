@@ -303,6 +303,15 @@
     </div>
 </div>
 
+<div id="otpFields" style="display: none;">
+    <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your mobile number.</p>
+    <input type="text" id="otpInput" placeholder="Enter OTP Code" maxlength="6" style="text-align: center; letter-spacing: 5px; font-weight: bold;">
+    <button class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
+    <p style="font-size: 12px; margin-top: 15px;">
+        Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
+    </p>
+</div>
+    
 <script>
     // 1. I-paste ang Web App URL mula sa Google Apps Script deployment mo
     const webAppUrl = "https://script.google.com/macros/s/AKfycbw6fe0YmicHHsK8qvdDGeB8_-YDa1-pyMo5Ly58QrTN_vTC8li8Z-iuuf583nBP482n/exec"; 
@@ -383,6 +392,39 @@ async function handleRegister() {
     if (result === "OTP Sent") {
         alert("Registration initial success! Please check your phone for the OTP.");
         // Dito mo na pwedeng ipakita ang OTP verification field
+    }
+}
+
+    // Function para ipakita ang OTP box pagkatapos ng registration request
+function showOTPBox() {
+    document.getElementById('modalTitle').innerText = "Verify Mobile";
+    document.getElementById('registerFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "block";
+}
+
+async function verifyOTP() {
+    const data = {
+        action: "verify",
+        mobile: document.getElementById('regMobile').value,
+        otp: document.getElementById('otpInput').value
+    };
+
+    try {
+        const response = await fetch(webAppUrl, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.text();
+        
+        if (result === "Verified") {
+            alert("Account verified successfully! You can now login.");
+            showLogin(); // Ibalik sa login screen
+        } else {
+            alert("Invalid OTP code. Please try again.");
+        }
+    } catch (error) {
+        console.error("Verification error:", error);
     }
 }
 </script>
