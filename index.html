@@ -64,6 +64,11 @@
     #otpInput {
     font-size: 24px; height: 50px; border: 2px solid var(--forest-green); color: var(--forest-green);
 }
+
+    .mobile-nav .item { font-size: 10px; text-align: center; flex: 1; color: #666; mcursor: pointer;
+}
+    .mobile-nav .item i { font-size: 18px; margin-bottom: 2px; color: var(--forest-green);
+}
         
 </style>
 </head>
@@ -143,14 +148,17 @@
 
     // 2. Ito ang loader na kukuha ng live data
     async function fetchProducts() {
-        try {
-            const response = await fetch(webAppUrl);
-            const products = await response.json();
-            displayProducts(products); // Ipapasa ang live data sa display function
-        } catch (error) {
-            console.error("Error fetching products:", error);
-        }
+    try {
+        // Dagdagan ng parameter para malaman ng script na products ang hinihingi mo
+        const response = await fetch(webAppUrl + "?action=getProducts"); 
+        const products = await response.json();
+        displayProducts(products);
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        // Maglagay ng fallback text sa UI kung sakaling mag-error
+        document.getElementById('product-list').innerHTML = "<p>Loading products... Please refresh.</p>";
     }
+}
 
     // 3. I-update ang display function para tumanggap ng data
     function displayProducts(products) {
@@ -286,6 +294,32 @@ async function verifyOTP() {
         verifyBtn.innerText = "Verify & Complete";
     }
 }
+
+    async function handleLogin() {
+    const user = document.getElementById('username').value;
+    const pin = document.getElementById('pin').value;
+
+    if (!user || !pin) return alert("Please enter username and PIN.");
+
+    try {
+        // I-check sa Google Sheets kung tama ang User at PIN
+        const loginUrl = `${webAppUrl}?action=login&user=${user}&pin=${pin}`;
+        const response = await fetch(loginUrl);
+        const result = await response.json();
+
+        if (result.status === "Success") {
+            alert("Welcome back, " + result.name + "!");
+            // Dito mo sila pwedeng i-redirect sa Dashboard o i-save ang session
+            localStorage.setItem("customerName", result.name);
+            toggleModal();
+        } else {
+            alert("Invalid Username or PIN.");
+        }
+    } catch (error) {
+        alert("Login failed. Please try again.");
+    }
+}
+
 </script>
     
 </body>
