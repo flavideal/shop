@@ -218,39 +218,40 @@
     </div>
 
 <script>
-    // Sample Data (Sa actual, ito ay manggagaling sa Apps Script mo)
-    const products = [
-        {
-            id: "ip17-pro",
-            name: "iPhone 17 Pro",
-            reg_price: 80000,
-            cash_price: 75000,
-            inst_price: 75000,
-            interest: 0.05, // 5% monthly interest
-            proc_fee: 300,
-            path: "assets/products/iphone17/photo1.jpg",
-            stock: 5
-        }
-    ];
+    // 1. I-paste ang Web App URL mula sa Google Apps Script deployment mo
+    const webAppUrl = "YOUR_WEB_APP_URL_HERE"; 
 
-    function displayProducts() {
+    // 2. Ito ang loader na kukuha ng live data
+    async function fetchProducts() {
+        try {
+            const response = await fetch(webAppUrl);
+            const products = await response.json();
+            displayProducts(products); // Ipapasa ang live data sa display function
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    }
+
+    // 3. I-update ang display function para tumanggap ng data
+    function displayProducts(products) {
         const container = document.getElementById('product-list');
+        container.innerHTML = ""; // Linisin muna ang container
         
         products.forEach(p => {
-            // Installment Computation Logic
+            // Gamitin ang formula para sa monthly payment base sa Column M, N, at O
             const months = 12;
-            const monthlyInterest = p.inst_price * p.interest;
-            const monthlyPayment = (p.inst_price / months) + monthlyInterest;
+            const monthlyInterest = p.Installment_Price * p.Interest_Rate;
+            const monthlyPayment = (p.Installment_Price / months) + monthlyInterest;
 
             const card = `
                 <div class="product-card">
-                    ${p.cash_price < p.reg_price ? '<span class="sale-badge">SALE</span>' : ''}
-                    <img src="${p.path}" class="product-image" alt="${p.name}">
-                    <div class="product-name">${p.name}</div>
-                    <div class="price-regular">₱${p.reg_price.toLocaleString()}</div>
-                    <div class="price-cash">₱${p.cash_price.toLocaleString()}</div>
+                    ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
+                    <img src="${p.Folder_Path}/photo1.jpg" class="product-image">
+                    <div class="product-name">${p.Name}</div>
+                    <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
+                    <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
                     <div class="installment-text">
-                        As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b> for 12 mos
+                        As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b>
                     </div>
                 </div>
             `;
@@ -258,8 +259,9 @@
         });
     }
 
-    window.onload = displayProducts;
+    // 4. Tawagin ang fetch function pagka-load ng page
+    window.onload = fetchProducts;
 </script>
-
+    
 </body>
 </html>
