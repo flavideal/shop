@@ -200,17 +200,19 @@ function showLogin() {
 }
 
 async function handleRegister() {
-    const regBtn = document.getElementById('regBtn');
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const mobile = document.getElementById('regMobile').value;
-    const pin = document.getElementById('regPin').value;
-    const isSubscribed = document.getElementById('regSubscribe').checked;
-
-    if (!name || !email || !mobile || !pin) {
-        alert("Please fill up all fields.");
-        return;
-    }
+    // Kumuha ng reference sa checkbox
+    const subscribeBox = document.getElementById('regSubscribe');
+    
+    const data = {
+        action: "register",
+        name: document.getElementById('regName').value,
+        username: document.getElementById('regUser').value,
+        email: document.getElementById('regEmail').value,
+        mobile: document.getElementById('regMobile').value,
+        pin: document.getElementById('regPin').value,
+        // Eto ang tama: gamitin ang .checked (ito ay magbibigay ng true o false)
+        subscribe: subscribeBox.checked 
+    };
 
     // --- START LOADING ---
     regBtn.disabled = true;
