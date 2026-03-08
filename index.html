@@ -112,14 +112,11 @@
         </div>
 
         <div id="registerFields" style="display: none;">
-            <input type="text" id="regName" placeholder="Full Name">
-            <input type="text" id="regMobile" placeholder="Mobile Number (for OTP)">
-            <input type="password" id="regPin" placeholder="Create 6-Digit PIN">
-            <button class="login-btn" onclick="handleRegister()">Send OTP & Register</button>
-            <p style="font-size: 12px; margin-top: 15px;">
-                Already have an account? <a href="#" onclick="showLogin()" style="color: var(--forest-green);">Login here</a>
-            </p>
-        </div>
+    <input type="text" id="regName" placeholder="Full Name">
+    <input type="email" id="regEmail" placeholder="Email Address"> <input type="text" id="regMobile" placeholder="Mobile Number">
+    <input type="password" id="regPin" placeholder="Create 6-Digit PIN">
+    <button class="login-btn" onclick="handleRegister()">Send OTP to Email</button>
+</div>
 
         <div id="otpFields" style="display: none;">
             <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your mobile number.</p>
@@ -207,11 +204,12 @@ async function handleRegister() {
     }
 
     const data = {
-        action: "register",
-        name: name,
-        mobile: mobile,
-        pin: pin
-    };
+    action: "register",
+    name: document.getElementById('regName').value,
+    email: document.getElementById('regEmail').value,
+    mobile: document.getElementById('regMobile').value,
+    pin: document.getElementById('regPin').value
+};
 
     try {
         // 3. I-send ang data sa Apps Script
