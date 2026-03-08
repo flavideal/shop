@@ -255,40 +255,33 @@ function showOTPBox() {
 async function verifyOTP() {
     const verifyBtn = document.getElementById('verifyBtn');
     const otpInput = document.getElementById('otpInput').value;
+    const mobileInput = document.getElementById('regMobile').value;
 
     if (!otpInput) {
         alert("Please enter the OTP code.");
         return;
     }
 
-    // --- START LOADING ---
     verifyBtn.disabled = true;
-    verifyBtn.innerText = "Verifying... Please wait";
+    verifyBtn.innerText = "Verifying...";
 
-    const data = {
-        action: "verify",
-        mobile: document.getElementById('regMobile').value,
-        otp: otpInput
-    };
+    // Gamitin ang URL parameters para mas madaling basahin ng Apps Script
+    const verifyUrl = `${webAppUrl}?action=verify&mobile=${mobileInput}&otp=${otpInput}`;
 
     try {
-        const response = await fetch(webAppUrl, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-
+        const response = await fetch(verifyUrl);
         const result = await response.text();
         
         if (result === "Verified") {
-            alert("Account verified successfully!");
+            alert("Account verified successfully! You can now login.");
             showLogin();
         } else {
             alert("Invalid OTP code. Please try again.");
         }
     } catch (error) {
-        alert("Connection error. Please try again.");
+        console.error("Error:", error);
+        alert("Verification failed. Please check your internet or try again.");
     } finally {
-        // --- RESET BUTTON ---
         verifyBtn.disabled = false;
         verifyBtn.innerText = "Verify & Complete";
     }
