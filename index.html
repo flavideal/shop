@@ -185,6 +185,66 @@
 @media (min-width: 768px) {
     .product-container { grid-template-columns: repeat(4, 1fr); } /* 4 columns sa desktop */
 }
+
+/* --- LOGIN/ACCOUNT MODAL --- */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+}
+
+.modal-content h2 {
+    color: var(--forest-green);
+    margin-bottom: 20px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.login-btn {
+    background-color: var(--forest-green);
+    color: var(--white);
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999;
+}
+        
     </style>
 </head>
 <body>
@@ -216,6 +276,32 @@
         <div class="item"><i class="fas fa-percent"></i><br>Offers</div>
         <div class="item"><i class="fas fa-user"></i><br>Account</div>
     </div>
+
+    <div id="accountModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="toggleModal()">&times;</span>
+        <h2 id="modalTitle">Customer Login</h2>
+        
+        <div id="loginFields">
+            <input type="text" id="username" placeholder="Username or Mobile Number">
+            <input type="password" id="pin" placeholder="6-Digit PIN">
+            <button class="login-btn" onclick="handleLogin()">Login</button>
+            <p style="font-size: 12px; margin-top: 15px;">
+                No account? <a href="#" onclick="showRegister()" style="color: var(--forest-green);">Register here</a>
+            </p>
+        </div>
+
+        <div id="registerFields" style="display: none;">
+            <input type="text" id="regName" placeholder="Full Name">
+            <input type="text" id="regMobile" placeholder="Mobile Number (for OTP)">
+            <input type="password" id="regPin" placeholder="Create 6-Digit PIN">
+            <button class="login-btn" onclick="handleRegister()">Send OTP & Register</button>
+            <p style="font-size: 12px; margin-top: 15px;">
+                Already have an account? <a href="#" onclick="showLogin()" style="color: var(--forest-green);">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
 
 <script>
     // 1. I-paste ang Web App URL mula sa Google Apps Script deployment mo
@@ -261,6 +347,44 @@
 
     // 4. Tawagin ang fetch function pagka-load ng page
     window.onload = fetchProducts;
+
+    function toggleModal() {
+    const modal = document.getElementById('accountModal');
+    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
+}
+
+function showRegister() {
+    document.getElementById('modalTitle').innerText = "Create Account";
+    document.getElementById('loginFields').style.display = "none";
+    document.getElementById('registerFields').style.display = "block";
+}
+
+function showLogin() {
+    document.getElementById('modalTitle').innerText = "Customer Login";
+    document.getElementById('loginFields').style.display = "block";
+    document.getElementById('registerFields').style.display = "none";
+}
+
+async function handleRegister() {
+    const data = {
+        action: "register",
+        name: document.getElementById('regName').value,
+        mobile: document.getElementById('regMobile').value,
+        pin: document.getElementById('regPin').value
+    };
+
+    // Tatawagin ang Apps Script Web App mo gamit ang POST method
+    const response = await fetch(webAppUrl, {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.text();
+    if (result === "OTP Sent") {
+        alert("Registration initial success! Please check your phone for the OTP.");
+        // Dito mo na pwedeng ipakita ang OTP verification field
+    }
+}
 </script>
     
 </body>
