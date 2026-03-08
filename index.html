@@ -162,30 +162,35 @@
 
     // 3. I-update ang display function para tumanggap ng data
     function displayProducts(products) {
-        const container = document.getElementById('product-list');
-        container.innerHTML = ""; // Linisin muna ang container
-        
-        products.forEach(p => {
-            // Gamitin ang formula para sa monthly payment base sa Column M, N, at O
-            const months = 12;
-            const monthlyInterest = p.Installment_Price * p.Interest_Rate;
-            const monthlyPayment = (p.Installment_Price / months) + monthlyInterest;
+    const container = document.getElementById('product-list');
+    container.innerHTML = ""; 
+    
+    products.forEach(p => {
+        // GAMITIN ANG TAMA MONG COLUMNS (M, N, O)
+        const months = 12;
+        const instPrice = Number(p.Installment_Price) || 0;
+        const interest = Number(p.Interest_Rate) || 0;
+        const fee = Number(p.Processing_Fee) || 0;
 
-            const card = `
-                <div class="product-card">
-                    ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
-                    <img src="${p.Folder_Path}/photo1.jpg" class="product-image">
-                    <div class="product-name">${p.Name}</div>
-                    <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
-                    <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
-                    <div class="installment-text">
-                        As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b>
-                    </div>
+        // Formula: (Price / Months) + (Price * Interest) + (Fee / Months)
+        const monthlyPayment = (instPrice / months) + (instPrice * interest) + (fee / months);
+
+        const card = `
+            <div class="product-card">
+                ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
+                <img src="${p.Folder_Path}/photo1.jpg" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
+                <div class="product-name">${p.Name}</div>
+                <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
+                <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
+                <div class="installment-text">
+                    As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b>
                 </div>
-            `;
-            container.innerHTML += card;
-        });
-    }
+                <p style="font-size:9px; color:gray;">Stock: ${p.Stock_Count}</p>
+            </div>
+        `;
+        container.innerHTML += card;
+    });
+}
 
     // 4. Tawagin ang fetch function pagka-load ng page
     window.onload = fetchProducts;
