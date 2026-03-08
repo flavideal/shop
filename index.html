@@ -70,10 +70,10 @@
             <span>Shop | Offers | New Arrival</span>
         </div>
         <div class="nav-icons">
-            <i class="fas fa-search"></i>
-            <i class="fas fa-shopping-cart"></i>
-            <i class="fas fa-user-circle"></i>
-        </div>
+    <i class="fas fa-search"></i>
+    <i class="fas fa-shopping-cart"></i>
+    <i class="fas fa-user-circle" onclick="toggleModal()"></i>
+</div>
     </nav>
 
     <section class="hero">
@@ -86,11 +86,11 @@
     </section>
 
     <div class="mobile-nav">
-        <div class="item"><i class="fas fa-home"></i><br>Home</div>
-        <div class="item"><i class="fas fa-th-large"></i><br>Shop</div>
-        <div class="item"><i class="fas fa-percent"></i><br>Offers</div>
-        <div class="item"><i class="fas fa-user"></i><br>Account</div>
-    </div>
+    <div class="item"><i class="fas fa-home"></i><br>Home</div>
+    <div class="item"><i class="fas fa-th-large"></i><br>Shop</div>
+    <div class="item"><i class="fas fa-percent"></i><br>Offers</div>
+    <div class="item" onclick="toggleModal()"><i class="fas fa-user"></i><br>Account</div>
+</div>
 
     <div id="accountModal" class="modal">
     <div class="modal-content">
@@ -190,14 +190,8 @@ function showLogin() {
 }
 
 async function handleRegister() {
-    const data = {
-        action: "register",
-        name: document.getElementById('regName').value,
-        mobile: document.getElementById('regMobile').value,
-        pin: document.getElementById('regPin').value
-    };
-
-    // Tatawagin ang Apps Script Web App mo gamit ang POST method
+    // ... yung data mo ...
+    
     const response = await fetch(webAppUrl, {
         method: 'POST',
         body: JSON.stringify(data)
@@ -205,8 +199,10 @@ async function handleRegister() {
 
     const result = await response.text();
     if (result === "OTP Sent") {
-        alert("Registration initial success! Please check your phone for the OTP.");
-        // Dito mo na pwedeng ipakita ang OTP verification field
+        alert("OTP Sent! Please check your phone.");
+        showOTPBox(); // Idagdag ito para lumabas agad yung input box ng code
+    } else {
+        alert("Error sending OTP. Please try again.");
     }
 }
 
