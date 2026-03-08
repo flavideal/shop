@@ -200,19 +200,18 @@ function showLogin() {
 }
 
 async function handleRegister() {
-    // Kumuha ng reference sa checkbox
-    const subscribeBox = document.getElementById('regSubscribe');
-    
-    const data = {
-        action: "register",
-        name: document.getElementById('regName').value,
-        username: document.getElementById('regUser').value,
-        email: document.getElementById('regEmail').value,
-        mobile: document.getElementById('regMobile').value,
-        pin: document.getElementById('regPin').value,
-        // Eto ang tama: gamitin ang .checked (ito ay magbibigay ng true o false)
-        subscribe: subscribeBox.checked 
-    };
+    const regBtn = document.getElementById('regBtn');
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const mobile = document.getElementById('regMobile').value;
+    const pin = document.getElementById('regPin').value;
+    const username = document.getElementById('regUser').value;
+    const isSubscribed = document.getElementById('regSubscribe').checked;
+
+    if (!name || !email || !mobile || !pin || !username) {
+        alert("Please fill up all fields.");
+        return;
+    }
 
     // --- START LOADING ---
     regBtn.disabled = true;
@@ -220,16 +219,17 @@ async function handleRegister() {
     regBtn.style.opacity = "0.7";
 
     const data = {
-    action: "register",
-    name: name,
-    username: document.getElementById('regUser').value,
-    email: email,
-    mobile: mobile,
-    pin: pin,
-    subscribe: isSubscribed // Ipadala ang true/false value
-};
+        action: "register",
+        name: name,
+        username: username,
+        email: email,
+        mobile: mobile,
+        pin: pin,
+        subscribe: isSubscribed
+    };
 
     try {
+        // Gagamit tayo ng 'mode: no-cors' dahil sa security ng Google Apps Script
         await fetch(webAppUrl, {
             method: 'POST',
             mode: 'no-cors', 
@@ -237,8 +237,9 @@ async function handleRegister() {
             body: JSON.stringify(data)
         });
 
-        // SUCCESS
-        alert("OTP has been sent to your email!");
+        // SUCCESS: Dahil no-cors, hindi natin mababasa ang response text, 
+        // kaya assume natin na basta walang error sa fetch, sent na ito.
+        alert("OTP request sent! Please check your email.");
         showOTPBox(); 
         
     } catch (error) {
@@ -254,11 +255,11 @@ async function handleRegister() {
 
     // Function para ipakita ang OTP box pagkatapos ng registration request
 function showOTPBox() {
-    document.getElementById('modalTitle').innerText = "Verify Mobile";
+    document.getElementById('modalTitle').innerText = "Verify Email OTP"; // Mas malinaw na email na ang gamit
     document.getElementById('registerFields').style.display = "none";
     document.getElementById('otpFields').style.display = "block";
 }
-
+    
 async function verifyOTP() {
     const verifyBtn = document.getElementById('verifyBtn');
     const otpInput = document.getElementById('otpInput').value;
