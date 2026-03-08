@@ -201,22 +201,31 @@ function showLogin() {
 
 async function handleRegister() {
     const regBtn = document.getElementById('regBtn');
-    const formFields = ['regName', 'regUser', 'regEmail', 'regMobile', 'regPin'];
+    
+    // Kunin lahat ng values
+    const name = document.getElementById('regName').value;
+    const user = document.getElementById('regUser').value;
+    const email = document.getElementById('regEmail').value;
+    const mobile = document.getElementById('regMobile').value;
+    const pin = document.getElementById('regPin').value;
+    const subscribe = document.getElementById('regSubscribe').checked;
 
-    // 1. Quick Check: Siguraduhin na may laman lahat
-    if (formFields.some(id => !document.getElementById(id).value)) {
+    if (!name || !user || !email || !mobile || !pin) {
         return alert("Please fill up all fields.");
     }
 
-    // 2. START LOADING
     regBtn.disabled = true;
-    regBtn.innerText = "Sending OTP...";
+    regBtn.innerText = "Sending OTP... Please wait";
 
-    // 3. AUTO-COLLECT DATA (Eto ang pampaikli)
+    // URLSearchParams para sa no-cors compatibility
     const formData = new URLSearchParams();
     formData.append("action", "register");
-    formFields.forEach(id => formData.append(id.replace('reg', '').toLowerCase(), document.getElementById(id).value));
-    formData.append("subscribe", document.getElementById('regSubscribe').checked);
+    formData.append("name", name);
+    formData.append("user", user);
+    formData.append("email", email);
+    formData.append("mobile", mobile);
+    formData.append("pin", pin);
+    formData.append("subscribe", subscribe);
 
     try {
         await fetch(webAppUrl, {
@@ -225,10 +234,11 @@ async function handleRegister() {
             body: formData.toString()
         });
 
-        alert("OTP sent! Check your email.");
-        showOTPBox();
-    } catch (e) {
-        alert("Error connecting. Try again.");
+        // Dahil no-cors, hindi tayo makakabasa ng response, pero alam nating tapos na
+        alert("OTP request sent! Check your email (including Spam folder).");
+        showOTPBox(); 
+    } catch (error) {
+        alert("Connection error. Try again.");
     } finally {
         regBtn.disabled = false;
         regBtn.innerText = "Send OTP to Email";
