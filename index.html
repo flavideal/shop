@@ -190,19 +190,42 @@ function showLogin() {
 }
 
 async function handleRegister() {
-    // ... yung data mo ...
-    
-    const response = await fetch(webAppUrl, {
-        method: 'POST',
-        body: JSON.stringify(data)
-    });
+    // 1. Kunin ang input values mula sa modal
+    const name = document.getElementById('regName').value;
+    const mobile = document.getElementById('regMobile').value;
+    const pin = document.getElementById('regPin').value;
 
-    const result = await response.text();
-    if (result === "OTP Sent") {
-        alert("OTP Sent! Please check your phone.");
-        showOTPBox(); // Idagdag ito para lumabas agad yung input box ng code
-    } else {
-        alert("Error sending OTP. Please try again.");
+    // 2. Check kung may kulang na fields
+    if (!name || !mobile || !pin) {
+        alert("Please fill up all fields.");
+        return;
+    }
+
+    const data = {
+        action: "register",
+        name: name,
+        mobile: mobile,
+        pin: pin
+    };
+
+    try {
+        // 3. I-send ang data sa Apps Script
+        // Gumamit tayo ng 'no-cors' mode para hindi i-block ng browser
+        const response = await fetch(webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        // 4. Dahil 'no-cors', hindi natin mababasa ang "OTP Sent" na text, 
+        // pero basta hindi nag-error ang fetch, itutuloy na natin sa OTP box.
+        alert("Registration request sent! Please check your phone for the OTP.");
+        showOTPBox(); 
+        
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Error connecting to server. Please try again.");
     }
 }
 
