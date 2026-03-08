@@ -60,6 +60,11 @@
         .product-container { grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .hero h1 { font-size: 3.5rem; }
     }
+
+    #otpInput {
+    font-size: 24px; height: 50px; border: 2px solid var(--forest-green); color: var(--forest-green);
+}
+        
 </style>
 </head>
 <body>
@@ -115,16 +120,16 @@
                 Already have an account? <a href="#" onclick="showLogin()" style="color: var(--forest-green);">Login here</a>
             </p>
         </div>
-    </div>
-</div>
 
-<div id="otpFields" style="display: none;">
-    <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your mobile number.</p>
-    <input type="text" id="otpInput" placeholder="Enter OTP Code" maxlength="6" style="text-align: center; letter-spacing: 5px; font-weight: bold;">
-    <button class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
-    <p style="font-size: 12px; margin-top: 15px;">
-        Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
-    </p>
+        <div id="otpFields" style="display: none;">
+            <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your mobile number.</p>
+            <input type="text" id="otpInput" placeholder="Enter OTP Code" maxlength="6" style="text-align: center; letter-spacing: 5px; font-weight: bold;">
+            <button class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
+            <p style="font-size: 12px; margin-top: 15px;">
+                Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
+            </p>
+        </div>
+    </div>
 </div>
     
 <script>
