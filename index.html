@@ -211,12 +211,13 @@ async function handleRegister() {
     regBtn.style.opacity = "0.7";
 
     const data = {
-        action: "register",
-        name: name,
-        email: email,
-        mobile: mobile,
-        pin: pin
-    };
+    action: "register",
+    name: document.getElementById('regName').value,
+    username: document.getElementById('regUser').value, // Dagdag ito
+    email: document.getElementById('regEmail').value,
+    mobile: document.getElementById('regMobile').value,
+    pin: document.getElementById('regPin').value
+};
 
     try {
         await fetch(webAppUrl, {
