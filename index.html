@@ -74,7 +74,51 @@
                     Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
                 </p>
             </div>
-        </div>
+
+            <div id="dashboardFields" style="display: none;">
+                <h3 style="color: var(--forest-green); margin-bottom: 5px;">Welcome, <span id="dashName">User</span>!</h3>
+                <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Flavi Deal Member</p>
+
+                <div class="dash-tabs-container">
+                    <span onclick="switchDash('profile')" class="dash-tab active">Profile</span>
+                    <span onclick="switchDash('orders')" class="dash-tab">Orders</span>
+                    <span onclick="switchDash('installments')" class="dash-tab">Plan</span>
+                    <span onclick="switchDash('referral')" class="dash-tab">Referral</span>
+                </div>
+
+                <div id="dash-profile" class="dash-section">
+                    <label style="font-size: 11px; color: gray;">Full Name</label>
+                    <input type="text" id="editName" readonly>
+                    <label style="font-size: 11px; color: gray;">Email</label>
+                    <input type="email" id="editEmail" readonly>
+                    <button class="login-btn" style="background: #e67e22; border-radius: 8px;" onclick="requestProfileChange()">Update Details (OTP Required)</button>
+                </div>
+
+                <div id="dash-orders" class="dash-section" style="display:none;">
+                    <div class="order-status-grid">
+                        <div class="status-item"><i class="fas fa-box"></i><br>To Ship</div>
+                        <div class="status-item"><i class="fas fa-truck"></i><br>To Receive</div>
+                        <div class="status-item"><i class="fas fa-check-circle"></i><br>Done</div>
+                    </div>
+                    <p style="text-align:center; font-size: 11px; margin-top: 20px; color: #999;">No active orders.</p>
+                </div>
+
+                <div id="dash-installments" class="dash-section" style="display:none;">
+                    <div class="plan-card">
+                        <i class="fas fa-file-invoice-dollar" style="font-size: 20px; color: var(--forest-green);"></i>
+                        <p style="font-size: 12px; margin: 10px 0;">No active Flavi Deal Installment plan yet.</p>
+                        <button class="cta-btn" style="padding: 5px 15px; font-size: 12px;">Apply Now</button>
+                    </div>
+                </div>
+
+                <div id="dash-referral" class="dash-section" style="display:none;">
+                    <p style="font-size: 12px;">Share your referral code and earn credits!</p>
+                    <div class="referral-box" id="referralCode">FD-USER-XXXX</div>
+                </div>
+
+                <button class="login-btn" style="background: #c0392b; margin-top: 20px; border-radius: 8px;" onclick="handleLogout()">Logout</button>
+            </div>
+            </div>
     </div>
 
     <script src="script.js"></script>
