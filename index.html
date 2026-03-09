@@ -27,7 +27,8 @@
         <button class="cta-btn">Shop Now</button>
     </section>
 
-    <section class="product-container" id="product-list"></section>
+    <section class="product-container" id="product-list">
+    </section>
 
     <div class="mobile-nav">
         <div class="item"><i class="fas fa-home"></i><br>Home</div>
@@ -59,8 +60,9 @@
                 
                 <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 13px; color: #555;">
                     <input type="checkbox" id="regSubscribe" style="width: auto; margin: 0;">
-                    <label for="regSubscribe">Subscribe to promotions</label>
+                    <label for="regSubscribe">Subscribe to promotions & new arrivals</label>
                 </div>
+
                 <button id="regBtn" class="login-btn" onclick="handleRegister()">Send OTP to Email</button>
             </div>
 
@@ -74,23 +76,6 @@
             </div>
         </div>
     </div>
-
-    <section id="account-dashboard" style="display: none; padding: 80px 5%; min-height: 100vh;">
-    <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: var(--shadow);">
-        <h2 style="color: var(--forest-green);">Welcome, <span id="user-display-name">Customer</span>!</h2>
-        <p style="font-size: 14px; color: #666;">Butuan City Premium Member</p>
-        <hr>
-        
-        <h3>My Installment Orders</h3>
-        <div id="order-list">
-            <p style="color: gray; font-style: italic;">No active installment orders found.</p>
-        </div>
-        
-        <button onclick="logout()" style="margin-top: 20px; background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer;">
-            Logout
-        </button>
-    </div>
-</section>
 
     <script src="script.js"></script>
 </body>
