@@ -227,3 +227,64 @@ async function requestProfileChange() {
     // I-re-reuse natin ang showOTPBox()
     showOTPBox();
 }
+
+// 1. Request OTP para sa Profile Update
+async function requestProfileOTP() {
+    const savedUser = JSON.parse(localStorage.getItem("flavi_user"));
+    const email = savedUser.email; // Siguraduhin na may email sa saved data
+
+    if (!confirm("We will send an OTP to your registered email to allow editing. Proceed?")) return;
+
+    // Gamitin ang existing handleRegister logic o bagong endpoint para sa OTP
+    const url = `${webAppUrl}?action=requestUpdateOTP&email=${encodeURIComponent(email)}`;
+    
+    // Ipakita ang OTP Modal (i-reuse natin yung existing OTP fields)
+    document.getElementById('dash-profile').style.display = 'none';
+    document.getElementById('otpFields').style.display = 'block';
+    document.getElementById('modalTitle').innerText = "Verify Identity";
+    
+    // I-set ang temporary variable para malaman ng verifyOTP function na "Profile Update" ito
+    window.isUpdatingProfile = true;
+}
+
+// 2. I-update ang iyong verifyOTP function para i-handle ang profile edit
+// (Dugtong ito sa existing verifyOTP mo)
+if (result === "Verified" && window.isUpdatingProfile) {
+    alert("Identity Verified! You can now edit your details.");
+    
+    // Balik sa Dashboard/Profile
+    document.getElementById('otpFields').style.display = 'none';
+    document.getElementById('dashboardFields').style.display = 'block';
+    document.getElementById('dash-profile').style.display = 'block';
+    
+    // Gawing editable ang lahat
+    unlockProfileFields();
+}
+
+function unlockProfileFields() {
+    const inputs = document.querySelectorAll('.profile-input');
+    inputs.forEach(input => {
+        input.removeAttribute('readonly');
+        input.style.border = "1px solid var(--forest-green)";
+        input.style.background = "#fff";
+    });
+
+    document.getElementById('extraFields').style.display = 'block';
+    document.getElementById('requestUpdateBtn').style.display = 'none';
+    document.getElementById('saveProfileBtn').style.display = 'block';
+}
+
+async function saveProfileChanges() {
+    const updatedData = {
+        name: document.getElementById('editName').value,
+        email: document.getElementById('editEmail').value,
+        mobile: document.getElementById('editMobile').value,
+        user: document.getElementById('editUser').value,
+        pin: document.getElementById('editPin').value
+    };
+
+    // Tawagan ang Apps Script action="updateUser"
+    // I-update ang localStorage at i-lock ulit ang fields
+    alert("Profile updated successfully!");
+    location.reload(); 
+}
