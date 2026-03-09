@@ -196,3 +196,56 @@ nav { top: 0; padding: 12px 5%; display: flex; justify-content: space-between; a
 
 .dash-section { animation: fadeIn 0.4s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Modal Background */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 9999; 
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.8); /* Itim na transparent */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Box */
+.modal-content {
+    background-color: #fff;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto; /* Scrollable kapag mahaba ang description */
+    border-radius: 15px;
+    padding: 20px;
+    position: relative;
+}
+
+/* Close Button */
+.close-btn {
+    position: absolute;
+    right: 15px; top: 10px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #999;
+}
+
+/* Gallery Images */
+.gallery-container {
+    display: flex;
+    overflow-x: auto; /* Swipeable horizontally */
+    gap: 10px;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+}
+
+.gallery-img {
+    width: 250px; /* Tamang size para sa mobile swipe */
+    height: auto;
+    border-radius: 10px;
+    scroll-snap-align: center;
+}
+
+/* Buttons Styling */
+.btn-regular { background: #1B4D2E; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; }
+.btn-easy { background: #f39c12; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; }
