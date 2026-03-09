@@ -227,11 +227,11 @@ async function requestProfileOTP() {
     const email = savedUser ? savedUser.email : "";
 
     if (!email || email === "No Email Found") {
-        alert("Error: Hindi mahanap ang email mo. Mag-login ulit.");
+        alert("Error: Your email could not be found. Please log in again.");
         return;
     }
 
-    if (!confirm("Magpapadala kami ng OTP sa " + email + " para payagan ang pag-edit. Ituloy?")) return;
+    if (!confirm("We will send an OTP to " + email + " to authorize editing. Do you want to proceed?")) return;
 
     // Pakita natin na naglo-load
     const reqBtn = document.getElementById('requestUpdateBtn');
