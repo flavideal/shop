@@ -108,6 +108,7 @@ async function verifyOTP() {
     const verifyBtn = document.getElementById('verifyBtn');
     const otpInput = document.getElementById('otpInput').value;
     const mobileInput = document.getElementById('regMobile').value;
+    const fullName = document.getElementById('regName').value; // Kunin ang name para sa dashboard
 
     if (!otpInput) {
         alert("Please enter the OTP code.");
@@ -117,27 +118,38 @@ async function verifyOTP() {
     verifyBtn.disabled = true;
     verifyBtn.innerText = "Verifying...";
 
-    const verifyUrl = `${webAppUrl}?action=verify&mobile=${mobileInput}&otp=${otpInput}`;
+    const verifyUrl = `${webAppUrl}?action=verify&mobile=${encodeURIComponent(mobileInput)}&otp=${encodeURIComponent(otpInput)}`;
 
     try {
         const response = await fetch(verifyUrl);
         const result = await response.text();
         
         if (result === "Verified") {
-            alert("Account verified successfully! You can now login.");
-            showLogin();
+            alert("Account verified successfully!");
+            
+            // AUTOMATIC LOGIN: Ipakita agad ang Dashboard pagka-verify
+            const userData = {
+                status: "Success",
+                name: fullName
+            };
+            
+            // I-save ang session
+            localStorage.setItem("flavi_user", JSON.stringify(userData));
+            
+            // Tawagin ang function para ipakita ang dashboard
+            showDashboard(userData);
+            
         } else {
             alert("Invalid OTP code. Please try again.");
         }
     } catch (error) {
         console.error("Error:", error);
-        alert("Verification failed. Please check your internet or try again.");
+        alert("Verification failed. Please try again.");
     } finally {
         verifyBtn.disabled = false;
         verifyBtn.innerText = "Verify & Complete";
     }
 }
-
 // Function para magpalit ng view sa Dashboard
 function switchDash(tab) {
     document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
