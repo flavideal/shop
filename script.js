@@ -18,6 +18,9 @@ function displayProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = ""; 
     
+    // I-save natin ang products sa window para ma-access ng openProductDetails
+    window.currentProducts = products;
+
     products.forEach((p, index) => {
         const months = 12;
         const instPrice = Number(p.Installment_Price) || 0;
@@ -25,9 +28,9 @@ function displayProducts(products) {
         const fee = Number(p.Processing_Fee) || 0;
         const monthlyPayment = (instPrice / months) + (instPrice * interest) + (fee / months);
 
-        // Idinagdag: onclick="openProductDetails(${index})"
+        // FIX: Imbes na JSON.stringify, index na lang ang ipasa natin
         const card = `
-            <div class="product-card" onclick='openProductDetails(${JSON.stringify(p)})'>
+            <div class="product-card" onclick="openProductDetails(${index})" style="cursor: pointer;">
                 ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
                 <img src="${p.Folder_Path}/photo1.jpg" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
                 <div class="product-name">${p.Name}</div>
@@ -45,40 +48,50 @@ function displayProducts(products) {
     });
 }
 
-function openProductDetails(p) {
-    // 1. Ipakita ang Product Modal (dapat may modal ka para dito sa HTML)
+function openProductDetails(index) {
+    // Kunin ang product mula sa window variable gamit ang index
+    const p = window.currentProducts[index];
+    
+    if (!p) return;
+
     const modal = document.getElementById('productViewModal');
+    if (!modal) {
+        alert("Error: productViewModal not found in HTML.");
+        return;
+    }
+    
     modal.style.display = "flex";
 
-    // 2. Load Photos (Loop para sa 14 photos mula sa Folder_Path)
+    // Load Photos (1-14)
     let photoHTML = "";
     for(let i=1; i<=14; i++) {
-        photoHTML += `<img src="${p.Folder_Path}/photo${i}.jpg" onerror="this.style.display='none'">`;
+        // Idinagdag ang class para sa styling ng gallery
+        photoHTML += `<img src="${p.Folder_Path}/photo${i}.jpg" class="gallery-img" onerror="this.style.display='none'">`;
     }
     document.getElementById('photoGallery').innerHTML = photoHTML;
 
-    // 3. Load Details
+    // Load Details
     document.getElementById('viewName').innerText = p.Name;
     document.getElementById('viewDesc').innerText = p.Description;
     document.getElementById('viewColors').innerText = "Available Colors: " + p.Colors;
     document.getElementById('viewCapacity').innerText = "Storage: " + p.Capacity;
 
-    // 4. Installment Buttons Logic (Column P & Q)
+    // Installment Buttons
     const regularBtn = document.getElementById('regInstallBtn');
     const easyBtn = document.getElementById('easyInstallBtn');
 
-    // Link para sa Regular (Direct)
-    regularBtn.onclick = () => window.open(p.Installment_Regular, '_blank');
+    if(regularBtn) regularBtn.onclick = () => window.open(p.Installment_Regular, '_blank');
 
-    // Link para sa Easy (Hihingi ng Code - Column R)
-    easyBtn.onclick = () => {
-        const inputCode = prompt("Please enter the Easy Code Key to proceed:");
-        if (inputCode === p.Easy_Code_Key) {
-            window.open(p.Installment_Easy, '_blank');
-        } else {
-            alert("Incorrect Code. Please contact Flavi Deal support.");
-        }
-    };
+    if(easyBtn) {
+        easyBtn.onclick = () => {
+            const inputCode = prompt("Please enter the Easy Code Key to proceed:");
+            if (inputCode === p.Easy_Code_Key.toString()) {
+                window.open(p.Installment_Easy, '_blank');
+            } else {
+                alert("Incorrect Code. Please contact Flavi Deal support.");
+            }
+        };
+    }
 }
 
 // 4. Tawagin ang fetch function pagka-load ng page
