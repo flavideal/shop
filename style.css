@@ -38,29 +38,99 @@ nav { top: 0; padding: 12px 5%; display: flex; justify-content: space-between; a
 .price-cash { color: var(--forest-green); font: bold 15px sans-serif; }
 .installment-text { font-size: 10px; color: #555; background: #f1f1f1; padding: 4px; border-radius: 4px; margin-top: 5px; }
 
-/* Modals & Forms */
-.modal { display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
-.modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 380px; position: relative; }
-.modal-content input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
-.login-btn { background: var(--forest-green); color: white; width: 100%; padding: 10px; margin-top: 5px; }
-.close-modal { position: absolute; top: 10px; right: 15px; font-size: 22px; color: #999; }
+/* BINAGO: Modals & Forms - GINAWANG MAS MALAKI */
+.modal { display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; padding: 10px; }
 
-/* Responsive */
+.modal-content { 
+    background: white; 
+    padding: 25px; 
+    border-radius: 20px; 
+    width: 100%; 
+    max-width: 700px; /* Nilakihan natin ang max width */
+    max-height: 90vh; /* Para hindi lumampas sa screen height */
+    overflow-y: auto; /* Magkakaroon ng scrollbar kung mahaba ang content */
+    position: relative; 
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; }
+.login-btn { background: var(--forest-green); color: white; width: 100%; padding: 12px; margin-top: 10px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; }
+.close-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #aaa; cursor: pointer; z-index: 10; }
+
+/* Dashboard Tabs Layout */
+.dash-tabs-container {
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    overflow-x: auto; /* Scrollable tabs sa mobile */
+}
+
+.dash-tab { 
+    cursor: pointer; 
+    padding: 10px 15px; 
+    color: #888; 
+    font-weight: 600; 
+    font-size: 14px;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+}
+
+.dash-tab.active { 
+    color: var(--forest-green); 
+    border-bottom: 3px solid var(--forest-green); 
+}
+
+/* Dashboard Grid for Orders */
+.order-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.status-item {
+    background: #f8fcf9;
+    padding: 15px 10px;
+    border-radius: 12px;
+    border: 1px solid #edf5ef;
+    color: var(--forest-green);
+    font-size: 12px;
+}
+
+.status-item i { font-size: 22px; margin-bottom: 8px; display: block; }
+
+/* Referral & Plans */
+.referral-box {
+    background: #f4f4f4;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--forest-green);
+    border: 2px dashed #ccc;
+    margin: 10px 0;
+}
+
+/* Responsive Updates */
 @media (min-width: 768px) {
     .nav-links { display: flex; }
     .mobile-nav { display: none; }
     .product-container { grid-template-columns: repeat(4, 1fr); gap: 20px; }
     .hero h1 { font-size: 3.5rem; }
+    .modal-content { padding: 40px; } /* Mas maluwag sa desktop */
 }
 
 #otpInput {
-    font-size: 24px; height: 50px; border: 2px solid var(--forest-green); color: var(--forest-green);
+    font-size: 24px; height: 50px; border: 2px solid var(--forest-green); color: var(--forest-green); text-align: center;
 }
 
 .mobile-nav .item { font-size: 10px; text-align: center; flex: 1; color: #666; cursor: pointer; }
 .mobile-nav .item i { font-size: 18px; margin-bottom: 2px; color: var(--forest-green); }
 
-.dash-tab { cursor: pointer; padding: 5px 10px; color: #666; white-space: nowrap; }
-.dash-tab.active { color: var(--forest-green); border-bottom: 2px solid var(--forest-green); font-weight: bold; }
-.dash-section { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.dash-section { animation: fadeIn 0.4s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
