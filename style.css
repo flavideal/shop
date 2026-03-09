@@ -1,0 +1,61 @@
+:root {
+    --forest-green: #1B4D2E;
+    --golden-yellow: #FFD275;
+    --light-bg: #F8F9FA;
+    --white: #ffffff;
+    --shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Reset & Base */
+* { box-sizing: border-box; transition: 0.3s; }
+body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light-bg); color: #333; padding-bottom: 60px; }
+
+/* Layout Components */
+nav, .mobile-nav { position: fixed; width: 100%; z-index: 1000; background: var(--forest-green); box-shadow: var(--shadow); }
+nav { top: 0; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; }
+.mobile-nav { bottom: 0; background: var(--white); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #eee; }
+
+/* Typography & Links */
+.logo { font-weight: bold; font-size: 22px; color: var(--golden-yellow); text-decoration: none; letter-spacing: 1px; }
+.nav-links { display: none; color: white; gap: 20px; }
+.nav-icons { color: white; font-size: 18px; display: flex; gap: 15px; }
+.nav-icons i, .cta-btn, .login-btn { cursor: pointer; }
+
+/* Sections */
+.hero { background: var(--forest-green); color: white; padding: 50px 5%; text-align: center; border-radius: 0 0 40px 40px; }
+.hero h1 { font-size: 2.2rem; margin: 0 0 10px; }
+.cta-btn, .login-btn { border: none; font-weight: bold; border-radius: 25px; }
+.cta-btn { background: var(--golden-yellow); color: var(--forest-green); padding: 12px 30px; font-size: 16px; margin-top: 15px; }
+.cta-btn:hover { transform: translateY(-3px); }
+
+/* Product Grid */
+.product-container { padding: 25px 5%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.product-card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
+.sale-badge { position: absolute; top: 8px; left: 8px; background: var(--golden-yellow); color: var(--forest-green); font: bold 9px sans-serif; padding: 3px 6px; border-radius: 4px; }
+.product-image { width: 100%; aspect-ratio: 1; object-fit: contain; }
+.product-name { font: bold 13px sans-serif; margin: 5px 0; height: 35px; overflow: hidden; }
+.price-regular { text-decoration: line-through; color: #999; font-size: 11px; }
+.price-cash { color: var(--forest-green); font: bold 15px sans-serif; }
+.installment-text { font-size: 10px; color: #555; background: #f1f1f1; padding: 4px; border-radius: 4px; margin-top: 5px; }
+
+/* Modals & Forms */
+.modal { display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+.modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 380px; position: relative; }
+.modal-content input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
+.login-btn { background: var(--forest-green); color: white; width: 100%; padding: 10px; margin-top: 5px; }
+.close-modal { position: absolute; top: 10px; right: 15px; font-size: 22px; color: #999; }
+
+/* Responsive */
+@media (min-width: 768px) {
+    .nav-links { display: flex; }
+    .mobile-nav { display: none; }
+    .product-container { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .hero h1 { font-size: 3.5rem; }
+}
+
+#otpInput {
+    font-size: 24px; height: 50px; border: 2px solid var(--forest-green); color: var(--forest-green);
+}
+
+.mobile-nav .item { font-size: 10px; text-align: center; flex: 1; color: #666; cursor: pointer; }
+.mobile-nav .item i { font-size: 18px; margin-bottom: 2px; color: var(--forest-green); }
