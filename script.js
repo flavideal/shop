@@ -201,10 +201,12 @@ function handleLogout() {
 // I-check kung logged in na si user pagka-load ng page
 window.onload = function() {
     fetchProducts();
+    
+    // Check if user is already logged in
     const savedUser = localStorage.getItem("flavi_user");
     if (savedUser) {
-        // Option: I-auto login o i-update ang UI na nagsasabing "Logged In"
-        console.log("User is logged in");
+        const userData = JSON.parse(savedUser);
+        showDashboard(userData);
     }
 };
 
