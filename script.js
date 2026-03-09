@@ -18,17 +18,16 @@ function displayProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = ""; 
     
-    products.forEach(p => {
+    products.forEach((p, index) => {
         const months = 12;
         const instPrice = Number(p.Installment_Price) || 0;
         const interest = Number(p.Interest_Rate) || 0;
         const fee = Number(p.Processing_Fee) || 0;
-
-        // Formula: (Price / Months) + (Price * Interest) + (Fee / Months)
         const monthlyPayment = (instPrice / months) + (instPrice * interest) + (fee / months);
 
+        // Idinagdag: onclick="openProductDetails(${index})"
         const card = `
-            <div class="product-card">
+            <div class="product-card" onclick='openProductDetails(${JSON.stringify(p)})'>
                 ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
                 <img src="${p.Folder_Path}/photo1.jpg" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
                 <div class="product-name">${p.Name}</div>
@@ -37,11 +36,49 @@ function displayProducts(products) {
                 <div class="installment-text">
                     As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b>
                 </div>
-                <p style="font-size:9px; color:gray;">Stock: ${p.Stock_Count}</p>
+                <p style="font-size:9px; color:${p.Stock_Count > 0 ? 'gray' : 'red'};">
+                    ${p.Stock_Count > 0 ? 'Stock: ' + p.Stock_Count : 'SOLD OUT'}
+                </p>
             </div>
         `;
         container.innerHTML += card;
     });
+}
+
+function openProductDetails(p) {
+    // 1. Ipakita ang Product Modal (dapat may modal ka para dito sa HTML)
+    const modal = document.getElementById('productViewModal');
+    modal.style.display = "flex";
+
+    // 2. Load Photos (Loop para sa 14 photos mula sa Folder_Path)
+    let photoHTML = "";
+    for(let i=1; i<=14; i++) {
+        photoHTML += `<img src="${p.Folder_Path}/photo${i}.jpg" onerror="this.style.display='none'">`;
+    }
+    document.getElementById('photoGallery').innerHTML = photoHTML;
+
+    // 3. Load Details
+    document.getElementById('viewName').innerText = p.Name;
+    document.getElementById('viewDesc').innerText = p.Description;
+    document.getElementById('viewColors').innerText = "Available Colors: " + p.Colors;
+    document.getElementById('viewCapacity').innerText = "Storage: " + p.Capacity;
+
+    // 4. Installment Buttons Logic (Column P & Q)
+    const regularBtn = document.getElementById('regInstallBtn');
+    const easyBtn = document.getElementById('easyInstallBtn');
+
+    // Link para sa Regular (Direct)
+    regularBtn.onclick = () => window.open(p.Installment_Regular, '_blank');
+
+    // Link para sa Easy (Hihingi ng Code - Column R)
+    easyBtn.onclick = () => {
+        const inputCode = prompt("Please enter the Easy Code Key to proceed:");
+        if (inputCode === p.Easy_Code_Key) {
+            window.open(p.Installment_Easy, '_blank');
+        } else {
+            alert("Incorrect Code. Please contact Flavi Deal support.");
+        }
+    };
 }
 
 // 4. Tawagin ang fetch function pagka-load ng page
