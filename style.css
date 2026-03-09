@@ -116,15 +116,77 @@ nav { top: 0; padding: 12px 5%; display: flex; justify-content: space-between; a
     margin: 10px 0;
 }
 
-/* Responsive Updates */
-@media (min-width: 768px) {
-    .nav-links { display: flex; }
-    .mobile-nav { display: none; }
-    .product-container { grid-template-columns: repeat(4, 1fr); gap: 20px; }
-    .hero h1 { font-size: 3.5rem; }
-    .modal-content { padding: 40px; } /* Mas maluwag sa desktop */
+/* --- RESPONSIVE UPDATES (Mobile, Tablet, Desktop) --- */
+
+/* 1. MOBILE VIEW (Default/Smallest) */
+.modal-content { 
+    width: 95%; /* Halos sagad sa gilid para sa space */
+    max-width: 95%; 
+    padding: 20px;
 }
 
+.order-status-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 columns pa rin para compact */
+    gap: 8px;
+}
+
+.status-item {
+    padding: 10px 5px;
+    font-size: 10px; /* Mas maliit na font para sa phone */
+}
+
+/* 2. TABLET VIEW (Min-width: 600px) */
+@media (min-width: 600px) {
+    .modal-content { 
+        width: 85%;
+        max-width: 650px; 
+        padding: 30px;
+    }
+
+    .order-status-grid {
+        gap: 15px;
+    }
+
+    .status-item {
+        font-size: 13px;
+        padding: 15px;
+    }
+    
+    .status-item i { font-size: 26px; }
+}
+
+/* 3. DESKTOP VIEW (Min-width: 1024px) */
+@media (min-width: 1024px) {
+    .nav-links { display: flex; }
+    .mobile-nav { display: none; }
+    
+    .product-container { 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 20px; 
+    }
+    
+    .hero h1 { font-size: 3.5rem; }
+
+    /* DASHBOARD DESKTOP SPECIFIC */
+    .modal-content { 
+        max-width: 850px; /* Mas malapad para sa malaking screen */
+        padding: 45px;
+    }
+
+    /* Gagawing 2 columns ang Profile sa Desktop para hindi sayang ang space */
+    #dash-profile {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: end;
+    }
+
+    #dash-profile .login-btn {
+        grid-column: span 2; /* Full width yung Update button sa ilalim */
+    }
+}
+
+/* Common Helpers */
 #otpInput {
     font-size: 24px; height: 50px; border: 2px solid var(--forest-green); color: var(--forest-green); text-align: center;
 }
