@@ -1,7 +1,6 @@
-// 1. Web App URL
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec"; 
 
-// 2. Loader
+// 1. PRODUCT LOADER (Para lumabas ulit ang mga iPhone mo)
 async function fetchProducts() {
     try {
         const response = await fetch(webAppUrl + "?action=getProducts"); 
@@ -13,7 +12,6 @@ async function fetchProducts() {
     }
 }
 
-// 3. Display Function
 function displayProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = ""; 
@@ -24,6 +22,7 @@ function displayProducts(products) {
         const interest = Number(p.Interest_Rate) || 0;
         const fee = Number(p.Processing_Fee) || 0;
 
+        // Iyong formula para sa monthly payment
         const monthlyPayment = (instPrice / months) + (instPrice * interest) + (fee / months);
 
         const card = `
@@ -43,26 +42,7 @@ function displayProducts(products) {
     });
 }
 
-// 4. Initial Load
-window.onload = fetchProducts;
-
-function toggleModal() {
-    const modal = document.getElementById('accountModal');
-    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
-}
-
-function showRegister() {
-    document.getElementById('modalTitle').innerText = "Create Account";
-    document.getElementById('loginFields').style.display = "none";
-    document.getElementById('registerFields').style.display = "block";
-}
-
-function showLogin() {
-    document.getElementById('modalTitle').innerText = "Customer Login";
-    document.getElementById('loginFields').style.display = "block";
-    document.getElementById('registerFields').style.display = "none";
-}
-
+// 2. ORIGINAL REGISTRATION CODE MO
 async function handleRegister() {
     const regBtn = document.getElementById('regBtn');
     const name = document.getElementById('regName').value;
@@ -95,23 +75,17 @@ async function handleRegister() {
     }
 }
 
-function showOTPBox() {
-    document.getElementById('modalTitle').innerText = "Verify Email OTP";
-    document.getElementById('registerFields').style.display = "none";
-    document.getElementById('otpFields').style.display = "block";
-}
-    
+// 3. VERIFY OTP (Para sa Column G Status)
 async function verifyOTP() {
     const verifyBtn = document.getElementById('verifyBtn');
     const otpInput = document.getElementById('otpInput').value;
-    const mobileInput = document.getElementById('regMobile').value; // Kinukuha ang mobile sa hidden field
+    const mobileInput = document.getElementById('regMobile').value;
 
     if (!otpInput) return alert("Please enter the OTP code.");
 
     verifyBtn.disabled = true;
     verifyBtn.innerText = "Verifying...";
 
-    // Tatawag sa if (action === "verify") ng Apps Script mo
     const verifyUrl = `${webAppUrl}?action=verify&mobile=${encodeURIComponent(mobileInput)}&otp=${encodeURIComponent(otpInput)}`;
 
     try {
@@ -120,13 +94,12 @@ async function verifyOTP() {
         
         if (result.trim() === "Verified") {
             alert("Success! Your account is now Verified. You can now login.");
-            showLogin(); // Babalik sa Login form
+            showLogin(); 
         } else {
             alert("Invalid OTP code. Please try again.");
         }
     } catch (error) {
-        // Fallback: Minsan dahil sa CORS, hindi mabasa ang text pero pumasok na sa Sheet
-        alert("Verification processed. Please try logging in.");
+        alert("Verification processed. Please check your Sheets if status is Verified.");
         showLogin();
     } finally {
         verifyBtn.disabled = false;
@@ -134,6 +107,7 @@ async function verifyOTP() {
     }
 }
 
+// 4. LOGIN LOGIC
 async function handleLogin() {
     const user = document.getElementById('username').value;
     const pin = document.getElementById('pin').value;
@@ -149,20 +123,40 @@ async function handleLogin() {
             alert("Welcome back, " + result.name + "!");
             localStorage.setItem("customerName", result.name);
             localStorage.setItem("username", user);
-            
-            // DITO NA TAYO PAPASOK SA ACCOUNT PAGE (Option B)
             toggleModal();
-            showDashboard(result.name); 
         } else {
-            alert("Invalid Username, PIN, or Account not yet Verified.");
+            alert("Invalid Login. Please make sure you are Verified.");
         }
     } catch (error) {
-        alert("Login failed. Make sure your account is Verified.");
+        alert("Login failed. Check your internet.");
     }
 }
 
-// Simple switcher para sa Dashboard
-function showDashboard(name) {
-    // Itatago ang shop/hero, ipakikita ang Account section (na gagawin natin sa susunod)
-    console.log("Showing dashboard for: " + name);
+// 5. UI HELPERS
+function toggleModal() {
+    const modal = document.getElementById('accountModal');
+    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
 }
+
+function showRegister() {
+    document.getElementById('modalTitle').innerText = "Create Account";
+    document.getElementById('loginFields').style.display = "none";
+    document.getElementById('registerFields').style.display = "block";
+    document.getElementById('otpFields').style.display = "none";
+}
+
+function showLogin() {
+    document.getElementById('modalTitle').innerText = "Customer Login";
+    document.getElementById('loginFields').style.display = "block";
+    document.getElementById('registerFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "none";
+}
+
+function showOTPBox() {
+    document.getElementById('modalTitle').innerText = "Verify Email OTP";
+    document.getElementById('registerFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "block";
+}
+
+// Pag-load ng lahat
+window.onload = fetchProducts;
