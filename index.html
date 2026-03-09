@@ -5,72 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flavi Deal | Premium Gadgets & Installments</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-    :root {
-        --forest-green: #1B4D2E;
-        --golden-yellow: #FFD275;
-        --light-bg: #F8F9FA;
-        --white: #ffffff;
-        --shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    /* Reset & Base */
-    * { box-sizing: border-box; transition: 0.3s; }
-    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light-bg); color: #333; padding-bottom: 60px; }
-
-    /* Layout Components */
-    nav, .mobile-nav { position: fixed; width: 100%; z-index: 1000; background: var(--forest-green); box-shadow: var(--shadow); }
-    nav { top: 0; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; }
-    .mobile-nav { bottom: 0; background: var(--white); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #eee; }
-
-    /* Typography & Links */
-    .logo { font-weight: bold; font-size: 22px; color: var(--golden-yellow); text-decoration: none; letter-spacing: 1px; }
-    .nav-links { display: none; color: white; gap: 20px; }
-    .nav-icons { color: white; font-size: 18px; display: flex; gap: 15px; }
-    .nav-icons i, .cta-btn, .login-btn { cursor: pointer; }
-
-    /* Sections */
-    .hero { background: var(--forest-green); color: white; padding: 50px 5%; text-align: center; border-radius: 0 0 40px 40px; }
-    .hero h1 { font-size: 2.2rem; margin: 0 0 10px; }
-    .cta-btn, .login-btn { border: none; font-weight: bold; border-radius: 25px; }
-    .cta-btn { background: var(--golden-yellow); color: var(--forest-green); padding: 12px 30px; font-size: 16px; margin-top: 15px; }
-    .cta-btn:hover { transform: translateY(-3px); }
-
-    /* Product Grid */
-    .product-container { padding: 25px 5%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .product-card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
-    .sale-badge { position: absolute; top: 8px; left: 8px; background: var(--golden-yellow); color: var(--forest-green); font: bold 9px sans-serif; padding: 3px 6px; border-radius: 4px; }
-    .product-image { width: 100%; aspect-ratio: 1; object-fit: contain; }
-    .product-name { font: bold 13px sans-serif; margin: 5px 0; height: 35px; overflow: hidden; }
-    .price-regular { text-decoration: line-through; color: #999; font-size: 11px; }
-    .price-cash { color: var(--forest-green); font: bold 15px sans-serif; }
-    .installment-text { font-size: 10px; color: #555; background: #f1f1f1; padding: 4px; border-radius: 4px; margin-top: 5px; }
-
-    /* Modals & Forms */
-    .modal { display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
-    .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 380px; position: relative; }
-    .modal-content input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
-    .login-btn { background: var(--forest-green); color: white; width: 100%; padding: 10px; margin-top: 5px; }
-    .close-modal { position: absolute; top: 10px; right: 15px; font-size: 22px; color: #999; }
-
-    /* Responsive */
-    @media (min-width: 768px) {
-        .nav-links { display: flex; }
-        .mobile-nav { display: none; }
-        .product-container { grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .hero h1 { font-size: 3.5rem; }
-    }
-
-    #otpInput {
-    font-size: 24px; height: 50px; border: 2px solid var(--forest-green); color: var(--forest-green);
-}
-
-    .mobile-nav .item { font-size: 10px; text-align: center; flex: 1; color: #666; mcursor: pointer;
-}
-    .mobile-nav .item i { font-size: 18px; margin-bottom: 2px; color: var(--forest-green);
-}
-        
-</style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -80,10 +15,10 @@
             <span>Shop | Offers | New Arrival</span>
         </div>
         <div class="nav-icons">
-    <i class="fas fa-search"></i>
-    <i class="fas fa-shopping-cart"></i>
-    <i class="fas fa-user-circle" onclick="toggleModal()"></i>
-</div>
+            <i class="fas fa-search"></i>
+            <i class="fas fa-shopping-cart"></i>
+            <i class="fas fa-user-circle" onclick="toggleModal()"></i>
+        </div>
     </nav>
 
     <section class="hero">
@@ -92,231 +27,54 @@
         <button class="cta-btn">Shop Now</button>
     </section>
 
-    <section class="product-container" id="product-list">
-    </section>
+    <section class="product-container" id="product-list"></section>
 
     <div class="mobile-nav">
-    <div class="item"><i class="fas fa-home"></i><br>Home</div>
-    <div class="item"><i class="fas fa-th-large"></i><br>Shop</div>
-    <div class="item"><i class="fas fa-percent"></i><br>Offers</div>
-    <div class="item" onclick="toggleModal()"><i class="fas fa-user"></i><br>Account</div>
-</div>
+        <div class="item"><i class="fas fa-home"></i><br>Home</div>
+        <div class="item"><i class="fas fa-th-large"></i><br>Shop</div>
+        <div class="item"><i class="fas fa-percent"></i><br>Offers</div>
+        <div class="item" onclick="toggleModal()"><i class="fas fa-user"></i><br>Account</div>
+    </div>
 
     <div id="accountModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="toggleModal()">&times;</span>
-        <h2 id="modalTitle">Customer Login</h2>
-        
-        <div id="loginFields">
-            <input type="text" id="username" placeholder="Username or Mobile Number">
-            <input type="password" id="pin" placeholder="6-Digit PIN">
-            <button class="login-btn" onclick="handleLogin()">Login</button>
-            <p style="font-size: 12px; margin-top: 15px;">
-                No account? <a href="#" onclick="showRegister()" style="color: var(--forest-green);">Register here</a>
-            </p>
-        </div>
-
-       <div id="registerFields" style="display: none;">
-    <input type="text" id="regName" placeholder="Full Name">
-    <input type="text" id="regUser" placeholder="Choose Username"> 
-    <input type="email" id="regEmail" placeholder="Email Address">
-    <input type="text" id="regMobile" placeholder="Mobile Number">
-    <input type="password" id="regPin" placeholder="Create 6-Digit PIN">
-    
-    <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 13px; color: #555;">
-        <input type="checkbox" id="regSubscribe" style="width: auto; margin: 0;">
-        <label for="regSubscribe">Subscribe to promotions & new arrivals</label>
-    </div>
-
-    <button id="regBtn" class="login-btn" onclick="handleRegister()">Send OTP to Email</button>
-</div>
-
-<div id="otpFields" style="display: none;">
-    <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your email.</p>
-    <input type="text" id="otpInput" placeholder="Enter OTP Code" maxlength="6" style="text-align: center; letter-spacing: 5px; font-weight: bold;">
-    <button id="verifyBtn" class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
-    <p style="font-size: 12px; margin-top: 15px;">
-        Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
-    </p>
-</div>
-    </div>
-</div>
-    
-<script>
-    // 1. I-paste ang Web App URL mula sa Google Apps Script deployment mo
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec"; 
-
-    // 2. Ito ang loader na kukuha ng live data
-    async function fetchProducts() {
-    try {
-        // Dagdagan ng parameter para malaman ng script na products ang hinihingi mo
-        const response = await fetch(webAppUrl + "?action=getProducts"); 
-        const products = await response.json();
-        displayProducts(products);
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        // Maglagay ng fallback text sa UI kung sakaling mag-error
-        document.getElementById('product-list').innerHTML = "<p>Loading products... Please refresh.</p>";
-    }
-}
-
-    // 3. I-update ang display function para tumanggap ng data
-    function displayProducts(products) {
-    const container = document.getElementById('product-list');
-    container.innerHTML = ""; 
-    
-    products.forEach(p => {
-        // GAMITIN ANG TAMA MONG COLUMNS (M, N, O)
-        const months = 12;
-        const instPrice = Number(p.Installment_Price) || 0;
-        const interest = Number(p.Interest_Rate) || 0;
-        const fee = Number(p.Processing_Fee) || 0;
-
-        // Formula: (Price / Months) + (Price * Interest) + (Fee / Months)
-        const monthlyPayment = (instPrice / months) + (instPrice * interest) + (fee / months);
-
-        const card = `
-            <div class="product-card">
-                ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
-                <img src="${p.Folder_Path}/photo1.jpg" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
-                <div class="product-name">${p.Name}</div>
-                <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
-                <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
-                <div class="installment-text">
-                    As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b>
-                </div>
-                <p style="font-size:9px; color:gray;">Stock: ${p.Stock_Count}</p>
+        <div class="modal-content">
+            <span class="close-modal" onclick="toggleModal()">&times;</span>
+            <h2 id="modalTitle">Customer Login</h2>
+            
+            <div id="loginFields">
+                <input type="text" id="username" placeholder="Username or Mobile Number">
+                <input type="password" id="pin" placeholder="6-Digit PIN">
+                <button class="login-btn" onclick="handleLogin()">Login</button>
+                <p style="font-size: 12px; margin-top: 15px;">
+                    No account? <a href="#" onclick="showRegister()" style="color: var(--forest-green);">Register here</a>
+                </p>
             </div>
-        `;
-        container.innerHTML += card;
-    });
-}
 
-    // 4. Tawagin ang fetch function pagka-load ng page
-    window.onload = fetchProducts;
+            <div id="registerFields" style="display: none;">
+                <input type="text" id="regName" placeholder="Full Name">
+                <input type="text" id="regUser" placeholder="Choose Username"> 
+                <input type="email" id="regEmail" placeholder="Email Address">
+                <input type="text" id="regMobile" placeholder="Mobile Number">
+                <input type="password" id="regPin" placeholder="Create 6-Digit PIN">
+                
+                <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 13px; color: #555;">
+                    <input type="checkbox" id="regSubscribe" style="width: auto; margin: 0;">
+                    <label for="regSubscribe">Subscribe to promotions</label>
+                </div>
+                <button id="regBtn" class="login-btn" onclick="handleRegister()">Send OTP to Email</button>
+            </div>
 
-    function toggleModal() {
-    const modal = document.getElementById('accountModal');
-    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
-}
+            <div id="otpFields" style="display: none;">
+                <p style="font-size: 14px; color: #666;">Enter the 6-digit code sent to your email.</p>
+                <input type="text" id="otpInput" placeholder="Enter OTP Code" maxlength="6" style="text-align: center; letter-spacing: 5px; font-weight: bold;">
+                <button id="verifyBtn" class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
+                <p style="font-size: 12px; margin-top: 15px;">
+                    Didn't receive a code? <a href="#" onclick="handleRegister()" style="color: var(--forest-green);">Resend OTP</a>
+                </p>
+            </div>
+        </div>
+    </div>
 
-function showRegister() {
-    document.getElementById('modalTitle').innerText = "Create Account";
-    document.getElementById('loginFields').style.display = "none";
-    document.getElementById('registerFields').style.display = "block";
-}
-
-function showLogin() {
-    document.getElementById('modalTitle').innerText = "Customer Login";
-    document.getElementById('loginFields').style.display = "block";
-    document.getElementById('registerFields').style.display = "none";
-}
-
-async function handleRegister() {
-    const regBtn = document.getElementById('regBtn');
-    
-    const name = document.getElementById('regName').value;
-    const user = document.getElementById('regUser').value;
-    const email = document.getElementById('regEmail').value;
-    const mobile = document.getElementById('regMobile').value;
-    const pin = document.getElementById('regPin').value;
-    const subscribe = document.getElementById('regSubscribe').checked;
-
-    if (!name || !user || !email || !mobile || !pin) {
-        return alert("Please fill up all fields.");
-    }
-
-    regBtn.disabled = true;
-    regBtn.innerText = "Sending OTP... Please wait";
-
-    // Gamit ang simple query string para siguradong pumasok sa GAS
-    const url = `${webAppUrl}?action=register&name=${encodeURIComponent(name)}&user=${encodeURIComponent(user)}&email=${encodeURIComponent(email)}&mobile=${encodeURIComponent(mobile)}&pin=${encodeURIComponent(pin)}&subscribe=${subscribe}`;
-
-    try {
-        // Gagamit tayo ng GET muna para iwas sa CORS issue ng POST
-        const response = await fetch(url);
-        const result = await response.text();
-
-        alert("OTP request sent! Check your email.");
-        showOTPBox(); 
-    } catch (error) {
-        // Kahit mag-error ang CORS dito, kadalasan pumapasok pa rin ang data sa Sheet
-        alert("Check your email for the OTP.");
-        showOTPBox();
-    } finally {
-        regBtn.disabled = false;
-        regBtn.innerText = "Send OTP to Email";
-    }
-}
-
-    // Function para ipakita ang OTP box pagkatapos ng registration request
-function showOTPBox() {
-    document.getElementById('modalTitle').innerText = "Verify Email OTP"; // Mas malinaw na email na ang gamit
-    document.getElementById('registerFields').style.display = "none";
-    document.getElementById('otpFields').style.display = "block";
-}
-    
-async function verifyOTP() {
-    const verifyBtn = document.getElementById('verifyBtn');
-    const otpInput = document.getElementById('otpInput').value;
-    const mobileInput = document.getElementById('regMobile').value;
-
-    if (!otpInput) {
-        alert("Please enter the OTP code.");
-        return;
-    }
-
-    verifyBtn.disabled = true;
-    verifyBtn.innerText = "Verifying...";
-
-    // Gamitin ang URL parameters para mas madaling basahin ng Apps Script
-    const verifyUrl = `${webAppUrl}?action=verify&mobile=${mobileInput}&otp=${otpInput}`;
-
-    try {
-        const response = await fetch(verifyUrl);
-        const result = await response.text();
-        
-        if (result === "Verified") {
-            alert("Account verified successfully! You can now login.");
-            showLogin();
-        } else {
-            alert("Invalid OTP code. Please try again.");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("Verification failed. Please check your internet or try again.");
-    } finally {
-        verifyBtn.disabled = false;
-        verifyBtn.innerText = "Verify & Complete";
-    }
-}
-
-    async function handleLogin() {
-    const user = document.getElementById('username').value;
-    const pin = document.getElementById('pin').value;
-
-    if (!user || !pin) return alert("Please enter username and PIN.");
-
-    try {
-        // I-check sa Google Sheets kung tama ang User at PIN
-        const loginUrl = `${webAppUrl}?action=login&user=${user}&pin=${pin}`;
-        const response = await fetch(loginUrl);
-        const result = await response.json();
-
-        if (result.status === "Success") {
-            alert("Welcome back, " + result.name + "!");
-            // Dito mo sila pwedeng i-redirect sa Dashboard o i-save ang session
-            localStorage.setItem("customerName", result.name);
-            toggleModal();
-        } else {
-            alert("Invalid Username or PIN.");
-        }
-    } catch (error) {
-        alert("Login failed. Please try again.");
-    }
-}
-
-</script>
-    
+    <script src="script.js"></script>
 </body>
 </html>
