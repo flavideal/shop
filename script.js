@@ -181,15 +181,26 @@ async function handleLogin() {
 }
 
 function showDashboard(data) {
-    document.getElementById('modalTitle').innerText = "My Account";
+    document.getElementById('modalTitle').innerText = "Account Dashboard";
     document.getElementById('loginFields').style.display = "none";
     document.getElementById('registerFields').style.display = "none";
     document.getElementById('otpFields').style.display = "none";
     document.getElementById('dashboardFields').style.display = "block";
     
+    // Ipakita ang Pangalan
     document.getElementById('dashName').innerText = data.name;
     document.getElementById('editName').value = data.name;
-    // I-save sa localStorage para manatiling logged in
+    document.getElementById('editEmail').value = data.email || "No email provided";
+
+    // GENERATE REFERRAL CODE (Halimbawa: FD + Huling 7 digits ng mobile)
+    // Kung walang mobile na dala ang data, kumuha sa localStorage
+    const savedUser = JSON.parse(localStorage.getItem("flavi_user"));
+    const mobileNum = data.mobile || (savedUser ? savedUser.mobile : "0000000");
+    
+    const refCode = "FD-" + mobileNum.toString().slice(-7).toUpperCase();
+    document.getElementById('referralCode').innerText = refCode;
+
+    // I-save ang session
     localStorage.setItem("flavi_user", JSON.stringify(data));
 }
 
