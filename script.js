@@ -32,7 +32,7 @@ function displayProducts(products) {
         const card = `
             <div class="product-card" onclick="openProductDetails(${index})" style="cursor: pointer;">
                 ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
-                <img src="${p.Folder_Path}/photo1.png" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
+                <img src="${p.Folder_Path}/1.png" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
                 <div class="product-name">${p.Name}</div>
                 <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
                 <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
@@ -66,7 +66,7 @@ function openProductDetails(index) {
     let photoHTML = "";
     for(let i=1; i<=14; i++) {
         // Idinagdag ang class para sa styling ng gallery
-        photoHTML += `<img src="${p.Folder_Path}/photo${i}.png" class="gallery-img" onerror="this.style.display='none'">`;
+        photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" onerror="this.style.display='none'">`;
     }
     document.getElementById('photoGallery').innerHTML = photoHTML;
 
