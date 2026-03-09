@@ -181,26 +181,19 @@ async function handleLogin() {
 }
 
 function showDashboard(data) {
-    document.getElementById('modalTitle').innerText = "Account Dashboard";
-    document.getElementById('loginFields').style.display = "none";
-    document.getElementById('registerFields').style.display = "none";
-    document.getElementById('otpFields').style.display = "none";
+    // I-lock muna ang fields (View Mode)
     document.getElementById('dashboardFields').style.display = "block";
+    document.getElementById('loginFields').style.display = "none";
     
-    // Ipakita ang Pangalan
-    document.getElementById('dashName').innerText = data.name;
-    document.getElementById('editName').value = data.name;
-    document.getElementById('editEmail').value = data.email || "No email provided";
-
-    // GENERATE REFERRAL CODE (Halimbawa: FD + Huling 7 digits ng mobile)
-    // Kung walang mobile na dala ang data, kumuha sa localStorage
-    const savedUser = JSON.parse(localStorage.getItem("flavi_user"));
-    const mobileNum = data.mobile || (savedUser ? savedUser.mobile : "0000000");
+    // I-display ang data base sa tamang keys mula sa JSON
+    document.getElementById('dashName').innerText = data.name || "User"; 
+    document.getElementById('editName').value = data.name || "";
+    document.getElementById('editEmail').value = data.email || "No Email Found";
     
-    const refCode = "FD-" + mobileNum.toString().slice(-7).toUpperCase();
-    document.getElementById('referralCode').innerText = refCode;
-
-    // I-save ang session
+    // Itago ang "Change" fields hangga't wala pang OTP
+    document.getElementById('extraFields').style.display = "none";
+    
+    // I-save ang buong data sa localStorage para sa update later
     localStorage.setItem("flavi_user", JSON.stringify(data));
 }
 
