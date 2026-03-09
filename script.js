@@ -76,16 +76,20 @@ async function handleRegister() {
         return alert("Please fill up all fields.");
     }
 
+    // IMPORTANT: I-save ang mobile number para sa verification mamaya
+    localStorage.setItem("tempMobile", mobile);
+
     regBtn.disabled = true;
     regBtn.innerText = "Sending OTP... Please wait";
 
     const url = `${webAppUrl}?action=register&name=${encodeURIComponent(name)}&user=${encodeURIComponent(user)}&email=${encodeURIComponent(email)}&mobile=${encodeURIComponent(mobile)}&pin=${encodeURIComponent(pin)}&subscribe=${subscribe}`;
 
     try {
-        const response = await fetch(url);
+        await fetch(url, { mode: 'no-cors' }); // 'no-cors' para iwas error sa browser
         alert("OTP request sent! Check your email.");
         showOTPBox(); 
     } catch (error) {
+        // Kahit mag-error ang CORS, pumapasok pa rin ang data sa Sheet
         alert("Check your email for the OTP.");
         showOTPBox();
     } finally {
@@ -103,36 +107,43 @@ function showOTPBox() {
 async function verifyOTP() {
     const verifyBtn = document.getElementById('verifyBtn');
     const otpInput = document.getElementById('otpInput').value;
-    const mobileInput = document.getElementById('regMobile').value;
+    
+    // Kunin ang sinave na mobile number mula sa handleRegister
+    const mobileInput = localStorage.getItem("tempMobile");
 
     if (!otpInput) {
-        alert("Please enter the OTP code.");
-        return;
+        return alert("Please enter the OTP code.");
+    }
+    
+    if (!mobileInput) {
+        return alert("Error: Mobile number not found. Please try registering again.");
     }
 
     verifyBtn.disabled = true;
     verifyBtn.innerText = "Verifying...";
 
-    const verifyUrl = `${webAppUrl}?action=verify&mobile=${mobileInput}&otp=${otpInput}`;
+    // Siguraduhin na ang mobile at otp ay kasama sa URL
+    const verifyUrl = `${webAppUrl}?action=verify&mobile=${encodeURIComponent(mobileInput)}&otp=${encodeURIComponent(otpInput)}`;
 
     try {
         const response = await fetch(verifyUrl);
         const result = await response.text();
         
-        if (result === "Verified") {
+        if (result.trim() === "Verified") {
             alert("Account verified successfully! You can now login.");
+            localStorage.removeItem("tempMobile"); // Burahin na ang temporary data
             showLogin();
         } else {
-            alert("Invalid OTP code. Please try again.");
+            alert("Invalid OTP code. Please check your email again.");
         }
     } catch (error) {
-        alert("Verification failed. Please check your internet.");
+        console.error("Verification error:", error);
+        alert("Verification failed. Make sure you are connected to the internet.");
     } finally {
         verifyBtn.disabled = false;
         verifyBtn.innerText = "Verify & Complete";
     }
 }
-
 async function handleLogin() {
     const user = document.getElementById('username').value;
     const pin = document.getElementById('pin').value;
