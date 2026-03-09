@@ -145,13 +145,16 @@ async function handleLogin() {
         const result = await response.json();
 
         if (result.status === "Success") {
-            alert("Welcome back, " + result.name + "!");
-            localStorage.setItem("customerName", result.name);
-            toggleModal();
-        } else {
-            alert("Invalid Username or PIN.");
-        }
-    } catch (error) {
-        alert("Login failed. Please try again.");
-    }
+    // Itago ang Shop at Hero section
+    document.querySelector('.hero').style.display = 'none';
+    document.getElementById('product-list').style.display = 'none';
+    
+    // Ipakita ang Dashboard
+    document.getElementById('account-dashboard').style.display = 'block';
+    document.getElementById('user-display-name').innerText = result.name;
+    
+    // Kunin ang orders (Sa susunod na step natin ito gagawin)
+    // fetchOrders(user); 
+    
+    toggleModal();
 }
