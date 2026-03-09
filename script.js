@@ -138,6 +138,15 @@ async function verifyOTP() {
     }
 }
 
+// Function para magpalit ng view sa Dashboard
+function switchDash(tab) {
+    document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('dash-' + tab).style.display = 'block';
+    event.target.classList.add('active');
+}
+
+// Update handleLogin para ipakita ang Dashboard
 async function handleLogin() {
     const user = document.getElementById('username').value;
     const pin = document.getElementById('pin').value;
@@ -145,18 +154,51 @@ async function handleLogin() {
     if (!user || !pin) return alert("Please enter username and PIN.");
 
     try {
-        const loginUrl = `${webAppUrl}?action=login&user=${user}&pin=${pin}`;
+        const loginUrl = `${webAppUrl}?action=login&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`;
         const response = await fetch(loginUrl);
         const result = await response.json();
 
         if (result.status === "Success") {
-            alert("Welcome back, " + result.name + "!");
-            localStorage.setItem("customerName", result.name);
-            toggleModal();
+            showDashboard(result);
         } else {
-            alert("Invalid Username or PIN.");
+            alert("Invalid Username, PIN, or Account Not Verified.");
         }
     } catch (error) {
-        alert("Login failed. Please try again.");
+        alert("Login failed. Check your connection.");
     }
+}
+
+function showDashboard(data) {
+    document.getElementById('modalTitle').innerText = "My Account";
+    document.getElementById('loginFields').style.display = "none";
+    document.getElementById('registerFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "none";
+    document.getElementById('dashboardFields').style.display = "block";
+    
+    document.getElementById('dashName').innerText = data.name;
+    document.getElementById('editName').value = data.name;
+    // I-save sa localStorage para manatiling logged in
+    localStorage.setItem("flavi_user", JSON.stringify(data));
+}
+
+function handleLogout() {
+    localStorage.removeItem("flavi_user");
+    location.reload(); // I-refresh ang page para bumalik sa dati
+}
+
+// I-check kung logged in na si user pagka-load ng page
+window.onload = function() {
+    fetchProducts();
+    const savedUser = localStorage.getItem("flavi_user");
+    if (savedUser) {
+        // Option: I-auto login o i-update ang UI na nagsasabing "Logged In"
+        console.log("User is logged in");
+    }
+};
+
+async function requestProfileChange() {
+    alert("An OTP has been sent to your email to authorize this change.");
+    // Dito tatawag tayo ng katulad sa handleRegister pero 'action=updateProfile'
+    // I-re-reuse natin ang showOTPBox()
+    showOTPBox();
 }
