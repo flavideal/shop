@@ -155,6 +155,29 @@
             </div>
     </div>
 
+    <div id="productViewModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close-btn" onclick="document.getElementById('productViewModal').style.display='none'">&times;</span>
+        
+        <div id="photoGallery" class="gallery-container"></div>
+        
+        <div class="details-body">
+            <h2 id="viewName" style="color: #1B4D2E; margin-bottom: 10px;"></h2>
+            <p id="viewDesc" style="font-size: 14px; color: #333; line-height: 1.6;"></p>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            
+            <p id="viewColors" style="font-weight: bold;"></p>
+            <p id="viewCapacity" style="font-weight: bold;"></p>
+            
+            <div class="action-buttons" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <button id="regInstallBtn" class="btn-regular">Apply for Regular Installment</button>
+                <button id="easyInstallBtn" class="btn-easy">Apply for Easy Installment (Requires Code)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script src="script.js"></script>
 </body>
 </html>
