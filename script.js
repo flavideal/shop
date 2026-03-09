@@ -221,40 +221,104 @@ async function requestProfileChange() {
     showOTPBox();
 }
 
-// 1. Request OTP para sa Profile Update
+// --- FIX: PINAG-ISANG REQUEST PROFILE OTP ---
 async function requestProfileOTP() {
     const savedUser = JSON.parse(localStorage.getItem("flavi_user"));
-    const email = savedUser.email; // Siguraduhin na may email sa saved data
+    const email = savedUser ? savedUser.email : "";
 
-    if (!confirm("We will send an OTP to your registered email to allow editing. Proceed?")) return;
+    if (!email || email === "No Email Found") {
+        alert("Error: Hindi mahanap ang email mo. Mag-login ulit.");
+        return;
+    }
 
-    // Gamitin ang existing handleRegister logic o bagong endpoint para sa OTP
+    if (!confirm("Magpapadala kami ng OTP sa " + email + " para payagan ang pag-edit. Ituloy?")) return;
+
+    // Pakita natin na naglo-load
+    const reqBtn = document.getElementById('requestUpdateBtn');
+    if(reqBtn) {
+        reqBtn.disabled = true;
+        reqBtn.innerText = "Sending OTP...";
+    }
+
     const url = `${webAppUrl}?action=requestUpdateOTP&email=${encodeURIComponent(email)}`;
     
-    // Ipakita ang OTP Modal (i-reuse natin yung existing OTP fields)
-    document.getElementById('dash-profile').style.display = 'none';
-    document.getElementById('otpFields').style.display = 'block';
-    document.getElementById('modalTitle').innerText = "Verify Identity";
-    
-    // I-set ang temporary variable para malaman ng verifyOTP function na "Profile Update" ito
-    window.isUpdatingProfile = true;
+    try {
+        const response = await fetch(url);
+        const result = await response.text();
+
+        if (result.trim() === "Success") {
+            alert("OTP sent to your email!");
+            
+            // FLOW: Lipat sa OTP Screen
+            document.getElementById('dashboardFields').style.display = 'none';
+            document.getElementById('otpFields').style.display = 'block';
+            document.getElementById('modalTitle').innerText = "Verify Identity";
+            
+            // Itabi ang mobile number para sa verification later
+            document.getElementById('regMobile').value = savedUser.mobile || "";
+            
+            // Importante: Flag para sa verifyOTP function
+            window.isUpdatingProfile = true;
+        } else {
+            alert("Error: " + result);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Connection failed. Check your internet.");
+    } finally {
+        if(reqBtn) {
+            reqBtn.disabled = false;
+            reqBtn.innerText = "Request OTP to Edit Details";
+        }
+    }
 }
 
-// 2. I-update ang iyong verifyOTP function para i-handle ang profile edit
-// (Dugtong ito sa existing verifyOTP mo)
-if (result === "Verified" && window.isUpdatingProfile) {
-    alert("Identity Verified! You can now edit your details.");
-    
-    // Balik sa Dashboard/Profile
-    document.getElementById('otpFields').style.display = 'none';
-    document.getElementById('dashboardFields').style.display = 'block';
-    document.getElementById('dash-profile').style.display = 'block';
-    
-    // Gawing editable ang lahat
-    unlockProfileFields();
+// --- FIX: PINAG-ISANG VERIFY OTP FUNCTION ---
+async function verifyOTP() {
+    const verifyBtn = document.getElementById('verifyBtn');
+    const otpInput = document.getElementById('otpInput').value;
+    const mobileInput = document.getElementById('regMobile').value;
+    const fullName = document.getElementById('regName').value; 
+
+    if (!otpInput) return alert("Please enter the OTP code.");
+
+    verifyBtn.disabled = true;
+    verifyBtn.innerText = "Verifying...";
+
+    const verifyUrl = `${webAppUrl}?action=verify&mobile=${encodeURIComponent(mobileInput)}&otp=${encodeURIComponent(otpInput)}`;
+
+    try {
+        const response = await fetch(verifyUrl);
+        const result = await response.text();
+        
+        if (result === "Verified") {
+            if (window.isUpdatingProfile) {
+                // FLOW: Kung Profile Update ito, unlock the fields
+                alert("Identity Verified! You can now edit your details.");
+                document.getElementById('otpFields').style.display = 'none';
+                document.getElementById('dashboardFields').style.display = 'block';
+                document.getElementById('dash-profile').style.display = 'block';
+                unlockProfileFields();
+            } else {
+                // FLOW: Kung Registration ito, login agad
+                alert("Account verified successfully!");
+                const userData = { status: "Success", name: fullName, mobile: mobileInput };
+                localStorage.setItem("flavi_user", JSON.stringify(userData));
+                showDashboard(userData);
+            }
+        } else {
+            alert("Invalid OTP code. Please try again.");
+        }
+    } catch (error) {
+        alert("Verification failed.");
+    } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.innerText = "Verify & Complete";
+    }
 }
 
 function unlockProfileFields() {
+    // Siguraduhin na ang inputs ay may class na 'profile-input' sa HTML
     const inputs = document.querySelectorAll('.profile-input');
     inputs.forEach(input => {
         input.removeAttribute('readonly');
@@ -262,22 +326,33 @@ function unlockProfileFields() {
         input.style.background = "#fff";
     });
 
-    document.getElementById('extraFields').style.display = 'block';
-    document.getElementById('requestUpdateBtn').style.display = 'none';
-    document.getElementById('saveProfileBtn').style.display = 'block';
+    if(document.getElementById('extraFields')) document.getElementById('extraFields').style.display = 'block';
+    if(document.getElementById('requestUpdateBtn')) document.getElementById('requestUpdateBtn').style.display = 'none';
+    if(document.getElementById('saveProfileBtn')) document.getElementById('saveProfileBtn').style.display = 'block';
 }
 
 async function saveProfileChanges() {
-    const updatedData = {
-        name: document.getElementById('editName').value,
-        email: document.getElementById('editEmail').value,
-        mobile: document.getElementById('editMobile').value,
-        user: document.getElementById('editUser').value,
-        pin: document.getElementById('editPin').value
-    };
+    const savedUser = JSON.parse(localStorage.getItem("flavi_user"));
+    const oldEmail = savedUser.email;
 
-    // Tawagan ang Apps Script action="updateUser"
-    // I-update ang localStorage at i-lock ulit ang fields
-    alert("Profile updated successfully!");
-    location.reload(); 
+    const newName = document.getElementById('editName').value;
+    const newEmail = document.getElementById('editEmail').value;
+    const newMobile = document.getElementById('editMobile').value;
+    const newUser = document.getElementById('editUser').value;
+    const newPin = document.getElementById('editPin').value;
+
+    const url = `${webAppUrl}?action=updateUser&oldEmail=${encodeURIComponent(oldEmail)}&newName=${encodeURIComponent(newName)}&newEmail=${encodeURIComponent(newEmail)}&newMobile=${encodeURIComponent(newMobile)}&newUser=${encodeURIComponent(newUser)}&newPin=${encodeURIComponent(newPin)}`;
+
+    try {
+        const response = await fetch(url);
+        const result = await response.text();
+        if(result === "Success") {
+            alert("Profile updated successfully! Logging out to refresh data.");
+            handleLogout();
+        } else {
+            alert("Update failed: " + result);
+        }
+    } catch (e) {
+        alert("Update Error.");
+    }
 }
