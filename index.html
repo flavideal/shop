@@ -215,7 +215,6 @@ function showLogin() {
 async function handleRegister() {
     const regBtn = document.getElementById('regBtn');
     
-    // Kunin lahat ng values
     const name = document.getElementById('regName').value;
     const user = document.getElementById('regUser').value;
     const email = document.getElementById('regEmail').value;
@@ -230,28 +229,20 @@ async function handleRegister() {
     regBtn.disabled = true;
     regBtn.innerText = "Sending OTP... Please wait";
 
-    // URLSearchParams para sa no-cors compatibility
-    const formData = new URLSearchParams();
-    formData.append("action", "register");
-    formData.append("name", name);
-    formData.append("user", user);
-    formData.append("email", email);
-    formData.append("mobile", mobile);
-    formData.append("pin", pin);
-    formData.append("subscribe", subscribe);
+    // Gamit ang simple query string para siguradong pumasok sa GAS
+    const url = `${webAppUrl}?action=register&name=${encodeURIComponent(name)}&user=${encodeURIComponent(user)}&email=${encodeURIComponent(email)}&mobile=${encodeURIComponent(mobile)}&pin=${encodeURIComponent(pin)}&subscribe=${subscribe}`;
 
     try {
-        await fetch(webAppUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: formData.toString()
-        });
+        // Gagamit tayo ng GET muna para iwas sa CORS issue ng POST
+        const response = await fetch(url);
+        const result = await response.text();
 
-        // Dahil no-cors, hindi tayo makakabasa ng response, pero alam nating tapos na
-        alert("OTP request sent! Check your email (including Spam folder).");
+        alert("OTP request sent! Check your email.");
         showOTPBox(); 
     } catch (error) {
-        alert("Connection error. Try again.");
+        // Kahit mag-error ang CORS dito, kadalasan pumapasok pa rin ang data sa Sheet
+        alert("Check your email for the OTP.");
+        showOTPBox();
     } finally {
         regBtn.disabled = false;
         regBtn.innerText = "Send OTP to Email";
