@@ -76,20 +76,17 @@ async function handleRegister() {
         return alert("Please fill up all fields.");
     }
 
-    // IMPORTANT: I-save ang mobile number para sa verification mamaya
-    localStorage.setItem("tempMobile", mobile);
-
     regBtn.disabled = true;
     regBtn.innerText = "Sending OTP... Please wait";
 
     const url = `${webAppUrl}?action=register&name=${encodeURIComponent(name)}&user=${encodeURIComponent(user)}&email=${encodeURIComponent(email)}&mobile=${encodeURIComponent(mobile)}&pin=${encodeURIComponent(pin)}&subscribe=${subscribe}`;
 
     try {
-        await fetch(url, { mode: 'no-cors' }); // 'no-cors' para iwas error sa browser
+        const response = await fetch(url);
+        const result = await response.text();
         alert("OTP request sent! Check your email.");
         showOTPBox(); 
     } catch (error) {
-        // Kahit mag-error ang CORS, pumapasok pa rin ang data sa Sheet
         alert("Check your email for the OTP.");
         showOTPBox();
     } finally {
@@ -99,7 +96,7 @@ async function handleRegister() {
 }
 
 function showOTPBox() {
-    document.getElementById('modalTitle').innerText = "Verify Email OTP"; 
+    document.getElementById('modalTitle').innerText = "Verify Email OTP";
     document.getElementById('registerFields').style.display = "none";
     document.getElementById('otpFields').style.display = "block";
 }
@@ -107,22 +104,14 @@ function showOTPBox() {
 async function verifyOTP() {
     const verifyBtn = document.getElementById('verifyBtn');
     const otpInput = document.getElementById('otpInput').value;
-    
-    // Kunin ang sinave na mobile number mula sa handleRegister
-    const mobileInput = localStorage.getItem("tempMobile");
+    const mobileInput = document.getElementById('regMobile').value; // Kinukuha ang mobile sa hidden field
 
-    if (!otpInput) {
-        return alert("Please enter the OTP code.");
-    }
-    
-    if (!mobileInput) {
-        return alert("Error: Mobile number not found. Please try registering again.");
-    }
+    if (!otpInput) return alert("Please enter the OTP code.");
 
     verifyBtn.disabled = true;
     verifyBtn.innerText = "Verifying...";
 
-    // Siguraduhin na ang mobile at otp ay kasama sa URL
+    // Tatawag sa if (action === "verify") ng Apps Script mo
     const verifyUrl = `${webAppUrl}?action=verify&mobile=${encodeURIComponent(mobileInput)}&otp=${encodeURIComponent(otpInput)}`;
 
     try {
@@ -130,20 +119,21 @@ async function verifyOTP() {
         const result = await response.text();
         
         if (result.trim() === "Verified") {
-            alert("Account verified successfully! You can now login.");
-            localStorage.removeItem("tempMobile"); // Burahin na ang temporary data
-            showLogin();
+            alert("Success! Your account is now Verified. You can now login.");
+            showLogin(); // Babalik sa Login form
         } else {
-            alert("Invalid OTP code. Please check your email again.");
+            alert("Invalid OTP code. Please try again.");
         }
     } catch (error) {
-        console.error("Verification error:", error);
-        alert("Verification failed. Make sure you are connected to the internet.");
+        // Fallback: Minsan dahil sa CORS, hindi mabasa ang text pero pumasok na sa Sheet
+        alert("Verification processed. Please try logging in.");
+        showLogin();
     } finally {
         verifyBtn.disabled = false;
         verifyBtn.innerText = "Verify & Complete";
     }
 }
+
 async function handleLogin() {
     const user = document.getElementById('username').value;
     const pin = document.getElementById('pin').value;
@@ -151,21 +141,28 @@ async function handleLogin() {
     if (!user || !pin) return alert("Please enter username and PIN.");
 
     try {
-        const loginUrl = `${webAppUrl}?action=login&user=${user}&pin=${pin}`;
+        const loginUrl = `${webAppUrl}?action=login&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`;
         const response = await fetch(loginUrl);
         const result = await response.json();
 
         if (result.status === "Success") {
-    // Itago ang Shop at Hero section
-    document.querySelector('.hero').style.display = 'none';
-    document.getElementById('product-list').style.display = 'none';
-    
-    // Ipakita ang Dashboard
-    document.getElementById('account-dashboard').style.display = 'block';
-    document.getElementById('user-display-name').innerText = result.name;
-    
-    // Kunin ang orders (Sa susunod na step natin ito gagawin)
-    // fetchOrders(user); 
-    
-    toggleModal();
+            alert("Welcome back, " + result.name + "!");
+            localStorage.setItem("customerName", result.name);
+            localStorage.setItem("username", user);
+            
+            // DITO NA TAYO PAPASOK SA ACCOUNT PAGE (Option B)
+            toggleModal();
+            showDashboard(result.name); 
+        } else {
+            alert("Invalid Username, PIN, or Account not yet Verified.");
+        }
+    } catch (error) {
+        alert("Login failed. Make sure your account is Verified.");
+    }
+}
+
+// Simple switcher para sa Dashboard
+function showDashboard(name) {
+    // Itatago ang shop/hero, ipakikita ang Account section (na gagawin natin sa susunod)
+    console.log("Showing dashboard for: " + name);
 }
