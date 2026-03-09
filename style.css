@@ -59,3 +59,8 @@ nav { top: 0; padding: 12px 5%; display: flex; justify-content: space-between; a
 
 .mobile-nav .item { font-size: 10px; text-align: center; flex: 1; color: #666; cursor: pointer; }
 .mobile-nav .item i { font-size: 18px; margin-bottom: 2px; color: var(--forest-green); }
+
+.dash-tab { cursor: pointer; padding: 5px 10px; color: #666; white-space: nowrap; }
+.dash-tab.active { color: var(--forest-green); border-bottom: 2px solid var(--forest-green); font-weight: bold; }
+.dash-section { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
