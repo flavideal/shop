@@ -469,3 +469,19 @@ async function saveProfileChanges() {
         alert("Update Error.");
     }
 }
+
+// Keyboard Support para sa Fullscreen Gallery
+document.addEventListener('keydown', (e) => {
+    const fs = document.getElementById('fullscreenView');
+    const gallery = document.getElementById('fullscreenGallery');
+    
+    if (fs && fs.style.display === "flex") {
+        if (e.key === "ArrowRight") {
+            gallery.scrollBy({ left: gallery.clientWidth, behavior: 'smooth' });
+        } else if (e.key === "ArrowLeft") {
+            gallery.scrollBy({ left: -gallery.clientWidth, behavior: 'smooth' });
+        } else if (e.key === "Escape") {
+            closeFullImage();
+        }
+    }
+});
