@@ -49,33 +49,44 @@ function displayProducts(products) {
 }
 
 function openProductDetails(index) {
-    // Kunin ang product mula sa window variable gamit ang index
     const p = window.currentProducts[index];
-    
     if (!p) return;
 
     const modal = document.getElementById('productViewModal');
-    if (!modal) {
-        alert("Error: productViewModal not found in HTML.");
-        return;
-    }
+    if (!modal) return alert("Error: productViewModal not found.");
     
     modal.style.display = "flex";
 
-    // Load Photos (1-14)
+    // 1. Load Photos (1-14)
     let photoHTML = "";
     for(let i=1; i<=14; i++) {
-    photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" onerror="this.style.display='none'">`;
-}
-    document.getElementById('photoGallery').innerHTML = photoHTML;
+        photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" onerror="this.style.display='none'">`;
+    }
+    
+    const gallery = document.getElementById('photoGallery');
+    gallery.innerHTML = photoHTML;
+    
+    // 2. RESET SCROLL: Ibalik sa unang picture tuwing bubuksan ang modal
+    gallery.scrollLeft = 0;
 
-    // Load Details
+    // 3. IMAGE COUNTER (Shopee Style: "1 / 14")
+    // Siguraduhin na may <div id="image-counter"></div> ka sa HTML modal mo
+    const counter = document.getElementById('image-counter');
+    if(counter) counter.innerText = `1 / 14`;
+
+    // Update counter habang nag-su-swipe
+    gallery.onscroll = () => {
+        let page = Math.round(gallery.scrollLeft / gallery.offsetWidth) + 1;
+        if(counter) counter.innerText = `${page} / 14`;
+    };
+
+    // 4. Load Text Details
     document.getElementById('viewName').innerText = p.Name;
     document.getElementById('viewDesc').innerText = p.Description;
-    document.getElementById('viewColors').innerText = "Available Colors: " + p.Colors;
-    document.getElementById('viewCapacity').innerText = "Storage: " + p.Capacity;
+    document.getElementById('viewColors').innerText = "Available Colors: " + (p.Colors || "N/A");
+    document.getElementById('viewCapacity').innerText = "Storage: " + (p.Capacity || "N/A");
 
-    // Installment Buttons
+    // 5. Installment Buttons Logic
     const regularBtn = document.getElementById('regInstallBtn');
     const easyBtn = document.getElementById('easyInstallBtn');
 
@@ -84,9 +95,9 @@ function openProductDetails(index) {
     if(easyBtn) {
         easyBtn.onclick = () => {
             const inputCode = prompt("Please enter the Easy Code Key to proceed:");
-            if (inputCode === p.Easy_Code_Key.toString()) {
+            if (inputCode && inputCode === p.Easy_Code_Key.toString()) {
                 window.open(p.Installment_Easy, '_blank');
-            } else {
+            } else if (inputCode) {
                 alert("Incorrect Code. Please contact Flavi Deal support.");
             }
         };
