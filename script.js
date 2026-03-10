@@ -3,13 +3,27 @@ const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8
 
 // 2. Ito ang loader na kukuha ng live data
 async function fetchProducts() {
+    const container = document.getElementById('product-list');
+    
+    // Ipakita ang loading state
+    container.innerHTML = `
+        <div class="loader-container">
+            <div class="spinner"></div>
+            <p style="color: gray; font-size: 14px;">Loading products from Flavi Deal...</p>
+        </div>
+    `;
+
     try {
         const response = await fetch(webAppUrl + "?action=getProducts"); 
         const products = await response.json();
         displayProducts(products);
     } catch (error) {
         console.error("Error fetching products:", error);
-        document.getElementById('product-list').innerHTML = "<p>Loading products... Please refresh.</p>";
+        container.innerHTML = `
+            <div class="loader-container">
+                <p style="color: red;">Failed to load products. Please refresh the page.</p>
+            </div>
+        `;
     }
 }
 
@@ -61,8 +75,16 @@ function openProductDetails(index) {
 
     const gallery = document.getElementById('photoGallery');
     const counter = document.getElementById('image-counter');
-    gallery.innerHTML = ""; 
-    currentGalleryImages = []; // Reset ang listahan
+    // IPALIT ITO: Pakita muna na naglo-load ang photos
+    gallery.innerHTML = `
+        <div style="width:100%; height:300px; display:flex; align-items:center; justify-content:center; flex-direction:column;" class="skeleton">
+            <div class="spinner"></div>
+            <span style="font-size:12px; color:gray;">Fetching high-quality photos...</span>
+        </div>
+    `;
+
+    if(counter) counter.innerText = "Loading...";
+    currentGalleryImages = [];
 
     // 1. DYNAMIC PHOTO LOADING (Checking up to 15 images)
     let imagesToCheck = 15;
