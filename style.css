@@ -32,46 +32,80 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 /* Product Grid */
 .product-container { padding: 20px 5%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 1200px; margin: 0 auto; }
 .product-card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
-.sale-badge { position: absolute; top: 8px; left: 8px; background: var(--golden-yellow); color: var(--forest-green); font: bold 9px sans-serif; padding: 3px 6px; border-radius: 4px; z-index: 1; }
 .product-image { width: 100%; aspect-ratio: 1; object-fit: contain; }
-.product-name { font: bold 13px sans-serif; margin: 5px 0; height: 35px; overflow: hidden; }
-.price-regular { text-decoration: line-through; color: #999; font-size: 11px; }
-.price-cash { color: var(--forest-green); font: bold 15px sans-serif; }
-.installment-text { font-size: 10px; color: #555; background: #f1f1f1; padding: 5px; border-radius: 4px; margin-top: 5px; }
 
-/* Unified Modals & Gallery */
+/* --- UPDATED GALLERY & MODAL SECTION --- */
+
+/* Wrapper para limitahan ang laki ng gallery sa desktop */
+.gallery-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 450px; /* Limit para hindi higante sa desktop */
+    margin: 0 auto 15px;
+}
+
+.gallery-container { 
+    display: flex; 
+    overflow-x: auto; 
+    gap: 0; 
+    scroll-snap-type: x mandatory; 
+    scroll-behavior: smooth;
+    width: 100%;
+    border-radius: 15px;
+    background: #f9f9f9;
+}
+
+.gallery-container::-webkit-scrollbar { display: none; }
+
+.gallery-img { 
+    width: 100%; 
+    aspect-ratio: 1; 
+    object-fit: contain; 
+    scroll-snap-align: start; 
+    flex-shrink: 0; 
+    cursor: zoom-in;
+}
+
+#image-counter {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 5;
+}
+
+/* Fullscreen Lightbox */
+.fullscreen-view {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.fullscreen-view img {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* --- END OF GALLERY SECTION --- */
+
 .modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; padding: 15px; }
 .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative; }
 .close-modal, .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #999; cursor: pointer; z-index: 10; }
 
-/* I-update ito para sa Shopee-style swipe: */
-.gallery-container { 
-    display: flex; 
-    overflow-x: auto; 
-    gap: 0; /* Alisin ang gap para dikit ang slides */
-    scroll-snap-type: x mandatory; 
-    scroll-behavior: smooth;
-    width: 100%;
-    border-radius: 10px;
-}
-
-/* Para itago ang scrollbar sa ilalim para malinis */
-.gallery-container::-webkit-scrollbar {
-    display: none;
-}
-
-.gallery-img { 
-    width: 100%; /* Isang picture lang ang kita per slide */
-    height: auto; 
-    aspect-ratio: 1; /* Pinapanatiling square ang view */
-    object-fit: contain; /* Para hindi ma-stretch o ma-cut ang picture */
-    scroll-snap-align: center; 
-    flex-shrink: 0; 
-    background: #f9f9f9;
-}
-.modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; }
-
-/* Dashboard Components */
+/* Dashboard & Tabs */
 .dash-tabs-container { display: flex; gap: 10px; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; overflow-x: auto; white-space: nowrap; }
 .dash-tab { cursor: pointer; padding: 10px 15px; color: #888; font-weight: 600; font-size: 14px; border-bottom: 3px solid transparent; }
 .dash-tab.active { color: var(--forest-green); border-bottom: 3px solid var(--forest-green); }
@@ -79,27 +113,15 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 .order-status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
 .status-item { background: #f8fcf9; padding: 12px 5px; border-radius: 12px; border: 1px solid #edf5ef; color: var(--forest-green); font-size: 10px; text-align: center; }
 .status-item i { font-size: 20px; margin-bottom: 5px; display: block; }
-.referral-box { background: #f4f4f4; padding: 15px; border-radius: 10px; text-align: center; font-family: monospace; font-size: 20px; letter-spacing: 2px; border: 2px dashed #ccc; margin: 10px 0; }
 
 /* Media Queries */
 @media (min-width: 768px) {
     .product-container { grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .modal-content { max-width: 700px; padding: 35px; }
-    .status-item { font-size: 13px; padding: 15px; }
-    .status-item i { font-size: 26px; }
+    .modal-content { max-width: 750px; padding: 35px; }
 }
 
 @media (min-width: 1024px) {
-    .nav-links { display: flex; }
-    .mobile-nav { display: none; }
     .product-container { grid-template-columns: repeat(4, 1fr); }
-    .hero h1 { font-size: 3.5rem; }
     #dash-profile { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    #dash-profile .login-btn { grid-column: span 2; }
     .modal-content { max-width: 850px; }
 }
-
-/* Animations */
-.dash-section { animation: fadeIn 0.4s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-#otpInput { font-size: 24px; height: 50px; border: 2px solid var(--forest-green); text-align: center; letter-spacing: 5px; font-weight: bold; }
