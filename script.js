@@ -49,49 +49,67 @@ function displayProducts(products) {
 }
 
 function openProductDetails(index) {
+    // Kunin ang product mula sa window variable gamit ang index
     const p = window.currentProducts[index];
+    
     if (!p) return;
 
     const modal = document.getElementById('productViewModal');
-    if (!modal) return alert("Error: productViewModal not found.");
+    if (!modal) {
+        alert("Error: productViewModal not found in HTML.");
+        return;
+    }
     
+    // Ipakita ang modal
     modal.style.display = "flex";
 
-    // 1. Load Photos (1-14)
+    // 1. LOAD PHOTOS (1-14) & FULLSCREEN CLICK LOGIC
     let photoHTML = "";
     for(let i=1; i<=14; i++) {
-        photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" onerror="this.style.display='none'">`;
+        // Idinagdag ang viewFullImage(this.src) para ma-view ng malaki pag ni-click
+        photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" 
+                      onclick="viewFullImage(this.src)" 
+                      onerror="this.style.display='none'">`;
     }
     
     const gallery = document.getElementById('photoGallery');
+    const counter = document.getElementById('image-counter');
+    
     gallery.innerHTML = photoHTML;
     
-    // 2. RESET SCROLL: Ibalik sa unang picture tuwing bubuksan ang modal
+    // 2. RESET SCROLL: Laging balik sa unang picture tuwing magbubukas
     gallery.scrollLeft = 0;
+    if(counter) counter.innerText = "1 / 14";
 
-    // 3. IMAGE COUNTER (Shopee Style: "1 / 14")
-    // Siguraduhin na may <div id="image-counter"></div> ka sa HTML modal mo
-    const counter = document.getElementById('image-counter');
-    if(counter) counter.innerText = `1 / 14`;
-
-    // Update counter habang nag-su-swipe
+    // 3. SHOPEE SWIPE & COUNTER LOGIC
     gallery.onscroll = () => {
-        let page = Math.round(gallery.scrollLeft / gallery.offsetWidth) + 1;
+        // Kinukuha ang current "page" base sa scroll position
+        let page = Math.round(gallery.scrollLeft / gallery.clientWidth) + 1;
         if(counter) counter.innerText = `${page} / 14`;
     };
 
-    // 4. Load Text Details
+    // 4. LOAD TEXT DETAILS
     document.getElementById('viewName').innerText = p.Name;
     document.getElementById('viewDesc').innerText = p.Description;
     document.getElementById('viewColors').innerText = "Available Colors: " + (p.Colors || "N/A");
     document.getElementById('viewCapacity').innerText = "Storage: " + (p.Capacity || "N/A");
 
-    // 5. Installment Buttons Logic
+    // 5. INSTALLMENT BUTTONS LOGIC
     const regularBtn = document.getElementById('regInstallBtn');
     const easyBtn = document.getElementById('easyInstallBtn');
 
-    if(regularBtn) regularBtn.onclick = () => window.open(p.Installment_Regular, '_blank');
+    // Regular Installment Button
+    if(regularBtn) {
+        regularBtn.onclick = () => {
+            if(p.Installment_Regular) {
+                window.open(p.Installment_Regular, '_blank');
+            } else {
+                alert("Regular installment link is not available for this product.");
+            }
+        };
+    }
 
+    // Easy Installment Button (with PIN validation)
     if(easyBtn) {
         easyBtn.onclick = () => {
             const inputCode = prompt("Please enter the Easy Code Key to proceed:");
@@ -102,6 +120,23 @@ function openProductDetails(index) {
             }
         };
     }
+}
+
+/** * DAGDAG NA FUNCTIONS PARA SA FULLSCREEN VIEW 
+ * Siguraduhin na nasa script.js din ito
+ */
+function viewFullImage(src) {
+    const fs = document.getElementById('fullscreenView');
+    const fsImg = document.getElementById('fsImg');
+    if(fs && fsImg) {
+        fs.style.display = "flex";
+        fsImg.src = src;
+    }
+}
+
+function closeFullImage() {
+    const fs = document.getElementById('fullscreenView');
+    if(fs) fs.style.display = "none";
 }
 
 // 4. Tawagin ang fetch function pagka-load ng page
