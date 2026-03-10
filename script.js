@@ -65,9 +65,8 @@ function openProductDetails(index) {
     // Load Photos (1-14)
     let photoHTML = "";
     for(let i=1; i<=14; i++) {
-        // Idinagdag ang class para sa styling ng gallery
-        photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" onerror="this.style.display='none'">`;
-    }
+    photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" onerror="this.style.display='none'">`;
+}
     document.getElementById('photoGallery').innerHTML = photoHTML;
 
     // Load Details
