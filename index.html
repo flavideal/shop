@@ -178,10 +178,11 @@
         </div>
     </div>
 
-    <div id="fullscreenView" class="fullscreen-view" onclick="closeFullImage()">
-        <span style="position:absolute; top:20px; right:30px; color:white; font-size:40px; cursor:pointer;">&times;</span>
-        <img id="fsImg" src="">
-    </div>
+    <div id="fullscreenView" class="fullscreen-view">
+    <span class="close-fs" onclick="closeFullImage()">&times;</span>
+    <div id="fullscreenGallery"></div>
+    <div id="fs-counter"></div>
+</div>
 
     <script src="script.js"></script>
 </body>
