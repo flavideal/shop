@@ -44,8 +44,31 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative; }
 .close-modal, .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #999; cursor: pointer; z-index: 10; }
 
-.gallery-container { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scroll-snap-type: x mandatory; }
-.gallery-img { width: 250px; height: auto; border-radius: 10px; scroll-snap-align: center; flex-shrink: 0; }
+/* I-update ito para sa Shopee-style swipe: */
+.gallery-container { 
+    display: flex; 
+    overflow-x: auto; 
+    gap: 0; /* Alisin ang gap para dikit ang slides */
+    scroll-snap-type: x mandatory; 
+    scroll-behavior: smooth;
+    width: 100%;
+    border-radius: 10px;
+}
+
+/* Para itago ang scrollbar sa ilalim para malinis */
+.gallery-container::-webkit-scrollbar {
+    display: none;
+}
+
+.gallery-img { 
+    width: 100%; /* Isang picture lang ang kita per slide */
+    height: auto; 
+    aspect-ratio: 1; /* Pinapanatiling square ang view */
+    object-fit: contain; /* Para hindi ma-stretch o ma-cut ang picture */
+    scroll-snap-align: center; 
+    flex-shrink: 0; 
+    background: #f9f9f9;
+}
 .modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; }
 
 /* Dashboard Components */
