@@ -118,24 +118,73 @@ function openProductDetails(index) {
         };
     }
 
-    // 2. LOAD TEXT DETAILS & VARIATIONS
+    // 2. LOAD TEXT DETAILS
     document.getElementById('viewName').innerText = p.Name;
     document.getElementById('viewDesc').innerText = p.Description;
 
     // --- COLOR VARIATION LOGIC ---
-    // --- DITO MO IDUGTONG (LOGIC PARA SA BUTTONS) ---
+    const colorContainer = document.getElementById('viewColors');
+    if (colorContainer) {
+        const colors = p.Colors ? p.Colors.split(',').map(c => c.trim()) : [];
+        colorContainer.innerHTML = colors.length > 0 ? '<p style="font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;">Select Color:</p>' : '';
+        colors.forEach(color => {
+            const btn = document.createElement('button');
+            btn.innerText = color;
+            btn.className = "variation-btn color-btn";
+            btn.onclick = () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+            colorContainer.appendChild(btn);
+        });
+        if(colors.length > 0) colorContainer.querySelector('button').click();
+    }
+
+    // --- CAPACITY & PRICE VARIATION LOGIC ---
+    const capacityContainer = document.getElementById('viewCapacity');
+    if (capacityContainer) {
+        const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
+        const prices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
+        const months = parseInt(p.Plan) || 12;
+        const interestRate = parseFloat(p.Interest_Rate) || 0;
+
+        capacityContainer.innerHTML = capacities.length > 0 ? '<p style="font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;">Select Storage:</p>' : '';
+        capacities.forEach((cap, i) => {
+            const btn = document.createElement('button');
+            btn.innerText = cap;
+            btn.className = "variation-btn capacity-btn";
+            btn.onclick = () => {
+                document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update Price Display
+                const selectedPrice = parseFloat(prices[i]) || parseFloat(prices[0]) || 0;
+                const monthly = (selectedPrice / months) + (selectedPrice * interestRate);
+                const priceElement = document.getElementById('viewPrice');
+                if(priceElement) {
+                    priceElement.innerHTML = `
+                        <div style="color:var(--forest-green); font-size:22px; font-weight:bold;">₱${selectedPrice.toLocaleString()}</div>
+                        <div style="font-size:13px; color:#666;">Monthly: <b>₱${Math.round(monthly).toLocaleString()} / ${months}mo</b></div>
+                    `;
+                }
+            };
+            capacityContainer.appendChild(btn);
+        });
+        if(capacities.length > 0) capacityContainer.querySelector('button').click();
+    }
+
+    // 3. ACTION BUTTONS (ADD TO CART / BUY NOW)
     const actionContainer = document.querySelector('.action-buttons');
     if (actionContainer) {
         if (p.Stock_Count <= 0) {
             actionContainer.innerHTML = `
                 <div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; border: 1px solid #fad7d7; width:100%;">
                     ● SOLD OUT
-                </div>
-            `;
+                </div>`;
         } else {
             actionContainer.innerHTML = `
-                <button id="addToCartBtn" style="background:#f39c12; color:white; width:100%; margin-bottom:10px; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">Add to Cart</button>
-                <button id="buyNowBtn" style="background:#1B4D2E; color:white; width:100%; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">Buy Now</button>
+                <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
+                <button id="buyNowBtn" class="btn-easy">Buy Now</button>
             `;
 
             document.getElementById('addToCartBtn').onclick = () => {
@@ -151,7 +200,7 @@ function openProductDetails(index) {
             };
         }
     }
-} // <--- ETO YUNG SARA NG openProductDetails, WAG MO KALILIMUTAN.
+} // <--- Siguraduhing may ganitong bracket bago mag-finalizeGallery
 
 // Function para ayusin ang gallery pagkatapos ma-check lahat ng images
 function finalizeGallery(gallery, counter) {
