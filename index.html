@@ -159,7 +159,10 @@
     <div class="modal-content">
         <span class="close-btn" onclick="document.getElementById('productViewModal').style.display='none'">&times;</span>
         
-        <div id="photoGallery" class="gallery-container"></div>
+        <div style="position: relative;">
+            <div id="photoGallery" class="gallery-container"></div>
+            <div id="image-counter" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.6); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; pointer-events: none; z-index: 10;">1 / 14</div>
+        </div>
         
         <div class="details-body">
             <h2 id="viewName" style="color: #1B4D2E; margin-bottom: 10px;"></h2>
