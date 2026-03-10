@@ -142,16 +142,16 @@ function openProductDetails(index) {
     const priceElement = document.getElementById('viewPrice');
     
     // Arrays from Sheets
-    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"]; // Default if blank
     const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
     const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
     const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
     
     const months = parseInt(p.Plan) || 12;
     const interestRate = parseFloat(p.Interest_Rate) || 0;
-    const processingFee = 500; // Fixed Fee
+    const processingFee = parseFloat(p.Processing_Fee) || 0; // Kukuha sa Column P
 
-    capacityContainer.innerHTML = capacities.length > 0 ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
+    capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
     
     capacities.forEach((cap, i) => {
         const btn = document.createElement('button');
@@ -161,13 +161,12 @@ function openProductDetails(index) {
             document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Pick price based on index (Variation)
             const curInstPrice = parseFloat(instPrices[i]) || parseFloat(instPrices[0]) || 0;
             const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
             const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
-            const monthly = (curInstPrice / months) + (curInstPrice * interestRate);
+            const monthlyBase = (curInstPrice / months) + (curInstPrice * interestRate);
+            const firstPayTotal = Math.round(monthlyBase) + processingFee;
 
-            // Price Display Logic
             let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
             
             priceElement.innerHTML = `
@@ -175,15 +174,16 @@ function openProductDetails(index) {
                     <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
                     <div style="font-size:24px; font-weight:bold; color:var(--forest-green);">₱${curCashPrice.toLocaleString()}</div>
                 </div>
-                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#f9f9f9; padding:10px; border-radius:8px; border:1px dashed var(--forest-green);">
-                    <div style="font-size:14px; color:#333;">Monthly Installment:</div>
-                    <div style="font-size:18px; font-weight:bold; color:#e67e22;">₱${Math.round(monthly).toLocaleString()} / ${months}mo</div>
-                    <small style="color:var(--forest-green);">Click to view payment schedule <i class="fas fa-chevron-down"></i></small>
+                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#f9f9f9; padding:12px; border-radius:8px; border:1px dashed var(--forest-green); position:relative;">
+                    <div style="font-size:13px; color:#555; margin-bottom:2px;">Monthly Installment:</div>
+                    <div style="font-size:20px; font-weight:800; color:#e67e22;">₱${Math.round(monthlyBase).toLocaleString()} / ${months}mo</div>
+                    <div style="font-size:11px; color:var(--forest-green); margin-top:4px;">
+                        Click to view payment schedule <i class="fas fa-chevron-down"></i>
+                    </div>
                 </div>
                 <div id="scheduleTableContainer" style="display:none; margin-top:10px;"></div>
             `;
 
-            // Table Generator Logic
             document.getElementById('toggleSchedule').onclick = () => {
                 const tableDiv = document.getElementById('scheduleTableContainer');
                 if(tableDiv.style.display === "block") {
@@ -193,18 +193,25 @@ function openProductDetails(index) {
 
                 let today = new Date();
                 let tableHtml = `<table class="payment-table">
-                    <tr style="background:#eee;"><th>Month</th><th>Due Date</th><th>Amount</th></tr>`;
+                    <tr style="background:#f4f4f4;"><th>Month</th><th>Due Date</th><th>Amount</th></tr>`;
                 
                 for(let m=1; m <= months; m++) {
                     let dueDate = new Date(today.getFullYear(), today.getMonth() + m, today.getDate());
-                    let amount = Math.round(monthly);
-                    let note = (m === 1) ? `<div style="color:#e67e22; font-size:9px;">+ ₱${processingFee} Processing Fee</div>` : '';
+                    let isFirst = m === 1;
+                    let displayAmount = isFirst ? firstPayTotal : Math.round(monthlyBase);
+                    
+                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:9px; font-weight:bold; margin-top:2px;">
+                        (Incl. ₱${processingFee.toLocaleString()} One-time Processing Bill)
+                    </div>` : '';
                     
                     tableHtml += `
                         <tr>
-                            <td>${m}${m==1?'st':m==2?'nd':m==3?'rd':'th'} Pay</td>
-                            <td>${dueDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</td>
-                            <td>₱${amount.toLocaleString()}${note}</td>
+                            <td style="font-weight:bold;">${m}${m==1?'st':m==2?'nd':m==3?'rd':'th'} Pay</td>
+                            <td style="color:#666;">${dueDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</td>
+                            <td style="font-weight:bold;">
+                                ₱${displayAmount.toLocaleString()}
+                                ${feeNote}
+                            </td>
                         </tr>`;
                 }
                 tableHtml += `</table>`;
