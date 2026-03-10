@@ -118,28 +118,59 @@ function openProductDetails(index) {
         };
     }
 
-    // 2. LOAD TEXT DETAILS
+    // 2. LOAD TEXT DETAILS & VARIATIONS
     document.getElementById('viewName').innerText = p.Name;
     document.getElementById('viewDesc').innerText = p.Description;
-    document.getElementById('viewColors').innerText = "Available Colors: " + (p.Colors || "N/A");
-    document.getElementById('viewCapacity').innerText = "Storage: " + (p.Capacity || "N/A");
 
-    // 3. INSTALLMENT BUTTONS
-    const regularBtn = document.getElementById('regInstallBtn');
-    const easyBtn = document.getElementById('easyInstallBtn');
+    // --- COLOR VARIATION LOGIC ---
+    const colorContainer = document.getElementById('viewColors');
+    const colors = p.Colors ? p.Colors.split(',').map(c => c.trim()) : [];
+    colorContainer.innerHTML = '<p style="font-size:12px; margin-bottom:5px;">Select Color:</p>';
+    colors.forEach(color => {
+        const btn = document.createElement('button');
+        btn.innerText = color;
+        btn.className = "variation-btn color-btn";
+        btn.onclick = () => {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        };
+        colorContainer.appendChild(btn);
+    });
+    if(colors.length > 0) colorContainer.querySelector('button').click(); // Auto-select una
 
-    if(regularBtn) regularBtn.onclick = () => p.Installment_Regular ? window.open(p.Installment_Regular, '_blank') : alert("Link not available.");
-    if(easyBtn) {
-        easyBtn.onclick = () => {
-            const inputCode = prompt("Please enter the Easy Code Key:");
-            if (inputCode && inputCode === p.Easy_Code_Key.toString()) {
-                window.open(p.Installment_Easy, '_blank');
-            } else if (inputCode) {
-                alert("Incorrect Code.");
+    // --- CAPACITY & PRICE VARIATION LOGIC ---
+    const capacityContainer = document.getElementById('viewCapacity');
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
+    const prices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
+    const interestRate = parseFloat(p.Interest_Rate) || 0;
+    const months = parseInt(p.Plan) || 12;
+
+    capacityContainer.innerHTML = '<p style="font-size:12px; margin-bottom:5px;">Select Storage:</p>';
+    
+    capacities.forEach((cap, i) => {
+        const btn = document.createElement('button');
+        btn.innerText = cap;
+        btn.className = "variation-btn capacity-btn";
+        btn.onclick = () => {
+            document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // UPDATE PRICE & MONTHLY
+            const selectedPrice = parseFloat(prices[i]) || parseFloat(prices[0]) || 0;
+            const monthly = (selectedPrice / months) + (selectedPrice * interestRate);
+            
+            // I-update ang display ng presyo (Siguraduhin na may element ka na 'viewPrice')
+            const priceElement = document.getElementById('viewPrice');
+            if(priceElement) {
+                priceElement.innerHTML = `
+                    <div style="color:var(--forest-green); font-size:20px; font-weight:bold;">₱${selectedPrice.toLocaleString()}</div>
+                    <div style="font-size:13px; color:#666;">Monthly: <b>₱${Math.round(monthly).toLocaleString()} / ${months}mo</b></div>
+                `;
             }
         };
-    }
-}
+        capacityContainer.appendChild(btn);
+    });
+    if(capacities.length > 0) capacityContainer.querySelector('button').click(); // Auto-select una
 
 // Function para ayusin ang gallery pagkatapos ma-check lahat ng images
 function finalizeGallery(gallery, counter) {
