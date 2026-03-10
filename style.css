@@ -45,11 +45,28 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 .close-modal, .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #999; cursor: pointer; z-index: 10; }
 
 /* --- DAGDAG: Gallery Wrapper para sa Desktop control --- */
+/* UPDATED Gallery Wrapper & Counter */
 .gallery-wrapper {
-    position: relative;
+    position: relative; /* Importante ito para sa counter */
     width: 100%;
-    max-width: 400px; /* Nilimitahan para hindi sabog ang image sa desktop */
-    margin: 0 auto;
+    max-width: 400px; 
+    margin: 0 auto 15px; /* May konting space sa baba */
+    border-radius: 10px;
+    overflow: hidden; /* Para malinis ang kanto */
+}
+
+#image-counter {
+    position: absolute;
+    bottom: 12px;     /* Taas nang kaunti mula sa ilalim ng photo */
+    right: 12px;      /* Gilid nang kaunti mula sa kanan */
+    background: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 5;
+    pointer-events: none; /* Hindi mahaharang ang pag-swipe */
 }
 
 .gallery-container { 
@@ -75,18 +92,72 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
     cursor: zoom-in;
 }
 
-/* Fullscreen View Styles */
+/* IPALIT MO ITO: */
+/* Fullscreen Swipeable View */
 .fullscreen-view {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: #000;
     z-index: 3000;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
 }
-.fullscreen-view img { max-width: 95%; max-height: 95%; object-fit: contain; }
 
+#fullscreenGallery {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+}
+
+#fullscreenGallery::-webkit-scrollbar { display: none; }
+
+.fs-slide {
+    width: 100%;
+    height: 100%;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    object-fit: contain;
+}
+
+/* Counters */
+#image-counter {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+#fs-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    background: rgba(255,255,255,0.3);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.close-fs {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    color: white;
+    font-size: 35px;
+    z-index: 3001;
+    cursor: pointer;
+}
+
+/* Re-add modal input styling */
 .modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; }
 
 /* Dashboard Components */
