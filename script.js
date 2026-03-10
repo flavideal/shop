@@ -35,43 +35,43 @@ function displayProducts(products) {
     window.currentProducts = products;
 
     products.forEach((p, index) => {
-        // --- DITO ANG UPDATE SA MATH (COLUMN M, N, O, P) ---
-        const months = Number(p.Plan) || 12; // Kukuha sa Column M, default ay 12 kung blanko
-        const instPrice = Number(p.Installment_Price) || 0; // Column N
-        const interestRate = Number(p.Interest_Rate) || 0; // Column O (dapat decimal, e.g., 0.05)
-        const fee = Number(p.Processing_Fee) || 0; // Column P
+    // 1. Siguraduhin na ang headers sa Sheets ay "Plan", "Installment Price", at "Interest Rate"
+    // Gagamit tayo ng parseFloat para sa decimals (0.05)
+    const months = Number(p.Plan) || 12; 
+    const instPrice = Number(p.Installment_Price) || 0;
+    const interestRate = parseFloat(p.Interest_Rate) || 0; // Ginamitan ng parseFloat
 
-        // COMPUTATION: (Price / Plan) + (Monthly Interest) + (Processing Fee / Plan)
-        const monthlyPayment = (instPrice / months) + (instPrice * interestRate) + (fee / months);
+    // 2. COMPUTATION: (Price / Plan) + (Monthly Interest)
+    // Example: (15000 / 12) + (15000 * 0.05)
+    const monthlyPayment = (instPrice / months) + (instPrice * interestRate);
 
-        const isOutOfStock = p.Stock_Count <= 0;
-        const stockStatus = isOutOfStock 
-            ? `<b style="color: #e74c3c;">● SOLD OUT</b>` 
-            : `<b style="color: #27ae60;">● In Stock</b>`;
+    const isOutOfStock = p.Stock_Count <= 0;
+    const stockStatus = isOutOfStock 
+        ? `<b style="color: #e74c3c;">● SOLD OUT</b>` 
+        : `<b style="color: #27ae60;">● In Stock</b>`;
 
-        const card = `
-            <div class="product-card" onclick="openProductDetails(${index})" style="cursor: pointer; position: relative; opacity: ${isOutOfStock ? '0.8' : '1'};">
-                ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
-                
-                ${isOutOfStock ? '<div style="position:absolute; top:40%; left:0; width:100%; background:rgba(231, 76, 60, 0.85); color:white; text-align:center; padding:5px; font-size:11px; font-weight:bold; z-index:2;">SOLD OUT</div>' : ''}
-                
-                <img src="${p.Folder_Path}/1.png" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
-                <div class="product-name">${p.Name}</div>
-                <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
-                <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
-                
-                <div class="installment-text">
-                    As low as <b>₱${Math.round(monthlyPayment).toLocaleString()} / ${months}mo</b>
-                </div>
-                
-                <p style="font-size:10px; margin-top: 8px;">
-                    ${stockStatus}
-                </p>
+    const card = `
+        <div class="product-card" onclick="openProductDetails(${index})" style="cursor: pointer; position: relative; opacity: ${isOutOfStock ? '0.8' : '1'};">
+            ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
+            
+            ${isOutOfStock ? '<div style="position:absolute; top:40%; left:0; width:100%; background:rgba(231, 76, 60, 0.85); color:white; text-align:center; padding:5px; font-size:11px; font-weight:bold; z-index:2;">SOLD OUT</div>' : ''}
+            
+            <img src="${p.Folder_Path}/1.png" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
+            <div class="product-name">${p.Name}</div>
+            <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
+            <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
+            
+            <div class="installment-text">
+                As low as <b>₱${Math.round(monthlyPayment).toLocaleString()} / ${months}mo</b>
             </div>
-        `;
-        container.innerHTML += card;
-    });
-}
+            
+            <p style="font-size:10px; margin-top: 8px;">
+                ${stockStatus}
+            </p>
+        </div>
+    `;
+    container.innerHTML += card;
+});
 
 let currentGalleryImages = []; // Dito itatago ang mga gumaganang image links
 
