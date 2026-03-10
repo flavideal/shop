@@ -9,7 +9,7 @@ async function fetchProducts() {
     container.innerHTML = `
         <div class="loader-container">
             <div class="spinner"></div>
-            <p style="color: gray; font-size: 14px;">Loading products from Flavi Deal...</p>
+            <p style="color: gray; font-size: 14px;">Loading products...</p>
         </div>
     `;
 
