@@ -82,12 +82,12 @@ function openProductDetails(index) {
 
     const modal = document.getElementById('productViewModal');
     if (!modal) return;
-    
     modal.style.display = "flex";
 
     const gallery = document.getElementById('photoGallery');
     const counter = document.getElementById('image-counter');
-    // IPALIT ITO: Pakita muna na naglo-load ang photos
+    
+    // 1. PHOTO LOADING (No changes here)
     gallery.innerHTML = `
         <div style="width:100%; height:300px; display:flex; align-items:center; justify-content:center; flex-direction:column;" class="skeleton">
             <div class="spinner"></div>
@@ -98,15 +98,12 @@ function openProductDetails(index) {
     if(counter) counter.innerText = "Loading...";
     currentGalleryImages = [];
 
-    // 1. DYNAMIC PHOTO LOADING (Checking up to 15 images)
     let imagesToCheck = 15;
     let checkedCount = 0;
-
     for (let i = 1; i <= imagesToCheck; i++) {
         let imgSrc = `${p.Folder_Path}/${i}.png`;
         let img = new Image();
         img.src = imgSrc;
-
         img.onload = function() {
             currentGalleryImages.push(imgSrc);
             checkedCount++;
@@ -118,15 +115,15 @@ function openProductDetails(index) {
         };
     }
 
-    // 2. LOAD TEXT DETAILS
+    // 2. TEXT DETAILS
     document.getElementById('viewName').innerText = p.Name;
     document.getElementById('viewDesc').innerText = p.Description;
 
-    // --- COLOR VARIATION LOGIC ---
+    // --- COLOR VARIATION ---
     const colorContainer = document.getElementById('viewColors');
     if (colorContainer) {
         const colors = p.Colors ? p.Colors.split(',').map(c => c.trim()) : [];
-        colorContainer.innerHTML = colors.length > 0 ? '<p style="font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;">Select Color:</p>' : '';
+        colorContainer.innerHTML = colors.length > 0 ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT COLOR:</p>' : '';
         colors.forEach(color => {
             const btn = document.createElement('button');
             btn.innerText = color;
@@ -140,53 +137,96 @@ function openProductDetails(index) {
         if(colors.length > 0) colorContainer.querySelector('button').click();
     }
 
-    // --- CAPACITY & PRICE VARIATION LOGIC ---
+    // --- CAPACITY & ADVANCED PRICE LOGIC ---
     const capacityContainer = document.getElementById('viewCapacity');
-    if (capacityContainer) {
-        const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
-        const prices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
-        const months = parseInt(p.Plan) || 12;
-        const interestRate = parseFloat(p.Interest_Rate) || 0;
+    const priceElement = document.getElementById('viewPrice');
+    
+    // Arrays from Sheets
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
+    const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
+    const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
+    const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
+    
+    const months = parseInt(p.Plan) || 12;
+    const interestRate = parseFloat(p.Interest_Rate) || 0;
+    const processingFee = 500; // Fixed Fee
 
-        capacityContainer.innerHTML = capacities.length > 0 ? '<p style="font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;">Select Storage:</p>' : '';
-        capacities.forEach((cap, i) => {
-            const btn = document.createElement('button');
-            btn.innerText = cap;
-            btn.className = "variation-btn capacity-btn";
-            btn.onclick = () => {
-                document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Update Price Display
-                const selectedPrice = parseFloat(prices[i]) || parseFloat(prices[0]) || 0;
-                const monthly = (selectedPrice / months) + (selectedPrice * interestRate);
-                const priceElement = document.getElementById('viewPrice');
-                if(priceElement) {
-                    priceElement.innerHTML = `
-                        <div style="color:var(--forest-green); font-size:22px; font-weight:bold;">₱${selectedPrice.toLocaleString()}</div>
-                        <div style="font-size:13px; color:#666;">Monthly: <b>₱${Math.round(monthly).toLocaleString()} / ${months}mo</b></div>
-                    `;
+    capacityContainer.innerHTML = capacities.length > 0 ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
+    
+    capacities.forEach((cap, i) => {
+        const btn = document.createElement('button');
+        btn.innerText = cap;
+        btn.className = "variation-btn capacity-btn";
+        btn.onclick = () => {
+            document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Pick price based on index (Variation)
+            const curInstPrice = parseFloat(instPrices[i]) || parseFloat(instPrices[0]) || 0;
+            const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
+            const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
+            const monthly = (curInstPrice / months) + (curInstPrice * interestRate);
+
+            // Price Display Logic
+            let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
+            
+            priceElement.innerHTML = `
+                <div style="margin-bottom:10px;">
+                    <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
+                    <div style="font-size:24px; font-weight:bold; color:var(--forest-green);">₱${curCashPrice.toLocaleString()}</div>
+                </div>
+                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#f9f9f9; padding:10px; border-radius:8px; border:1px dashed var(--forest-green);">
+                    <div style="font-size:14px; color:#333;">Monthly Installment:</div>
+                    <div style="font-size:18px; font-weight:bold; color:#e67e22;">₱${Math.round(monthly).toLocaleString()} / ${months}mo</div>
+                    <small style="color:var(--forest-green);">Click to view payment schedule <i class="fas fa-chevron-down"></i></small>
+                </div>
+                <div id="scheduleTableContainer" style="display:none; margin-top:10px;"></div>
+            `;
+
+            // Table Generator Logic
+            document.getElementById('toggleSchedule').onclick = () => {
+                const tableDiv = document.getElementById('scheduleTableContainer');
+                if(tableDiv.style.display === "block") {
+                    tableDiv.style.display = "none";
+                    return;
                 }
-            };
-            capacityContainer.appendChild(btn);
-        });
-        if(capacities.length > 0) capacityContainer.querySelector('button').click();
-    }
 
-    // 3. ACTION BUTTONS (ADD TO CART / BUY NOW)
+                let today = new Date();
+                let tableHtml = `<table class="payment-table">
+                    <tr style="background:#eee;"><th>Month</th><th>Due Date</th><th>Amount</th></tr>`;
+                
+                for(let m=1; m <= months; m++) {
+                    let dueDate = new Date(today.getFullYear(), today.getMonth() + m, today.getDate());
+                    let amount = Math.round(monthly);
+                    let note = (m === 1) ? `<div style="color:#e67e22; font-size:9px;">+ ₱${processingFee} Processing Fee</div>` : '';
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${m}${m==1?'st':m==2?'nd':m==3?'rd':'th'} Pay</td>
+                            <td>${dueDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</td>
+                            <td>₱${amount.toLocaleString()}${note}</td>
+                        </tr>`;
+                }
+                tableHtml += `</table>`;
+                tableDiv.innerHTML = tableHtml;
+                tableDiv.style.display = "block";
+            };
+        };
+        capacityContainer.appendChild(btn);
+    });
+    if(capacities.length > 0) capacityContainer.querySelector('button').click();
+
+    // 3. ACTION BUTTONS
     const actionContainer = document.querySelector('.action-buttons');
     if (actionContainer) {
         if (p.Stock_Count <= 0) {
-            actionContainer.innerHTML = `
-                <div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; border: 1px solid #fad7d7; width:100%;">
-                    ● SOLD OUT
-                </div>`;
+            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
         } else {
             actionContainer.innerHTML = `
                 <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
                 <button id="buyNowBtn" class="btn-easy">Buy Now</button>
             `;
-
+            
             document.getElementById('addToCartBtn').onclick = () => {
                 const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
                 const cap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
@@ -196,11 +236,11 @@ function openProductDetails(index) {
             document.getElementById('buyNowBtn').onclick = () => {
                 const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
                 const cap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
-                alert(`Proceeding to Buy: ${p.Name}\nColor: ${col}\nStorage: ${cap}`);
+                alert(`Redirecting to Checkout...\nItem: ${p.Name} (${cap})`);
             };
         }
     }
-} // <--- Siguraduhing may ganitong bracket bago mag-finalizeGallery
+}
 
 // Function para ayusin ang gallery pagkatapos ma-check lahat ng images
 function finalizeGallery(gallery, counter) {
