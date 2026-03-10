@@ -32,17 +32,18 @@ function displayProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = ""; 
     
-    // I-save natin ang products sa window para ma-access ng openProductDetails
     window.currentProducts = products;
 
     products.forEach((p, index) => {
-        const months = 12;
-        const instPrice = Number(p.Installment_Price) || 0;
-        const interest = Number(p.Interest_Rate) || 0;
-        const fee = Number(p.Processing_Fee) || 0;
-        const monthlyPayment = (instPrice / months) + (instPrice * interest) + (fee / months);
+        // --- DITO ANG UPDATE SA MATH (COLUMN M, N, O, P) ---
+        const months = Number(p.Plan) || 12; // Kukuha sa Column M, default ay 12 kung blanko
+        const instPrice = Number(p.Installment_Price) || 0; // Column N
+        const interestRate = Number(p.Interest_Rate) || 0; // Column O (dapat decimal, e.g., 0.05)
+        const fee = Number(p.Processing_Fee) || 0; // Column P
 
-        // --- DITO MO IPAPALIT SIMULA DITO ---
+        // COMPUTATION: (Price / Plan) + (Monthly Interest) + (Processing Fee / Plan)
+        const monthlyPayment = (instPrice / months) + (instPrice * interestRate) + (fee / months);
+
         const isOutOfStock = p.Stock_Count <= 0;
         const stockStatus = isOutOfStock 
             ? `<b style="color: #e74c3c;">● SOLD OUT</b>` 
@@ -58,15 +59,16 @@ function displayProducts(products) {
                 <div class="product-name">${p.Name}</div>
                 <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
                 <div class="price-cash">₱${Number(p.Cash_Price).toLocaleString()}</div>
+                
                 <div class="installment-text">
-                    As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b>
+                    As low as <b>₱${Math.round(monthlyPayment).toLocaleString()} / ${months}mo</b>
                 </div>
+                
                 <p style="font-size:10px; margin-top: 8px;">
                     ${stockStatus}
                 </p>
             </div>
         `;
-        // --- HANGGANG DITO ---
         container.innerHTML += card;
     });
 }
