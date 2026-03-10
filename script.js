@@ -42,10 +42,18 @@ function displayProducts(products) {
         const fee = Number(p.Processing_Fee) || 0;
         const monthlyPayment = (instPrice / months) + (instPrice * interest) + (fee / months);
 
-        // FIX: Imbes na JSON.stringify, index na lang ang ipasa natin
+        // --- DITO MO IPAPALIT SIMULA DITO ---
+        const isOutOfStock = p.Stock_Count <= 0;
+        const stockStatus = isOutOfStock 
+            ? `<b style="color: #e74c3c;">● SOLD OUT</b>` 
+            : `<b style="color: #27ae60;">● In Stock</b>`;
+
         const card = `
-            <div class="product-card" onclick="openProductDetails(${index})" style="cursor: pointer;">
+            <div class="product-card" onclick="openProductDetails(${index})" style="cursor: pointer; position: relative; opacity: ${isOutOfStock ? '0.8' : '1'};">
                 ${p.Cash_Price < p.Regular_Price ? '<span class="sale-badge">SALE</span>' : ''}
+                
+                ${isOutOfStock ? '<div style="position:absolute; top:40%; left:0; width:100%; background:rgba(231, 76, 60, 0.85); color:white; text-align:center; padding:5px; font-size:11px; font-weight:bold; z-index:2;">SOLD OUT</div>' : ''}
+                
                 <img src="${p.Folder_Path}/1.png" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
                 <div class="product-name">${p.Name}</div>
                 <div class="price-regular">₱${Number(p.Regular_Price).toLocaleString()}</div>
@@ -53,11 +61,12 @@ function displayProducts(products) {
                 <div class="installment-text">
                     As low as <b>₱${Math.round(monthlyPayment).toLocaleString()}/mo</b>
                 </div>
-                <p style="font-size:9px; color:${p.Stock_Count > 0 ? 'gray' : 'red'};">
-                    ${p.Stock_Count > 0 ? 'Stock: ' + p.Stock_Count : 'SOLD OUT'}
+                <p style="font-size:10px; margin-top: 8px;">
+                    ${stockStatus}
                 </p>
             </div>
         `;
+        // --- HANGGANG DITO ---
         container.innerHTML += card;
     });
 }
