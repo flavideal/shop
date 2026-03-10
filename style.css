@@ -92,69 +92,62 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
     cursor: zoom-in;
 }
 
-/* IPALIT MO ITO: */
-/* Fullscreen Swipeable View */
+/* Eto ang pinaka-safe na version para sa lahat ng device */
 .fullscreen-view {
     display: none;
     position: fixed;
     inset: 0;
     background: #000;
-    z-index: 3000;
+    z-index: 5000;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 #fullscreenGallery {
     display: flex;
     width: 100%;
-    height: 100%;
+    height: 85vh; /* Safe height para sa Mobile at Desktop */
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Para smooth ang swipe sa iPhone */
 }
 
-#fullscreenGallery::-webkit-scrollbar { display: none; }
+#fullscreenGallery::-webkit-scrollbar {
+    display: none; /* Itago ang scrollbar sa mobile para malinis */
+}
 
 .fs-slide {
     width: 100%;
     height: 100%;
     flex-shrink: 0;
-    scroll-snap-align: start;
-    object-fit: contain;
-}
-
-/* Counters */
-#image-counter {
-    position: absolute;
-    bottom: 10px;
-    right: 15px;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    padding: 3px 10px;
-    border-radius: 15px;
-    font-size: 11px;
-    z-index: 5;
-    pointer-events: none;
-}
-
-#fs-counter {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    background: rgba(255,255,255,0.3);
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 14px;
+    scroll-snap-align: center;
+    object-fit: contain; /* Dito masisiguro na hindi puputok ang image */
+    padding: 10px;
 }
 
 .close-fs {
     position: absolute;
-    top: 20px;
-    right: 25px;
+    top: env(safe-area-inset-top, 20px); /* Para sa mga iPhone na may notch */
+    right: 20px;
     color: white;
     font-size: 35px;
-    z-index: 3001;
+    font-weight: bold;
+    z-index: 6000;
     cursor: pointer;
+}
+
+#fs-counter {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    background: rgba(255,255,255,0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 13px;
 }
 
 /* Re-add modal input styling */
