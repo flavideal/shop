@@ -48,97 +48,115 @@ function displayProducts(products) {
     });
 }
 
+let currentGalleryImages = []; // Dito itatago ang mga gumaganang image links
+
 function openProductDetails(index) {
-    // Kunin ang product mula sa window variable gamit ang index
     const p = window.currentProducts[index];
-    
     if (!p) return;
 
     const modal = document.getElementById('productViewModal');
-    if (!modal) {
-        alert("Error: productViewModal not found in HTML.");
-        return;
-    }
+    if (!modal) return;
     
-    // Ipakita ang modal
     modal.style.display = "flex";
 
-    // 1. LOAD PHOTOS (1-14) & FULLSCREEN CLICK LOGIC
-    let photoHTML = "";
-    for(let i=1; i<=14; i++) {
-        // Idinagdag ang viewFullImage(this.src) para ma-view ng malaki pag ni-click
-        photoHTML += `<img src="${p.Folder_Path}/${i}.png" class="gallery-img" 
-                      onclick="viewFullImage(this.src)" 
-                      onerror="this.style.display='none'">`;
-    }
-    
     const gallery = document.getElementById('photoGallery');
     const counter = document.getElementById('image-counter');
-    
-    gallery.innerHTML = photoHTML;
-    
-    // 2. RESET SCROLL: Laging balik sa unang picture tuwing magbubukas
-    gallery.scrollLeft = 0;
-    if(counter) counter.innerText = "1 / 14";
+    gallery.innerHTML = ""; 
+    currentGalleryImages = []; // Reset ang listahan
 
-    // 3. SHOPEE SWIPE & COUNTER LOGIC
-    gallery.onscroll = () => {
-        // Kinukuha ang current "page" base sa scroll position
-        let page = Math.round(gallery.scrollLeft / gallery.clientWidth) + 1;
-        if(counter) counter.innerText = `${page} / 14`;
-    };
+    // 1. DYNAMIC PHOTO LOADING (Checking up to 15 images)
+    let imagesToCheck = 15;
+    let checkedCount = 0;
 
-    // 4. LOAD TEXT DETAILS
+    for (let i = 1; i <= imagesToCheck; i++) {
+        let imgSrc = `${p.Folder_Path}/${i}.png`;
+        let img = new Image();
+        img.src = imgSrc;
+
+        img.onload = function() {
+            currentGalleryImages.push(imgSrc);
+            checkedCount++;
+            if (checkedCount === imagesToCheck) finalizeGallery(gallery, counter);
+        };
+        img.onerror = function() {
+            checkedCount++;
+            if (checkedCount === imagesToCheck) finalizeGallery(gallery, counter);
+        };
+    }
+
+    // 2. LOAD TEXT DETAILS
     document.getElementById('viewName').innerText = p.Name;
     document.getElementById('viewDesc').innerText = p.Description;
     document.getElementById('viewColors').innerText = "Available Colors: " + (p.Colors || "N/A");
     document.getElementById('viewCapacity').innerText = "Storage: " + (p.Capacity || "N/A");
 
-    // 5. INSTALLMENT BUTTONS LOGIC
+    // 3. INSTALLMENT BUTTONS
     const regularBtn = document.getElementById('regInstallBtn');
     const easyBtn = document.getElementById('easyInstallBtn');
 
-    // Regular Installment Button
-    if(regularBtn) {
-        regularBtn.onclick = () => {
-            if(p.Installment_Regular) {
-                window.open(p.Installment_Regular, '_blank');
-            } else {
-                alert("Regular installment link is not available for this product.");
-            }
-        };
-    }
-
-    // Easy Installment Button (with PIN validation)
+    if(regularBtn) regularBtn.onclick = () => p.Installment_Regular ? window.open(p.Installment_Regular, '_blank') : alert("Link not available.");
     if(easyBtn) {
         easyBtn.onclick = () => {
-            const inputCode = prompt("Please enter the Easy Code Key to proceed:");
+            const inputCode = prompt("Please enter the Easy Code Key:");
             if (inputCode && inputCode === p.Easy_Code_Key.toString()) {
                 window.open(p.Installment_Easy, '_blank');
             } else if (inputCode) {
-                alert("Incorrect Code. Please contact Flavi Deal support.");
+                alert("Incorrect Code.");
             }
         };
     }
 }
 
-/** * DAGDAG NA FUNCTIONS PARA SA FULLSCREEN VIEW 
- * Siguraduhin na nasa script.js din ito
- */
-function viewFullImage(src) {
+// Function para ayusin ang gallery pagkatapos ma-check lahat ng images
+function finalizeGallery(gallery, counter) {
+    // I-sort para hindi maghalo-halo ang sequence (1, 2, 3...)
+    currentGalleryImages.sort((a, b) => {
+        return parseInt(a.split('/').pop()) - parseInt(b.split('/').pop());
+    });
+
+    gallery.innerHTML = currentGalleryImages.map((src, idx) => 
+        `<img src="${src}" class="gallery-img" onclick="openFullscreenSwipe(${idx})">`
+    ).join('');
+
+    const total = currentGalleryImages.length;
+    if(counter) counter.innerText = `1 / ${total}`;
+
+    gallery.onscroll = () => {
+        let page = Math.round(gallery.scrollLeft / gallery.clientWidth) + 1;
+        if(counter) counter.innerText = `${page} / ${total}`;
+    };
+}
+
+// FULLSCREEN SWIPE LOGIC
+function openFullscreenSwipe(startIndex) {
     const fs = document.getElementById('fullscreenView');
-    const fsImg = document.getElementById('fsImg');
-    if(fs && fsImg) {
-        fs.style.display = "flex";
-        fsImg.src = src;
-    }
+    const fsGallery = document.getElementById('fullscreenGallery');
+    const fsCounter = document.getElementById('fs-counter');
+    
+    fs.style.display = "flex";
+    
+    // I-render ang lahat ng images sa loob ng fullscreen container para swipeable
+    fsGallery.innerHTML = currentGalleryImages.map(src => 
+        `<img src="${src}" class="fs-slide">`
+    ).join('');
+    
+    const total = currentGalleryImages.length;
+    
+    // I-scroll sa saktong image na ni-click
+    setTimeout(() => {
+        fsGallery.scrollLeft = fsGallery.clientWidth * startIndex;
+        if(fsCounter) fsCounter.innerText = `${startIndex + 1} / ${total}`;
+    }, 50);
+
+    fsGallery.onscroll = () => {
+        let page = Math.round(fsGallery.scrollLeft / fsGallery.clientWidth) + 1;
+        if(fsCounter) fsCounter.innerText = `${page} / ${total}`;
+    };
 }
 
 function closeFullImage() {
-    const fs = document.getElementById('fullscreenView');
-    if(fs) fs.style.display = "none";
+    document.getElementById('fullscreenView').style.display = "none";
 }
-
 // 4. Tawagin ang fetch function pagka-load ng page
 window.onload = fetchProducts;
 
