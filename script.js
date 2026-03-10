@@ -167,18 +167,31 @@ function openProductDetails(index) {
             const monthlyBase = (curInstPrice / months) + (curInstPrice * interestRate);
             const firstPayTotal = Math.round(monthlyBase) + processingFee;
 
+            // Price Display Logic
             let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
             
+            // Computation for interest display
+            const monthlyInterestPercent = (interestRate * 100).toFixed(1); // Gagawing "5.0%" format
+
             priceElement.innerHTML = `
-                <div style="margin-bottom:10px;">
+                <div style="margin-bottom:15px;">
                     <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
-                    <div style="font-size:24px; font-weight:bold; color:var(--forest-green);">₱${curCashPrice.toLocaleString()}</div>
+                    <div style="font-size:26px; font-weight:bold; color:var(--forest-green);">₱${curCashPrice.toLocaleString()}</div>
                 </div>
-                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#f9f9f9; padding:12px; border-radius:8px; border:1px dashed var(--forest-green); position:relative;">
-                    <div style="font-size:13px; color:#555; margin-bottom:2px;">Monthly Installment:</div>
-                    <div style="font-size:20px; font-weight:800; color:#e67e22;">₱${Math.round(monthlyBase).toLocaleString()} / ${months}mo</div>
-                    <div style="font-size:11px; color:var(--forest-green); margin-top:4px;">
-                        Click to view payment schedule <i class="fas fa-chevron-down"></i>
+
+                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#f9f9f9; padding:15px; border-radius:10px; border:1px dashed var(--forest-green); position:relative;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <span style="font-size:12px; color:#666; font-weight:bold;">INSTALLMENT PLAN</span>
+                        <span style="font-size:11px; background:#e8f5e9; color:var(--forest-green); padding:2px 8px; border-radius:20px; font-weight:bold;">
+                            ${monthlyInterestPercent}% Monthly Interest
+                        </span>
+                    </div>
+                    
+                    <div style="font-size:22px; font-weight:800; color:#e67e22;">₱${Math.round(monthlyBase).toLocaleString()} / ${months}mo</div>
+                    
+                    <div style="font-size:11px; color:var(--forest-green); margin-top:8px; border-top:1px solid #eee; pt:5px; display:flex; justify-content:space-between;">
+                        <span>Click to view payment schedule</span>
+                        <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
                 <div id="scheduleTableContainer" style="display:none; margin-top:10px;"></div>
