@@ -22,12 +22,78 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 .mobile-nav .item i { font-size: 18px; margin-bottom: 2px; color: var(--forest-green); }
 
 /* Buttons & Hero */
-.cta-btn, .login-btn, .btn-regular, .btn-easy { border: none; font-weight: bold; border-radius: 12px; cursor: pointer; text-align: center; }
-.hero { background: var(--forest-green); color: white; padding: 60px 5%; text-align: center; border-radius: 0 0 40px 40px; margin-top: 50px; }
+.cta-btn, .login-btn, #addToCartBtn, #buyNowBtn { 
+    border: none; 
+    font-weight: bold; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    text-align: center; 
+    transition: 0.3s;
+}
+
+.hero { 
+    background: var(--forest-green); 
+    color: white; 
+    padding: 60px 5%; 
+    text-align: center; 
+    border-radius: 0 0 40px 40px; 
+    margin-top: 50px; 
+}
+
 .hero h1 { font-size: 2.2rem; margin-bottom: 10px; }
-.cta-btn { background: var(--golden-yellow); color: var(--forest-green); padding: 12px 30px; font-size: 16px; margin-top: 15px; display: inline-block; }
-.login-btn, .btn-regular { background: var(--forest-green); color: white; width: 100%; padding: 14px; margin-top: 10px; }
-.btn-easy { background: #f39c12; color: white; padding: 14px; width: 100%; }
+
+.cta-btn { 
+    background: var(--golden-yellow); 
+    color: var(--forest-green); 
+    padding: 12px 30px; 
+    font-size: 16px; 
+    margin-top: 15px; 
+    display: inline-block; 
+    text-decoration: none;
+}
+
+.login-btn { 
+    background: var(--forest-green); 
+    color: white; 
+    width: 100%; 
+    padding: 14px; 
+    margin-top: 10px; 
+}
+
+/* Specific Styles for Modal Buttons */
+#addToCartBtn { 
+    background: #f39c12 !important; /* Orange */
+    color: white !important; 
+    width: 100%; 
+    padding: 14px; 
+    margin-top: 10px; 
+}
+
+#buyNowBtn { 
+    background: var(--forest-green) !important; /* Green */
+    color: white !important; 
+    padding: 14px; 
+    width: 100%; 
+    margin-top: 8px; 
+}
+
+/* Variation Buttons (Storage/Color) */
+.variation-btn {
+    border: 1px solid #ddd;
+    background: white;
+    padding: 8px 12px;
+    margin: 5px 5px 0 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.variation-btn.active {
+    border-color: var(--forest-green);
+    background: #e8f5e9;
+    color: var(--forest-green);
+    font-weight: bold;
+}
 
 /* Product Grid */
 .product-container { padding: 20px 5%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 1200px; margin: 0 auto; }
