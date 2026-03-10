@@ -72,6 +72,7 @@ function displayProducts(products) {
     `;
     container.innerHTML += card;
 });
+}
 
 let currentGalleryImages = []; // Dito itatago ang mga gumaganang image links
 
