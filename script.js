@@ -171,38 +171,27 @@ function openProductDetails(index) {
             const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
             const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
             
-            // Dito natin binago: Gagamit ng Regular Price SRP para sa Installment base
+            // Computation for outside display
             const monthlyBase = (curRegPrice / months) + (curRegPrice * interestRate);
             const firstPayTotal = Math.round(monthlyBase) + processingFee;
             const monthlyInterestPercent = (interestRate * 100).toFixed(0);
 
-            let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
-            
             priceElement.innerHTML = `
-                <div style="margin-bottom:15px;">
+                <div style="margin-bottom:12px;">
                     <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
-                    <div style="font-size:28px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
+                    <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
                 </div>
 
-                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#ffffff; padding:16px; border-radius:12px; border:1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); position:relative; transition: all 0.3s ease;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                        <div>
-                            <span style="font-size:11px; color:#1B4D2E; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">Installment Plan</span>
-                            <div style="font-size:22px; font-weight:900; color:#e67e22; margin-top:2px;">₱${Math.round(monthlyBase).toLocaleString()} <span style="font-size:14px; font-weight:500; color:#888;">/ mo.</span></div>
-                        </div>
-                        <span style="font-size:10px; background:#fff3e0; color:#e67e22; padding:4px 8px; border-radius:6px; font-weight:bold; border: 1px solid #ffe0b2;">
-                            ${monthlyInterestPercent}% Interest
-                        </span>
+                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#fdfdfd; padding:10px 12px; border-radius:8px; border:1px solid #eee; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="font-size:13px; color:#444;">
+                        <span style="font-weight:700; color:#e67e22;">Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.</span> 
+                        <span style="color:#888; margin-left:5px;">For ${months} months term.</span>
                     </div>
-                    
-                    <div style="font-size:12px; color:#555; font-weight:500;">For ${months} months term</div>
-                    
-                    <div style="font-size:11px; color:#1B4D2E; margin-top:12px; padding-top:10px; border-top:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:600;">Click here to view payment schedule</span>
-                        <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+                    <div style="font-size:11px; color:var(--forest-green); font-weight:600;">
+                        Click here <i class="fas fa-chevron-down" style="font-size:9px;"></i>
                     </div>
                 </div>
-                <div id="scheduleTableContainer" style="display:none; margin-top:15px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
+                <div id="scheduleTableContainer" style="display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
             `;
 
             document.getElementById('toggleSchedule').onclick = () => {
@@ -213,24 +202,26 @@ function openProductDetails(index) {
                 }
 
                 let tableHtml = `
-                    <div style="background:#1B4D2E; color:white; padding:10px; font-size:11px; font-weight:bold; text-align:center; letter-spacing:1px;">
+                    <div style="background:#1B4D2E; color:white; padding:8px; font-size:10px; font-weight:bold; text-align:center; letter-spacing:1px;">
                         FLAVI DEAL INSTALLMENT PLAN
                     </div>
-                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:12px;">
-                        <tr style="background:#f8f9fa; border-bottom:1px solid #eee;">
-                            <th style="padding:12px; text-align:left; color:#888;">Month</th>
-                            <th style="padding:12px; text-align:right; color:#888;">Monthly</th>
+                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:11px;">
+                        <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
+                            <th style="padding:10px; text-align:left;">Month</th>
+                            <th style="padding:10px; text-align:center;">Interest</th>
+                            <th style="padding:10px; text-align:right;">Monthly Due</th>
                         </tr>`;
                 
                 for(let m=1; m <= months; m++) {
                     let isFirst = m === 1;
                     let displayAmount = isFirst ? firstPayTotal : Math.round(monthlyBase);
-                    let feeText = isFirst ? `<div style="color:#e67e22; font-size:9px; font-weight:bold;">+ One-time Processing Fee</div>` : '';
+                    let feeText = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ Proc. Fee</div>` : '';
                     
                     tableHtml += `
                         <tr style="border-bottom:1px solid #f9f9f9;">
-                            <td style="padding:12px; font-weight:bold; color:#444;">Month ${m}</td>
-                            <td style="padding:12px; text-align:right; font-weight:700; color:#333;">
+                            <td style="padding:10px; font-weight:bold; color:#555;">${m}</td>
+                            <td style="padding:10px; text-align:center; color:#888;">${monthlyInterestPercent}%</td>
+                            <td style="padding:10px; text-align:right; font-weight:700; color:#333;">
                                 ₱${displayAmount.toLocaleString()}
                                 ${feeText}
                             </td>
@@ -238,11 +229,11 @@ function openProductDetails(index) {
                 }
                 
                 tableHtml += `</table>
-                    <div style="padding:12px; background:#fffcf5; border-top:1px solid #fff3e0;">
+                    <div style="padding:10px; background:#fffcf5;">
                         <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
-                            * Terms and conditions applied. A one-time processing bill will be added on the first due date. Monthly payment is fixed throughout the term.
+                            * Terms and conditions applied. A one-time processing bill will be added on the first due date.
                         </p>
-                        <div style="margin-top:10px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6; letter-spacing:1px;">
+                        <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
                             POWERED BY ERRIHO PERSONAL FINANCE
                         </div>
                     </div>`;
