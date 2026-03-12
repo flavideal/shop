@@ -220,32 +220,35 @@ function openProductDetails(index) {
                 }
 
                 let tableHtml = `
-                    <div style="background:#1B4D2E; color:white; padding:8px; font-size:10px; font-weight:bold; text-align:center; letter-spacing:1px;">
+                    <div style="background:#1B4D2E; color:white; padding:8px; font-size:10px; font-weight:bold; text-align:center; letter-spacing:1px; text-transform:uppercase;">
                         FLAVI DEAL INSTALLMENT PLAN
                     </div>
-                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:11px; background:white;">
+                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
                         <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
-                            <th style="padding:10px; text-align:left;">Month</th>
-                            <th style="padding:10px; text-align:center;">Montly Interest Rate</th>
-                            <th style="padding:10px; text-align:right;">Monthly Due</th>
+                            <th style="padding:10px 5px; text-align:left; width:15%;">Month</th>
+                            <th style="padding:10px 5px; text-align:center; white-space: nowrap;">Monthly Interest Rate</th>
+                            <th style="padding:10px 5px; text-align:right; width:35%;">Monthly Due</th>
                         </tr>`;
                 
                 for(let m=1; m <= months; m++) {
                     let isFirst = m === 1;
-                    let displayAmount = isFirst ? firstPayTotal : Math.round(monthlyBase);
-                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">
-    + ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Processing Fee
-</div>` : '';
+                    // Dito binago: Nilagyan ng .toFixed(2) para laging may 2 decimal places ang computation
+                    let displayAmount = isFirst ? firstPayTotal : monthlyBase;
+                    
+                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold; margin-top:2px;">
+                        + ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Processing Fee
+                    </div>` : '';
                     
                     tableHtml += `
                         <tr style="border-bottom:1px solid #f9f9f9;">
-                            <td style="padding:10px; font-weight:bold; color:#555;">${m}</td>
-                            <td style="padding:10px; text-align:center; color:#888;">${monthlyInterestPercent}%</td>
-                            <td style="padding:10px; text-align:right; font-weight:700; color:#333;">
-                                ₱${displayAmount.toLocaleString()}
+                            <td style="padding:10px 5px; font-weight:bold; color:#555; text-align:center;">${m}</td>
+                            <td style="padding:10px 5px; text-align:center; color:#888;">${monthlyInterestPercent}%</td>
+                            <td style="padding:10px 5px; text-align:right; font-weight:700; color:#333;">
+                                ₱${displayAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 ${feeNote}
                             </td>
                         </tr>`;
+                }
                 }
                 
                 tableHtml += `</table>
