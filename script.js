@@ -330,6 +330,29 @@ function openProductDetails(index) {
         };
         capacityContainer.appendChild(btn);
     });
+
+     // --- INSERT REVIEW BUTTON HERE ---
+    const reviewDiv = document.createElement('div');
+    reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
+    reviewDiv.innerHTML = `
+        <p style="font-size: 11px; color: #888; margin-bottom: 12px; font-weight: 500;">
+            Purchased this item? Share your experience with us!
+        </p>
+        <button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-pen-to-square"></i> WRITE A REVIEW
+        </button>
+    `;
+    
+    // Isasama natin ang data sa URL para makuha ng review.html
+    reviewDiv.querySelector('#btnGoToReview').onclick = () => {
+        const pName = encodeURIComponent(p.Name);
+        const pBrand = encodeURIComponent(brandName);
+        const pImg = encodeURIComponent(`${p.Folder_Path}/1.png`);
+        window.location.href = `review.html?name=${pName}&brand=${pBrand}&img=${pImg}`;
+    };
+
+    // Idagdag sa main container ng modal (karaniwang sa baba ng priceElement o sa main scrollable area)
+    priceElement.parentElement.appendChild(reviewDiv);
     
     const firstCapBtn = capacityContainer.querySelector('.capacity-btn');
     if(firstCapBtn) firstCapBtn.click();
