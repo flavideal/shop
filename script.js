@@ -144,19 +144,18 @@ function openProductDetails(index) {
         if(colors.length > 0) colorContainer.querySelector('button').click();
     }
 
-    // --- CAPACITY & ADVANCED PRICE LOGIC ---
+   // --- CAPACITY & ADVANCED PRICE LOGIC ---
     const capacityContainer = document.getElementById('viewCapacity');
     const priceElement = document.getElementById('viewPrice');
     
-    // Arrays from Sheets
-    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"]; // Default if blank
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"];
     const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
     const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
     const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
     
     const months = parseInt(p.Plan) || 12;
     const interestRate = parseFloat(p.Interest_Rate) || 0;
-    const processingFee = parseFloat(p.Processing_Fee) || 0; // Kukuha sa Column P
+    const processingFee = parseFloat(p.Processing_Fee) || 0;
 
     capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
     
@@ -168,40 +167,42 @@ function openProductDetails(index) {
             document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            const curInstPrice = parseFloat(instPrices[i]) || parseFloat(instPrices[0]) || 0;
-            const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
+            // --- COMPUTATION BASED ON REGULAR PRICE SRP ---
             const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
-            const monthlyBase = (curInstPrice / months) + (curInstPrice * interestRate);
+            const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
+            
+            // Dito natin binago: Gagamit ng Regular Price SRP para sa Installment base
+            const monthlyBase = (curRegPrice / months) + (curRegPrice * interestRate);
             const firstPayTotal = Math.round(monthlyBase) + processingFee;
+            const monthlyInterestPercent = (interestRate * 100).toFixed(0);
 
-            // Price Display Logic
             let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
             
-            // Computation for interest display
-            const monthlyInterestPercent = (interestRate * 100).toFixed(1); // Gagawing "5.0%" format
-
             priceElement.innerHTML = `
                 <div style="margin-bottom:15px;">
                     <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
-                    <div style="font-size:26px; font-weight:bold; color:var(--forest-green);">₱${curCashPrice.toLocaleString()}</div>
+                    <div style="font-size:28px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
                 </div>
 
-                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#f9f9f9; padding:15px; border-radius:10px; border:1px dashed var(--forest-green); position:relative;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                        <span style="font-size:12px; color:#666; font-weight:bold;">INSTALLMENT PLAN</span>
-                        <span style="font-size:11px; background:#e8f5e9; color:var(--forest-green); padding:2px 8px; border-radius:20px; font-weight:bold;">
-                            ${monthlyInterestPercent}% Monthly Interest
+                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#ffffff; padding:16px; border-radius:12px; border:1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); position:relative; transition: all 0.3s ease;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                        <div>
+                            <span style="font-size:11px; color:#1B4D2E; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">Installment Plan</span>
+                            <div style="font-size:22px; font-weight:900; color:#e67e22; margin-top:2px;">₱${Math.round(monthlyBase).toLocaleString()} <span style="font-size:14px; font-weight:500; color:#888;">/ mo.</span></div>
+                        </div>
+                        <span style="font-size:10px; background:#fff3e0; color:#e67e22; padding:4px 8px; border-radius:6px; font-weight:bold; border: 1px solid #ffe0b2;">
+                            ${monthlyInterestPercent}% Interest
                         </span>
                     </div>
                     
-                    <div style="font-size:22px; font-weight:800; color:#e67e22;">₱${Math.round(monthlyBase).toLocaleString()} / ${months}mo</div>
+                    <div style="font-size:12px; color:#555; font-weight:500;">For ${months} months term</div>
                     
-                    <div style="font-size:11px; color:var(--forest-green); margin-top:8px; border-top:1px solid #eee; pt:5px; display:flex; justify-content:space-between;">
-                        <span>Click to view payment schedule</span>
-                        <i class="fas fa-chevron-down"></i>
+                    <div style="font-size:11px; color:#1B4D2E; margin-top:12px; padding-top:10px; border-top:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:600;">Click here to view payment schedule</span>
+                        <i class="fas fa-chevron-down" style="font-size:10px;"></i>
                     </div>
                 </div>
-                <div id="scheduleTableContainer" style="display:none; margin-top:10px;"></div>
+                <div id="scheduleTableContainer" style="display:none; margin-top:15px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
             `;
 
             document.getElementById('toggleSchedule').onclick = () => {
@@ -211,36 +212,48 @@ function openProductDetails(index) {
                     return;
                 }
 
-                let today = new Date();
-                let tableHtml = `<table class="payment-table">
-                    <tr style="background:#f4f4f4;"><th>Month</th><th>Due Date</th><th>Amount</th></tr>`;
+                let tableHtml = `
+                    <div style="background:#1B4D2E; color:white; padding:10px; font-size:11px; font-weight:bold; text-align:center; letter-spacing:1px;">
+                        FLAVI DEAL INSTALLMENT PLAN
+                    </div>
+                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                        <tr style="background:#f8f9fa; border-bottom:1px solid #eee;">
+                            <th style="padding:12px; text-align:left; color:#888;">Month</th>
+                            <th style="padding:12px; text-align:right; color:#888;">Monthly</th>
+                        </tr>`;
                 
                 for(let m=1; m <= months; m++) {
-                    let dueDate = new Date(today.getFullYear(), today.getMonth() + m, today.getDate());
                     let isFirst = m === 1;
                     let displayAmount = isFirst ? firstPayTotal : Math.round(monthlyBase);
-                    
-                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:9px; font-weight:bold; margin-top:2px;">
-                        (Incl. ₱${processingFee.toLocaleString()} One-time Processing Bill)
-                    </div>` : '';
+                    let feeText = isFirst ? `<div style="color:#e67e22; font-size:9px; font-weight:bold;">+ One-time Processing Fee</div>` : '';
                     
                     tableHtml += `
-                        <tr>
-                            <td style="font-weight:bold;">${m}${m==1?'st':m==2?'nd':m==3?'rd':'th'} Pay</td>
-                            <td style="color:#666;">${dueDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</td>
-                            <td style="font-weight:bold;">
+                        <tr style="border-bottom:1px solid #f9f9f9;">
+                            <td style="padding:12px; font-weight:bold; color:#444;">Month ${m}</td>
+                            <td style="padding:12px; text-align:right; font-weight:700; color:#333;">
                                 ₱${displayAmount.toLocaleString()}
-                                ${feeNote}
+                                ${feeText}
                             </td>
                         </tr>`;
                 }
-                tableHtml += `</table>`;
+                
+                tableHtml += `</table>
+                    <div style="padding:12px; background:#fffcf5; border-top:1px solid #fff3e0;">
+                        <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
+                            * Terms and conditions applied. A one-time processing bill will be added on the first due date. Monthly payment is fixed throughout the term.
+                        </p>
+                        <div style="margin-top:10px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6; letter-spacing:1px;">
+                            POWERED BY ERRIHO PERSONAL FINANCE
+                        </div>
+                    </div>`;
+                
                 tableDiv.innerHTML = tableHtml;
                 tableDiv.style.display = "block";
             };
         };
         capacityContainer.appendChild(btn);
     });
+    
     if(capacities.length > 0) capacityContainer.querySelector('button').click();
 
     // 3. ACTION BUTTONS
