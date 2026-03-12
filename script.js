@@ -148,29 +148,6 @@ function openProductDetails(index) {
     const capacityContainer = document.getElementById('viewCapacity');
     const priceElement = document.getElementById('viewPrice');
     
-    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"];
-    const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
-    const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
-    const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
-    
-    const months = parseInt(p.Plan) || 12;
-    const interestRate = parseFloat(p.Interest_Rate) || 0;
-    const processingFee = parseFloat(p.Processing_Fee) || 0;
-
-    capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
-    
-    capacities.forEach((cap, i) => {
-        const btn = document.createElement('button');
-        btn.innerText = cap;
-        btn.className = "variation-btn capacity-btn";
-        btn.onclick = () => {
-            document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-           // --- CAPACITY & ADVANCED PRICE LOGIC ---
-    const capacityContainer = document.getElementById('viewCapacity');
-    const priceElement = document.getElementById('viewPrice');
-    
     // Arrays from Sheets
     const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"];
     const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
