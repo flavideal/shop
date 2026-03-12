@@ -122,8 +122,40 @@ function openProductDetails(index) {
         };
     }
 
-    // 2. TEXT DETAILS
-    document.getElementById('viewName').innerText = p.Name;
+    // 2. TEXT DETAILS & BADGES
+    const brandName = p.Brand || "Premium Brand";
+    const rating = parseFloat(p.Rating) || 5.0;
+    const isFreeShipping = p.Shipping === "Free" || p.Shipping === "FREE";
+    const isNewArrival = p.Status === "New" || p.Status === "NEW";
+    const isFlashSale = p.Flash_Sale === "Yes" || p.Flash_Sale === "YES";
+
+    // Item Name display
+    document.getElementById('viewName').innerHTML = `
+        <div style="margin-bottom: 5px;">${p.Name}</div>
+        
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+            <span style="color: #1B4D2E; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                ${brandName}
+            </span>
+            <span style="height: 12px; width: 1px; background: #ddd;"></span>
+            <span style="color: #27ae60; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-check-circle"></i> 100% Authentic
+            </span>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+            ${isFreeShipping ? `<span style="background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #c8e6c9;">FREE SHIPPING</span>` : ''}
+            ${isNewArrival ? `<span style="background: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #bbdefb;">NEW ARRIVAL</span>` : ''}
+            ${isFlashSale ? `<span style="background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #ffe0b2;"><i class="fas fa-bolt"></i> FLASH SALE</span>` : ''}
+            
+            <div style="background: #fafafa; padding: 3px 8px; border-radius: 4px; border: 1px solid #eee; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-star" style="color: #ffc107; font-size: 10px;"></i>
+                <span style="font-size: 10px; font-weight: 700; color: #444;">${rating.toFixed(1)}</span>
+                <span style="font-size: 9px; color: #888; text-transform: uppercase;">Credit Rating</span>
+            </div>
+        </div>
+    `;
+
     document.getElementById('viewDesc').innerText = p.Description;
 
     // --- COLOR VARIATION ---
