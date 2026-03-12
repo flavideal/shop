@@ -154,9 +154,8 @@ function openProductDetails(index) {
     const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
     const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
     
-    const months = parseInt(p.Plan) || 12;
     const interestRate = parseFloat(p.Interest_Rate) || 0;
-    const processingFee = parseFloat(p.Processing_Fee) || 0; // Column P
+    const processingFee = parseFloat(p.Processing_Fee) || 0;
 
     capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
     
@@ -164,7 +163,9 @@ function openProductDetails(index) {
         const btn = document.createElement('button');
         btn.innerText = cap;
         btn.className = "variation-btn capacity-btn";
+        
         btn.onclick = () => {
+            // UI Update for buttons
             document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
@@ -172,7 +173,7 @@ function openProductDetails(index) {
             const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
             const sheetMonths = parseInt(p.Plan) || 12;
 
-            // 1. Function para i-render ang UI base sa piniling buwan
+            // 1. Function para i-render ang UI
             const renderInstallmentUI = (selectedMonths) => {
                 const monthlyBase = (curRegPrice / selectedMonths) + (curRegPrice * interestRate);
                 const firstPayTotal = monthlyBase + processingFee;
@@ -186,21 +187,21 @@ function openProductDetails(index) {
                     </div>
 
                     <div style="display:flex; gap:5px; margin-bottom:10px;">
-                        ${[3, 6, sheetMonths].filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => a-b).map(m => `
-                            <button class="term-btn ${m === selectedMonths ? 'active' : ''}" 
-                                    onclick="window.updateTerm(${m})"
+                        ${[3, 6, sheetMonths].filter((v, idx, a) => a.indexOf(v) === idx).sort((a,b) => a-b).map(m => `
+                            <button class="term-selector-btn" 
+                                    data-months="${m}"
                                     style="flex:1; padding:8px; font-size:11px; font-weight:bold; border-radius:6px; cursor:pointer; 
                                     border:1px solid ${m === selectedMonths ? 'var(--forest-green)' : '#ddd'};
                                     background:${m === selectedMonths ? 'var(--forest-green)' : 'white'};
                                     color:${m === selectedMonths ? 'white' : '#666'}; transition:0.2s;">
-                                ${m} Months
+                                ${m} Mo.
                             </button>
                         `).join('')}
                     </div>
 
                     <div class="clickable-monthly" id="toggleSchedule" 
                          style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
-                                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+                                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03); text-decoration:none !important;">
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <div style="font-size:14px; font-weight:700; color:#e67e22;">
                                 Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
@@ -215,7 +216,14 @@ function openProductDetails(index) {
                     <div id="scheduleTableContainer" style="display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
                 `;
 
-                // 2. Table Click Event
+                // Re-bind Term Buttons
+                document.querySelectorAll('.term-selector-btn').forEach(tBtn => {
+                    tBtn.onclick = () => {
+                        renderInstallmentUI(parseInt(tBtn.getAttribute('data-months')));
+                    };
+                });
+
+                // Table Toggle Logic
                 document.getElementById('toggleSchedule').onclick = () => {
                     const tableDiv = document.getElementById('scheduleTableContainer');
                     if(tableDiv.style.display === "block") { tableDiv.style.display = "none"; return; }
@@ -235,7 +243,7 @@ function openProductDetails(index) {
                         let isFirst = m === 1;
                         let displayAmount = isFirst ? firstPayTotal : monthlyBase;
                         let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold; margin-top:2px;">
-                            + ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Processing Fee</div>` : '';
+                            + ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Proc. Fee</div>` : '';
                         
                         tableHtml += `
                             <tr style="border-bottom:1px solid #f9f9f9;">
@@ -258,16 +266,14 @@ function openProductDetails(index) {
                 };
             };
 
-            // 3. Global update function para matawag ng buttons
-            window.updateTerm = (newMonths) => {
-                renderInstallmentUI(newMonths);
-            };
-
-            // Initial render using Sheet Plan
             renderInstallmentUI(sheetMonths);
         };
-    
-    if(capacities.length > 0) capacityContainer.querySelector('button').click();
+        capacityContainer.appendChild(btn);
+    });
+
+    // AUTO-CLICK the first button after they are all added
+    const firstCapBtn = capacityContainer.querySelector('.capacity-btn');
+    if(firstCapBtn) firstCapBtn.click();
 
     // 3. ACTION BUTTONS
     const actionContainer = document.querySelector('.action-buttons');
