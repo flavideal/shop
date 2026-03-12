@@ -181,7 +181,7 @@ function openProductDetails(index) {
             let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
             
             // 4. Render Slim Display
-            priceElement.innerHTML = `
+           priceElement.innerHTML = `
     <div style="margin-bottom:12px;">
         <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
         <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
@@ -190,19 +190,19 @@ function openProductDetails(index) {
     <div class="clickable-monthly" id="toggleSchedule" 
          style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
                 display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-                transition: background 0.2s;">
+                transition: background 0.2s; text-decoration: none !important;">
         
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div style="font-size:14px; font-weight:700; color:#e67e22;">
+        <div style="display:flex; flex-direction:column; gap:2px; text-decoration: none !important;">
+            <div style="font-size:14px; font-weight:700; color:#e67e22; text-decoration: none !important;">
                 Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
             </div>
-            <div style="font-size:11px; color:#888; font-weight:500;">
-                For ${months} months term • ${monthlyInterestPercent}% Interest
+            <div style="font-size:11px; color:#888; font-weight:500; text-decoration: none !important;">
+                For ${months} months term
             </div>
         </div>
 
-        <div style="text-align:right; min-width:80px;">
-            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; margin-bottom:2px;">
+        <div style="text-align:right; min-width:80px; text-decoration: none !important;">
+            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; margin-bottom:2px; text-decoration: none !important;">
                 View Plan
             </span>
             <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
