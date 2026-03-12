@@ -297,3 +297,8 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 .fee-row { color: #e67e22; font-weight: bold; font-size: 11px; }
 .clickable-monthly { cursor: pointer; color: var(--forest-green); text-decoration: underline; }
 .clickable-monthly:hover { color: #27ae60; }
+
+.term-btn:hover:not(.active) {
+    background: #f0f0f0 !important;
+    border-color: #ccc !important;
+}
