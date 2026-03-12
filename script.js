@@ -167,15 +167,43 @@ function openProductDetails(index) {
             document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // --- COMPUTATION BASED ON REGULAR PRICE SRP ---
+           // --- CAPACITY & ADVANCED PRICE LOGIC ---
+    const capacityContainer = document.getElementById('viewCapacity');
+    const priceElement = document.getElementById('viewPrice');
+    
+    // Arrays from Sheets
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"];
+    const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
+    const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
+    const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
+    
+    const months = parseInt(p.Plan) || 12;
+    const interestRate = parseFloat(p.Interest_Rate) || 0;
+    const processingFee = parseFloat(p.Processing_Fee) || 0; // Column P
+
+    capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
+    
+    capacities.forEach((cap, i) => {
+        const btn = document.createElement('button');
+        btn.innerText = cap;
+        btn.className = "variation-btn capacity-btn";
+        btn.onclick = () => {
+            document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // 1. Kunin ang tamang presyo base sa piniling capacity ( SRP Base )
             const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
             const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
             
-            // Computation for outside display
+            // 2. Computation
             const monthlyBase = (curRegPrice / months) + (curRegPrice * interestRate);
             const firstPayTotal = Math.round(monthlyBase) + processingFee;
             const monthlyInterestPercent = (interestRate * 100).toFixed(0);
 
+            // 3. Sale Badge Logic
+            let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
+            
+            // 4. Render Slim Display
             priceElement.innerHTML = `
                 <div style="margin-bottom:12px;">
                     <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
@@ -194,6 +222,7 @@ function openProductDetails(index) {
                 <div id="scheduleTableContainer" style="display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
             `;
 
+            // 5. Table Click Event
             document.getElementById('toggleSchedule').onclick = () => {
                 const tableDiv = document.getElementById('scheduleTableContainer');
                 if(tableDiv.style.display === "block") {
@@ -205,7 +234,7 @@ function openProductDetails(index) {
                     <div style="background:#1B4D2E; color:white; padding:8px; font-size:10px; font-weight:bold; text-align:center; letter-spacing:1px;">
                         FLAVI DEAL INSTALLMENT PLAN
                     </div>
-                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:11px;">
+                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:11px; background:white;">
                         <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
                             <th style="padding:10px; text-align:left;">Month</th>
                             <th style="padding:10px; text-align:center;">Interest</th>
@@ -215,7 +244,7 @@ function openProductDetails(index) {
                 for(let m=1; m <= months; m++) {
                     let isFirst = m === 1;
                     let displayAmount = isFirst ? firstPayTotal : Math.round(monthlyBase);
-                    let feeText = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ Proc. Fee</div>` : '';
+                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ Proc. Fee</div>` : '';
                     
                     tableHtml += `
                         <tr style="border-bottom:1px solid #f9f9f9;">
@@ -223,13 +252,13 @@ function openProductDetails(index) {
                             <td style="padding:10px; text-align:center; color:#888;">${monthlyInterestPercent}%</td>
                             <td style="padding:10px; text-align:right; font-weight:700; color:#333;">
                                 ₱${displayAmount.toLocaleString()}
-                                ${feeText}
+                                ${feeNote}
                             </td>
                         </tr>`;
                 }
                 
                 tableHtml += `</table>
-                    <div style="padding:10px; background:#fffcf5;">
+                    <div style="padding:10px; background:#fffcf5; border-top:1px solid #eee;">
                         <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
                             * Terms and conditions applied. A one-time processing bill will be added on the first due date.
                         </p>
