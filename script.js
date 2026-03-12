@@ -172,12 +172,10 @@ function openProductDetails(index) {
             const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
             const sheetMonths = parseInt(p.Plan) || 12;
 
-            // 1. Initial State
             let selectedTerm = sheetMonths;
             let currentDP = 0;
 
             const renderInstallmentUI = () => {
-                // COMPUTATION LOGIC
                 const balance = curRegPrice - currentDP;
                 const monthlyBase = (balance / selectedTerm) + (balance * interestRate);
                 const firstPayTotal = monthlyBase + processingFee;
@@ -185,28 +183,30 @@ function openProductDetails(index) {
                 let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
 
                 priceElement.innerHTML = `
-                    <div style="margin-bottom:12px;">
-                        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
-                        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
+                    <div style="margin-bottom:12px; text-decoration: none !important;">
+                        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
+                        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                     </div>
 
                     <div class="clickable-monthly" id="toggleSchedule" 
                          style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
-                                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
-                        <div style="display:flex; flex-direction:column; gap:2px;">
-                            <div style="font-size:14px; font-weight:700; color:#e67e22;">
+                                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+                                text-decoration: none !important; outline: none !important;">
+                        <div style="display:flex; flex-direction:column; gap:2px; text-decoration: none !important;">
+                            <div style="font-size:14px; font-weight:700; color:#e67e22; text-decoration: none !important;">
                                 Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
                             </div>
-                            <div style="font-size:11px; color:#888; font-weight:500;">For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : ''}</div>
+                            <div style="font-size:11px; color:#888; font-weight:500; text-decoration: none !important;">
+                                For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString(undefined, {minimumFractionDigits: 2})} DP)` : ''}
+                            </div>
                         </div>
-                        <div style="text-align:right;">
-                            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block;">View Plan</span>
+                        <div style="text-align:right; text-decoration: none !important;">
+                            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; text-decoration: none !important;">View Plan</span>
                             <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
                         </div>
                     </div>
 
                     <div id="scheduleTableContainer" style="display:none; margin-top:15px; border:1px solid #eee; border-radius:12px; overflow:hidden; background:#f9f9f9;">
-                        
                         <div style="padding:15px; background:white; border-bottom:1px solid #eee;">
                             <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Select Payment Term:</label>
                             <div style="display:flex; gap:5px; margin-bottom:15px;">
@@ -224,18 +224,18 @@ function openProductDetails(index) {
                             <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Custom Downpayment (Optional):</label>
                             <div style="position:relative;">
                                 <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:bold; color:#444;">₱</span>
-                                <input type="number" id="dpInput" value="${currentDP || ''}" placeholder="Enter amount" 
+                                <input type="number" id="dpInput" value="${currentDP || ''}" placeholder="0.00" 
                                        style="width:100%; padding:12px 12px 12px 25px; border-radius:8px; border:1px solid #ddd; font-weight:700; font-size:14px; outline:none; box-sizing:border-box;">
                             </div>
                         </div>
 
                         <div style="background:#1B4D2E; color:white; padding:10px; font-size:10px; font-weight:bold; text-align:center; text-transform:uppercase;">
-                            Monthly Payment Schedule
+                            FLAVI DEAL INSTALLMENT PLAN
                         </div>
                         <table style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
                             <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
                                 <th style="padding:12px 5px; text-align:left; width:15%; padding-left:15px;">Month</th>
-                                <th style="padding:12px 5px; text-align:center;">Interest</th>
+                                <th style="padding:12px 5px; text-align:center; white-space:nowrap;">Monthly Interest Rate</th>
                                 <th style="padding:12px 5px; text-align:right; padding-right:15px;">Monthly Due</th>
                             </tr>
                             ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => {
@@ -246,8 +246,8 @@ function openProductDetails(index) {
                                     <td style="padding:12px 5px; font-weight:bold; color:#555; padding-left:15px;">${m}</td>
                                     <td style="padding:12px 5px; text-align:center; color:#999;">${monthlyInterestPercent}%</td>
                                     <td style="padding:12px 5px; text-align:right; font-weight:700; color:#333; padding-right:15px;">
-                                        ₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2})}
-                                        ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString()} Proc. Fee</div>` : ''}
+                                        ₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                        ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Proc. Fee</div>` : ''}
                                     </td>
                                 </tr>`;
                             }).join('')}
@@ -256,22 +256,24 @@ function openProductDetails(index) {
                         <div style="padding:15px; background:#fffcf5; border-top:1px solid #eee;">
                             <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:11px; font-weight:700; border-bottom:1px dashed #ddd; padding-bottom:8px;">
                                 <span>Total Loan Balance:</span>
-                                <span>₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                                <span>₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                             </div>
-                            <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">* Computation is based on Regular SRP minus Downpayment. Final approval depends on credit assessment.</p>
+                            <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
+                                * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})}</b> will be added on the first due date.
+                            </p>
+                            <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
+                                POWERED BY ERRIHO PERSONAL FINANCE
+                            </div>
                         </div>
                     </div>
                 `;
 
-                // --- RE-BIND EVENTS ---
-                
-                // Toggle Table
+                // RE-BIND CLICK EVENTS
                 const tableDiv = document.getElementById('scheduleTableContainer');
                 document.getElementById('toggleSchedule').onclick = () => {
                     tableDiv.style.display = tableDiv.style.display === "none" ? "block" : "none";
                 };
 
-                // Term Buttons
                 document.querySelectorAll('.term-selector-btn').forEach(tBtn => {
                     tBtn.onclick = () => {
                         selectedTerm = parseInt(tBtn.getAttribute('data-months'));
@@ -280,16 +282,14 @@ function openProductDetails(index) {
                     };
                 });
 
-                // Downpayment Input (Auto-update)
                 const dpInput = document.getElementById('dpInput');
                 dpInput.oninput = (e) => {
                     currentDP = parseFloat(e.target.value) || 0;
-                    // Debounce konti or direct update
                     clearTimeout(window.dpTimer);
                     window.dpTimer = setTimeout(() => {
                         renderInstallmentUI();
                         document.getElementById('scheduleTableContainer').style.display = "block";
-                        document.getElementById('dpInput').focus(); // Keep focus
+                        document.getElementById('dpInput').focus();
                     }, 800);
                 };
             };
@@ -298,7 +298,7 @@ function openProductDetails(index) {
         };
         capacityContainer.appendChild(btn);
     });
-
+    
     const firstCapBtn = capacityContainer.querySelector('.capacity-btn');
     if(firstCapBtn) firstCapBtn.click();
 
