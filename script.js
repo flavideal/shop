@@ -168,105 +168,104 @@ function openProductDetails(index) {
             document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // 1. Kunin ang tamang presyo base sa piniling capacity ( SRP Base )
             const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
             const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
-            
-            // 2. Computation
-            const monthlyBase = (curRegPrice / months) + (curRegPrice * interestRate);
-            const firstPayTotal = Math.round(monthlyBase) + processingFee;
-            const monthlyInterestPercent = (interestRate * 100).toFixed(0);
+            const sheetMonths = parseInt(p.Plan) || 12;
 
-            // 3. Sale Badge Logic
-            let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
-            
-            // 4. Render Slim Display
-           priceElement.innerHTML = `
-    <div style="margin-bottom:12px;">
-        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
-        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
-    </div>
+            // 1. Function para i-render ang UI base sa piniling buwan
+            const renderInstallmentUI = (selectedMonths) => {
+                const monthlyBase = (curRegPrice / selectedMonths) + (curRegPrice * interestRate);
+                const firstPayTotal = monthlyBase + processingFee;
+                const monthlyInterestPercent = (interestRate * 100).toFixed(0);
+                let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
 
-    <div class="clickable-monthly" id="toggleSchedule" 
-         style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
-                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-                transition: background 0.2s; text-decoration: none !important;">
-        
-        <div style="display:flex; flex-direction:column; gap:2px; text-decoration: none !important;">
-            <div style="font-size:14px; font-weight:700; color:#e67e22; text-decoration: none !important;">
-                Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
-            </div>
-            <div style="font-size:11px; color:#888; font-weight:500; text-decoration: none !important;">
-                For ${months} months term
-            </div>
-        </div>
-
-        <div style="text-align:right; min-width:80px; text-decoration: none !important;">
-            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; margin-bottom:2px; text-decoration: none !important;">
-                View Plan
-            </span>
-            <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
-        </div>
-    </div>
-
-    <div id="scheduleTableContainer" style="display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
-`;
-            // 5. Table Click Event
-            document.getElementById('toggleSchedule').onclick = () => {
-                const tableDiv = document.getElementById('scheduleTableContainer');
-                if(tableDiv.style.display === "block") {
-                    tableDiv.style.display = "none";
-                    return;
-                }
-
-                let tableHtml = `
-                    <div style="background:#1B4D2E; color:white; padding:8px; font-size:10px; font-weight:bold; text-align:center; letter-spacing:1px; text-transform:uppercase;">
-                        FLAVI DEAL INSTALLMENT PLAN
+                priceElement.innerHTML = `
+                    <div style="margin-bottom:12px;">
+                        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
+                        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
                     </div>
-                    <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
-                        <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
-                            <th style="padding:10px 5px; text-align:left; width:15%;">Month</th>
-                            <th style="padding:10px 5px; text-align:center; white-space: nowrap;">Monthly Interest Rate</th>
-                            <th style="padding:10px 5px; text-align:right; width:35%;">Monthly Due</th>
-                        </tr>`;
-                
-                for(let m=1; m <= months; m++) {
-                    let isFirst = m === 1;
-                    // Dito binago: Nilagyan ng .toFixed(2) para laging may 2 decimal places ang computation
-                    let displayAmount = isFirst ? firstPayTotal : monthlyBase;
+
+                    <div style="display:flex; gap:5px; margin-bottom:10px;">
+                        ${[3, 6, sheetMonths].filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => a-b).map(m => `
+                            <button class="term-btn ${m === selectedMonths ? 'active' : ''}" 
+                                    onclick="window.updateTerm(${m})"
+                                    style="flex:1; padding:8px; font-size:11px; font-weight:bold; border-radius:6px; cursor:pointer; 
+                                    border:1px solid ${m === selectedMonths ? 'var(--forest-green)' : '#ddd'};
+                                    background:${m === selectedMonths ? 'var(--forest-green)' : 'white'};
+                                    color:${m === selectedMonths ? 'white' : '#666'}; transition:0.2s;">
+                                ${m} Months
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div class="clickable-monthly" id="toggleSchedule" 
+                         style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
+                                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <div style="font-size:14px; font-weight:700; color:#e67e22;">
+                                Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
+                            </div>
+                            <div style="font-size:11px; color:#888; font-weight:500;">For ${selectedMonths} months term</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block;">View Plan</span>
+                            <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
+                        </div>
+                    </div>
+                    <div id="scheduleTableContainer" style="display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
+                `;
+
+                // 2. Table Click Event
+                document.getElementById('toggleSchedule').onclick = () => {
+                    const tableDiv = document.getElementById('scheduleTableContainer');
+                    if(tableDiv.style.display === "block") { tableDiv.style.display = "none"; return; }
+
+                    let tableHtml = `
+                        <div style="background:#1B4D2E; color:white; padding:8px; font-size:10px; font-weight:bold; text-align:center; text-transform:uppercase;">
+                            FLAVI DEAL INSTALLMENT PLAN (${selectedMonths} MONTHS)
+                        </div>
+                        <table style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
+                            <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
+                                <th style="padding:10px 5px; text-align:left; width:15%;">Month</th>
+                                <th style="padding:10px 5px; text-align:center; white-space:nowrap;">Monthly Interest Rate</th>
+                                <th style="padding:10px 5px; text-align:right; width:35%;">Monthly Due</th>
+                            </tr>`;
                     
-                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold; margin-top:2px;">
-                        + ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Processing Fee
-                    </div>` : '';
+                    for(let m=1; m <= selectedMonths; m++) {
+                        let isFirst = m === 1;
+                        let displayAmount = isFirst ? firstPayTotal : monthlyBase;
+                        let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold; margin-top:2px;">
+                            + ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Processing Fee</div>` : '';
+                        
+                        tableHtml += `
+                            <tr style="border-bottom:1px solid #f9f9f9;">
+                                <td style="padding:10px 5px; font-weight:bold; color:#555; text-align:center;">${m}</td>
+                                <td style="padding:10px 5px; text-align:center; color:#888;">${monthlyInterestPercent}%</td>
+                                <td style="padding:10px 5px; text-align:right; font-weight:700; color:#333;">
+                                    ₱${displayAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                    ${feeNote}
+                                </td>
+                            </tr>`;
+                    }
+                    tableHtml += `</table>
+                        <div style="padding:10px; background:#fffcf5; border-top:1px solid #eee;">
+                            <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">* One-time processing bill of <b>₱${processingFee.toLocaleString()}</b> on 1st month.</p>
+                            <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">POWERED BY ERRIHO PERSONAL FINANCE</div>
+                        </div>`;
                     
-                    tableHtml += `
-                        <tr style="border-bottom:1px solid #f9f9f9;">
-                            <td style="padding:10px 5px; font-weight:bold; color:#555; text-align:center;">${m}</td>
-                            <td style="padding:10px 5px; text-align:center; color:#888;">${monthlyInterestPercent}%</td>
-                            <td style="padding:10px 5px; text-align:right; font-weight:700; color:#333;">
-                                ₱${displayAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                ${feeNote}
-                            </td>
-                        </tr>`;
-                }
-                }
-                
-                tableHtml += `</table>
-    <div style="padding:10px; background:#fffcf5; border-top:1px solid #eee;">
-        <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
-            * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString()}</b> will be added on the first due date.
-        </p>
-        <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
-            POWERED BY ERRIHO PERSONAL FINANCE
-        </div>
-    </div>`;
-                
-                tableDiv.innerHTML = tableHtml;
-                tableDiv.style.display = "block";
+                    tableDiv.innerHTML = tableHtml;
+                    tableDiv.style.display = "block";
+                };
             };
+
+            // 3. Global update function para matawag ng buttons
+            window.updateTerm = (newMonths) => {
+                renderInstallmentUI(newMonths);
+            };
+
+            // Initial render using Sheet Plan
+            renderInstallmentUI(sheetMonths);
         };
-        capacityContainer.appendChild(btn);
-    });
     
     if(capacities.length > 0) capacityContainer.querySelector('button').click();
 
