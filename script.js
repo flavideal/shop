@@ -182,23 +182,35 @@ function openProductDetails(index) {
             
             // 4. Render Slim Display
             priceElement.innerHTML = `
-                <div style="margin-bottom:12px;">
-                    <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
-                    <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
-                </div>
+    <div style="margin-bottom:12px;">
+        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString()}</span> ${saleBadge}
+        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString()}</div>
+    </div>
 
-                <div class="clickable-monthly" id="toggleSchedule" style="cursor:pointer; background:#fdfdfd; padding:10px 12px; border-radius:8px; border:1px solid #eee; display:flex; align-items:center; justify-content:space-between;">
-                    <div style="font-size:13px; color:#444;">
-                        <span style="font-weight:700; color:#e67e22;">Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.</span> 
-                        <span style="color:#888; margin-left:5px;">For ${months} months term.</span>
-                    </div>
-                    <div style="font-size:11px; color:var(--forest-green); font-weight:600;">
-                        Click here <i class="fas fa-chevron-down" style="font-size:9px;"></i>
-                    </div>
-                </div>
-                <div id="scheduleTableContainer" style="display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
-            `;
+    <div class="clickable-monthly" id="toggleSchedule" 
+         style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
+                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+                transition: background 0.2s;">
+        
+        <div style="display:flex; flex-direction:column; gap:2px;">
+            <div style="font-size:14px; font-weight:700; color:#e67e22;">
+                Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
+            </div>
+            <div style="font-size:11px; color:#888; font-weight:500;">
+                For ${months} months term • ${monthlyInterestPercent}% Interest
+            </div>
+        </div>
 
+        <div style="text-align:right; min-width:80px;">
+            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; margin-bottom:2px;">
+                View Plan
+            </span>
+            <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
+        </div>
+    </div>
+
+    <div id="scheduleTableContainer" style="display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid #eee;"></div>
+`;
             // 5. Table Click Event
             document.getElementById('toggleSchedule').onclick = () => {
                 const tableDiv = document.getElementById('scheduleTableContainer');
@@ -214,14 +226,16 @@ function openProductDetails(index) {
                     <table class="payment-table" style="width:100%; border-collapse:collapse; font-size:11px; background:white;">
                         <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
                             <th style="padding:10px; text-align:left;">Month</th>
-                            <th style="padding:10px; text-align:center;">Interest</th>
+                            <th style="padding:10px; text-align:center;">Montly Interest Rate</th>
                             <th style="padding:10px; text-align:right;">Monthly Due</th>
                         </tr>`;
                 
                 for(let m=1; m <= months; m++) {
                     let isFirst = m === 1;
                     let displayAmount = isFirst ? firstPayTotal : Math.round(monthlyBase);
-                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ Proc. Fee</div>` : '';
+                    let feeNote = isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">
+    + ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Processing Fee
+</div>` : '';
                     
                     tableHtml += `
                         <tr style="border-bottom:1px solid #f9f9f9;">
@@ -235,14 +249,14 @@ function openProductDetails(index) {
                 }
                 
                 tableHtml += `</table>
-                    <div style="padding:10px; background:#fffcf5; border-top:1px solid #eee;">
-                        <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
-                            * Terms and conditions applied. A one-time processing bill will be added on the first due date.
-                        </p>
-                        <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
-                            POWERED BY ERRIHO PERSONAL FINANCE
-                        </div>
-                    </div>`;
+    <div style="padding:10px; background:#fffcf5; border-top:1px solid #eee;">
+        <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
+            * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString()}</b> will be added on the first due date.
+        </p>
+        <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
+            POWERED BY ERRIHO PERSONAL FINANCE
+        </div>
+    </div>`;
                 
                 tableDiv.innerHTML = tableHtml;
                 tableDiv.style.display = "block";
