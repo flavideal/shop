@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Review - Flavi Deal</title>
+    <style>
+        :root { --forest-green: #1B4D2E; --golden-yellow: #FFD700; }
+        body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+        .container { max-width: 500px; background: white; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .product-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .rate-box { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 15px; background: var(--forest-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="product-info">
+        <img id="pImg" src="" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+        <div>
+            <div id="pBrand" style="font-size: 10px; font-weight: bold; color: var(--forest-green);"></div>
+            <div id="pName" style="font-size: 16px; font-weight: 800;"></div>
+        </div>
+    </div>
+
+    <form id="reviewForm">
+        <div class="rate-box">
+            <label>Item Quality (1-5):</label>
+            <input type="number" name="item_rate" min="1" max="5" value="5" required>
+        </div>
+        <div class="rate-box">
+            <label>Delivery Service (1-5):</label>
+            <input type="number" name="del_rate" min="1" max="5" value="5" required>
+        </div>
+        <div class="rate-box">
+            <label>Customer Service (1-5):</label>
+            <input type="number" name="serv_rate" min="1" max="5" value="5" required>
+        </div>
+        
+        <input type="text" name="customer_name" placeholder="Your Name" required>
+        <textarea name="comment" placeholder="Write your feedback here..." rows="4" required></textarea>
+        
+        <label style="font-size: 12px; font-weight: bold; display: block; margin-top: 10px;">Attach Photo:</label>
+        <input type="file" id="revPhoto" accept="image/*">
+
+        <button type="submit" class="submit-btn" style="margin-top: 20px;">SUBMIT REVIEW</button>
+    </form>
+</div>
+
+<script>
+    // 1. Get Data from URL
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById('pName').innerText = params.get('name');
+    document.getElementById('pBrand').innerText = params.get('brand');
+    document.getElementById('pImg').src = params.get('img');
+
+    // 2. Submit Logic
+    document.getElementById('reviewForm').onsubmit = function(e) {
+        e.preventDefault();
+        const btn = document.querySelector('.submit-btn');
+        btn.innerText = "Submitting...";
+        btn.disabled = true;
+
+        const fileInput = document.getElementById('revPhoto');
+        const file = fileInput.files[0];
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const base64 = reader.result.split(',')[1];
+                sendData(base64, file.name, file.type);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            sendData(null, null, null);
+        }
+    };
+
+    function sendData(base64, fileName, mimeType) {
+        const formData = new FormData(document.getElementById('reviewForm'));
+        const data = {
+            itemName: params.get('name'),
+            itemRate: formData.get('item_rate'),
+            delRate: formData.get('del_rate'),
+            servRate: formData.get('serv_rate'),
+            customerName: formData.get('customer_name'),
+            comment: formData.get('comment'),
+            image: base64,
+            fileName: fileName,
+            mimeType: mimeType
+        };
+
+        fetch('YOUR_GOOGLE_SCRIPT_URL', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+            alert("Review submitted for approval!");
+            window.location.href = "index.html";
+        })
+        .catch(err => alert("Error submitting review."));
+    }
+</script>
+</body>
+</html>
