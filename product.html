@@ -7,203 +7,178 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-.product-page-container {
-            max-width: 1000px;
-            margin: 80px auto;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            border-radius: 20px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        .gallery-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .gallery-container {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
-        }
-
-        .gallery-img {
-            width: 100%;
-            flex-shrink: 0;
-            object-fit: contain;
-            cursor: zoom-in;
-        }
-
-        .variation-btn {
-            border: 1px solid #ddd;
-            background: white;
-            padding: 10px 15px;
-            margin: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .variation-btn.active {
-            border-color: #1B4D2E;
-            background: #e8f5e9;
-            color: #1B4D2E;
-            font-weight: bold;
-        }
-
-        #addToCartBtn { background: #f39c12; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
-        #buyNowBtn { background: #1B4D2E; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; }
-
-        @media (min-width: 1024px) {
-            .product-page-container { flex-direction: row; padding: 20px; }
-            .gallery-wrapper { flex: 1; position: sticky; top: 100px; }
-            .details-body { flex: 1; padding: 0 40px; }
-        }
-
-        /* Fullscreen styles (copy directly from previous response) */
-        .fullscreen-view { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: column; justify-content: center; align-items: center; }
-        #fullscreenGallery { display: flex; width: 100%; height: 85vh; overflow-x: auto; scroll-snap-type: x mandatory; }
-        .fs-slide { width: 100%; height: 100%; flex-shrink: 0; object-fit: contain; }
-        .close-fs { position: absolute; top: 20px; right: 20px; color: white; font-size: 35px; cursor: pointer; }
-
-    /* Loading Animation */
-.loader-container {
-    grid-column: span 2; /* Para naka-center sa grid */
-    text-align: center;
-    padding: 50px;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--forest-green);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 10px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Skeleton Effect para sa images */
-.skeleton {
-    background: #eee;
-    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
-    border-radius: 10px;
-    background-size: 200% 100%;
-    animation: 1.5s shine linear infinite;
-}
-
-@keyframes shine {
-    to { background-position-x: -200%; }
-}
-
-@media (min-width: 1024px) {
-    .loader-container { grid-column: span 4; }
-}
+    /* --- 1. Base Variables & Reset --- */
     :root {
-    --forest-green: #1B4D2E; /* Kung wala ito, hindi kukulay ang spinner */
-}
+        --forest-green: #1B4D2E;
+        --golden-yellow: #f39c12;
+        --light-bg: #f8f9fa;
+        --shadow: 0 5px 25px rgba(0,0,0,0.05);
+    }
 
-@media (min-width: 1024px) {
-    .loader-container { grid-column: span 4; }
-}
+    /* --- 2. Navigation (Same as My Account) --- */
+    nav {
+        padding: 15px 5%;
+        background: white;
+        display: flex;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-sizing: border-box;
+    }
 
-.payment-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-.payment-table th { background: #f4f4f4; padding: 8px; text-align: left; border-bottom: 2px solid #ddd; }
-.payment-table td { padding: 8px; border-bottom: 1px solid #eee; }
-.fee-row { color: #e67e22; font-weight: bold; font-size: 11px; }
-.clickable-monthly { cursor: pointer; color: var(--forest-green); text-decoration: underline; }
-.clickable-monthly:hover { color: #27ae60; }
+    .logo {
+        text-decoration: none;
+        color: var(--forest-green);
+        font-weight: 800;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: 0.3s ease;
+    }
 
-.term-btn:hover:not(.active) {
-    background: #f0f0f0 !important;
-    border-color: #ccc !important;
-}
+    .logo:hover {
+        color: #27ae60;
+        transform: translateX(-3px);
+    }
 
-#image-counter, #fs-counter {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    z-index: 10;
-}
+    /* --- 3. Product Container --- */
+    .product-page-container {
+        max-width: 1000px;
+        margin: 80px auto 40px;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
 
-/* Styling para sa Back to Shop Nav */
-nav {
-    padding: 20px 5%;
-    background: white;
-    display: flex;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
+    /* --- 4. Gallery & Swipe Logic (FIXED) --- */
+    .gallery-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
 
-.logo {
-    text-decoration: none;
-    color: #1B4D2E; /* Forest Green */
-    font-weight: 800;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: 0.3s;
-}
+    .gallery-container {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
 
-.logo:hover {
-    color: #27ae60;
-    transform: translateX(-5px); /* Konting galaw pabalik */
-}
+    .gallery-container::-webkit-scrollbar { display: none; }
 
-/* Full Page Loading Screen */
-#page-loader {
-    position: fixed;
-    inset: 0;
-    background: white;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: opacity 0.5s ease;
-}
+    .gallery-img {
+        width: 100%;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        object-fit: contain;
+        cursor: zoom-in;
+    }
 
-.loader-logo {
-    font-size: 24px;
-    font-weight: 800;
-    color: #1B4D2E;
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-}
+    #image-counter, #fs-counter {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        z-index: 10;
+    }
 
-.spinner-large {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #1B4D2E;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
+    /* --- 5. Variations & Buttons --- */
+    .variation-btn {
+        border: 1px solid #ddd;
+        background: white;
+        padding: 10px 15px;
+        margin: 5px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-    </style> 
+    .variation-btn.active {
+        border-color: var(--forest-green);
+        background: #e8f5e9;
+        color: var(--forest-green);
+        font-weight: bold;
+    }
+
+    #addToCartBtn { background: var(--golden-yellow); color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+    #buyNowBtn { background: var(--forest-green); color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+
+    /* --- 6. Fullscreen View --- */
+    .fullscreen-view { 
+        display: none; 
+        position: fixed; 
+        inset: 0; 
+        background: #000; 
+        z-index: 5000; 
+        flex-direction: column; 
+        justify-content: center; 
+    }
+
+    #fullscreenGallery { 
+        display: flex; 
+        width: 100%; 
+        height: 85vh; 
+        overflow-x: auto; 
+        scroll-snap-type: x mandatory; 
+    }
+
+    .fs-slide { 
+        width: 100vw; 
+        height: 100%; 
+        flex-shrink: 0; 
+        object-fit: contain; 
+        scroll-snap-align: center; 
+    }
+
+    .close-fs { position: absolute; top: 20px; right: 20px; color: white; font-size: 35px; cursor: pointer; z-index: 5001; }
+
+    /* --- 7. Loaders & Animations --- */
+    #page-loader {
+        position: fixed; inset: 0; background: white; z-index: 9999;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        transition: opacity 0.5s ease;
+    }
+
+    .spinner, .spinner-large {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--forest-green);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    .spinner { width: 40px; height: 40px; margin: 0 auto 10px; }
+    .spinner-large { width: 50px; height: 50px; margin-bottom: 20px; }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .skeleton {
+        background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+        background-size: 200% 100%;
+        animation: 1.5s shine linear infinite;
+        border-radius: 10px;
+    }
+    @keyframes shine { to { background-position-x: -200%; } }
+
+    /* --- 8. Responsive Desktop --- */
+    @media (min-width: 1024px) {
+        .product-page-container { flex-direction: row; padding: 20px; }
+        .gallery-wrapper { flex: 1; position: sticky; top: 100px; height: fit-content; }
+        .details-body { flex: 1; padding: 0 40px; }
+    }
+</style>
+    
 </head>
 <body style="background: #f8f9fa;">
 
@@ -214,8 +189,11 @@ nav {
 </div>
 
     <nav>
-        <a href="index.html" class="logo"><i class="fas fa-arrow-left"></i> BACK TO SHOP</a>
-    </nav>
+    <a href="index.html" class="logo">
+        <i class="fas fa-chevron-left"></i> 
+        <span>BACK TO SHOP</span>
+    </a>
+</nav>
 
     <div class="product-page-container" style="max-width: 800px; margin: 80px auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
         
