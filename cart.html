@@ -1,15 +1,118 @@
-<div class="cart-container">
-    <h2>Your Shopping Cart</h2>
-    <div id="cartItems"></div> <div class="cart-summary">
-        <h3>Total: <span id="totalPrice">₱0.00</span></h3>
-        <button onclick="checkout()">Proceed to Checkout</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart | Flavi Deal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --forest-green: #1B4D2E; --golden-yellow: #f39c12; --light-bg: #f8f9fa; }
+        body { font-family: sans-serif; background: var(--light-bg); margin: 0; padding: 20px; }
+        .cart-wrapper { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        h2 { color: var(--forest-green); border-bottom: 2px solid var(--light-bg); padding-bottom: 10px; }
+        
+        .cart-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; }
+        .item-info { flex: 1; }
+        .item-info h4 { margin: 0; font-size: 16px; color: #333; }
+        .item-meta { font-size: 12px; color: #888; margin: 5px 0; }
+        
+        .qty-controls { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .qty-btn { border: 1px solid #ddd; background: white; width: 25px; height: 25px; cursor: pointer; border-radius: 5px; }
+        .remove-btn { color: #e74c3c; cursor: pointer; font-size: 13px; margin-top: 10px; display: inline-block; }
+
+        .cart-summary { margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--light-bg); text-align: right; }
+        .total-price { font-size: 22px; font-weight: 800; color: var(--forest-green); }
+        .checkout-btn { background: var(--forest-green); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px; }
+        
+        .empty-cart { text-align: center; padding: 40px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="cart-wrapper">
+    <a href="index.html" style="text-decoration:none; color:var(--forest-green); font-size:14px;"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+    <h2>Shopping Cart</h2>
+    
+    <div id="cartItemsList">
+        </div>
+
+    <div id="cartSummary" class="cart-summary" style="display:none;">
+        <div>Total Amount: <span class="total-price" id="grandTotal">₱0.00</span></div>
+        <button class="checkout-btn" onclick="processCheckout()">CHECKOUT NOW</button>
     </div>
 </div>
 
-<style>
-    .cart-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; gap: 15px; }
-    .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
-    .item-info { flex: 1; }
-    .qty-control { display: flex; align-items: center; gap: 10px; }
-    .qty-btn { padding: 5px 10px; cursor: pointer; border: 1px solid #ddd; background: #fff; }
-</style>
+<script>
+// 1. LOAD CART FROM LOCALSTORAGE
+function loadCart() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const container = document.getElementById('cartItemsList');
+    const summary = document.getElementById('cartSummary');
+    
+    if (cart.length === 0) {
+        container.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-basket" style="font-size:40px;"></i><p>Your cart is empty.</p></div>`;
+        summary.style.display = "none";
+        return;
+    }
+
+    summary.style.display = "block";
+    let total = 0;
+    
+    container.innerHTML = cart.map((item, index) => {
+        total += item.price * item.quantity;
+        return `
+            <div class="cart-item">
+                <img src="${item.image}" alt="">
+                <div class="item-info">
+                    <h4>${item.name}</h4>
+                    <div class="item-meta">Variation: ${item.color} | ${item.capacity}</div>
+                    <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString()}</div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                    </div>
+                    <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+}
+
+// 2. UPDATE QUANTITY
+function updateQty(index, change) {
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    cart[index].quantity += change;
+    
+    if (cart[index].quantity < 1) cart[index].quantity = 1;
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCart();
+}
+
+// 3. REMOVE ITEM
+function removeItem(index) {
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCart();
+}
+
+// 4. CHECKOUT LOGIC (Dito papasok ang Sync sa Sheets kung naka-login)
+function processCheckout() {
+    const user = JSON.parse(localStorage.getItem('currentUser')); // Sample check for login
+    if (!user) {
+        alert("Please login first to proceed with checkout.");
+        // window.location.href = 'login.html'; 
+    } else {
+        alert("Redirecting to payment...");
+    }
+}
+
+window.onload = loadCart;
+</script>
+</body>
+</html>
