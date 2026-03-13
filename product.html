@@ -261,6 +261,11 @@ function openProductDetails(index) {
             let currentDP = 0;
 
             const renderInstallmentUI = () => {
+                const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
+                
+                const curRegPrice = baseRegPrice * qty;
+                const curCashPrice = baseCashPrice * qty;
+                
                 const balance = curRegPrice - currentDP;
                 const monthlyBase = (balance / selectedTerm) + (balance * interestRate);
                 const firstPayTotal = monthlyBase + processingFee;
@@ -622,14 +627,17 @@ function changeQty(amt, maxStock) {
     let currentQty = parseInt(qtyInput.value);
     let newQty = currentQty + amt;
     
-    // Limits: Hindi pwedeng bababa sa 1, at hindi lalampas sa Stock_Count
     if (newQty < 1) newQty = 1;
     if (newQty > maxStock) {
         newQty = maxStock;
-        alert("Pasensya na, hanggang " + maxStock + " units lang ang available na stock.");
+        alert("Maximum stock reached.");
     }
     
     qtyInput.value = newQty;
+
+    // ETO ANG TRICK: Pindutin uli ang active button para mag-refresh ang installment table
+    const activeBtn = document.querySelector('.capacity-btn.active');
+    if (activeBtn) activeBtn.click();
 }
 
 </script>
