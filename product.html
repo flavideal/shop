@@ -34,6 +34,25 @@
         @keyframes shine { to { background-position-x: -200%; } }
         @media (min-width: 1024px) { .product-page-container { flex-direction: row; padding: 20px; } .gallery-wrapper { flex: 1; position: sticky; top: 100px; height: fit-content; } .details-body { flex: 1; padding: 0 40px; } }
         .fs-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.3); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; z-index: 5002; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: 0.3s; } .fs-nav-btn:hover { background: rgba(0,0,0,0.8); } .prev-btn { left: 20px; } .next-btn { right: 20px; } @media (max-width: 768px) { .fs-nav-btn { width: 40px; height: 40px; background: rgba(0,0,0,0.1); opacity: 0; } .fullscreen-view.show-controls .fs-nav-btn { opacity: 1; } }
+        .qty-wrapper { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    margin: 20px 0; 
+    background: #f1f1f1; 
+    width: fit-content; 
+    padding: 5px; 
+    border-radius: 10px; 
+}
+.qty-input-container { display: flex; align-items: center; background: white; border-radius: 8px; overflow: hidden; }
+.qty-input-btn { 
+    background: white; border: none; padding: 10px 15px; cursor: pointer; 
+    font-weight: bold; font-size: 18px; transition: 0.2s; 
+}
+.qty-input-btn:hover { background: #eee; }
+#qtyValue { width: 40px; text-align: center; border: none; font-weight: bold; font-size: 16px; }
+/* Remove arrows from number input */
+#qtyValue::-webkit-inner-spin-button, #qtyValue::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>    
 </head>
 <body> <div id="page-loader">
@@ -68,6 +87,18 @@
 
             <div id="viewColors"></div>
             <div id="viewCapacity"></div>
+
+            <div class="qty-section">
+    <p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">QUANTITY:</p>
+    <div class="qty-wrapper">
+        <div class="qty-input-container">
+            <button class="qty-input-btn" onclick="changeQty(-1)">−</button>
+            <input type="number" id="qtyValue" value="1" min="1" readonly>
+            <button class="qty-input-btn" onclick="changeQty(1)">+</button>
+        </div>
+        <span style="font-size: 12px; color: #888;" id="stockIndicator">In Stock</span>
+    </div>
+</div>
 
             <div class="action-buttons" style="margin-top: 20px;">
                 <button id="addToCartBtn">Add to Cart</button>
@@ -393,10 +424,11 @@ function openProductDetails(index) {
             document.getElementById('addToCartBtn').onclick = () => {
     const col = document.querySelector('.color-btn.active')?.innerText || "Standard";
     const cap = document.querySelector('.capacity-btn.active')?.innerText || "Standard";
+    const qty = parseInt(document.getElementById('qtyValue').value); // KUNIN ANG QTY DITO
     
-    // Kunin ang price base sa selection (linisin ang ₱ at commas)
-    const priceText = document.querySelector('.total-price-display')?.innerText || "0"; 
-    const cleanPrice = parseFloat(priceText.replace(/[^\d.]/g, ''));
+    // Kunin ang cash price mula sa UI
+    const cashPriceText = document.querySelector('#viewPrice div[style*="font-size:26px"]')?.innerText || "0";
+    const cleanPrice = parseFloat(cashPriceText.replace(/[^\d.]/g, ''));
 
     const newItem = {
         id: new URLSearchParams(window.location.search).get('id'),
@@ -404,24 +436,25 @@ function openProductDetails(index) {
         price: cleanPrice,
         color: col,
         capacity: cap,
-        quantity: 1,
-        image: currentGalleryImages[0] // Unang image ng product
+        quantity: qty, // GAMITIN ANG VARIABLE
+        image: currentGalleryImages[0]
     };
 
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     
-    // Check kung existing na ang combo na ito
     const existing = cart.find(i => i.id === newItem.id && i.color === col && i.capacity === cap);
     if (existing) {
-        existing.quantity += 1;
+        existing.quantity += qty; // Idagdag ang bagong qty sa dati
     } else {
         cart.push(newItem);
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Optional: Magpakita muna ng "Added to Cart" notification bago lumipat
+    alert("Added to cart!");
     window.location.href = 'cart.html';
 };
-
             document.getElementById('buyNowBtn').onclick = () => {
                 const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
                 const cap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
@@ -559,6 +592,16 @@ function toggleControls() {
     controlTimer = setTimeout(() => {
         fs.classList.remove('show-controls');
     }, 3000);
+}
+
+function changeQty(amt) {
+    const qtyInput = document.getElementById('qtyValue');
+    let currentQty = parseInt(qtyInput.value);
+    let newQty = currentQty + amt;
+    
+    if (newQty < 1) newQty = 1;
+    // Pwede mo ring lagyan ng max base sa p.Stock_Count
+    qtyInput.value = newQty;
 }
 
 </script>
