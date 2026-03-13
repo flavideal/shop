@@ -33,6 +33,7 @@
         .skeleton { background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%); background-size: 200% 100%; animation: 1.5s shine linear infinite; }
         @keyframes shine { to { background-position-x: -200%; } }
         @media (min-width: 1024px) { .product-page-container { flex-direction: row; padding: 20px; } .gallery-wrapper { flex: 1; position: sticky; top: 100px; height: fit-content; } .details-body { flex: 1; padding: 0 40px; } }
+        .fs-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.3); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; z-index: 5002; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: 0.3s; } .fs-nav-btn:hover { background: rgba(0,0,0,0.8); } .prev-btn { left: 20px; } .next-btn { right: 20px; } @media (max-width: 768px) { .fs-nav-btn { width: 40px; height: 40px; background: rgba(0,0,0,0.1); opacity: 0; } .fullscreen-view.show-controls .fs-nav-btn { opacity: 1; } }
     </style>    
 </head>
 <body> <div id="page-loader">
@@ -75,11 +76,19 @@
         </div>
     </div>
 
-    <div id="fullscreenView" class="fullscreen-view">
-        <span class="close-fs" onclick="closeFullImage()">&times;</span>
-        <div id="fullscreenGallery"></div>
-        <div id="fs-counter"></div>
-    </div>
+    <div id="fullscreenView" class="fullscreen-view" onclick="toggleControls()">
+    <span class="close-fs" onclick="closeFullImage()">&times;</span>
+    
+    <button class="fs-nav-btn prev-btn" onclick="navGallery(-1); event.stopPropagation();">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="fs-nav-btn next-btn" onclick="navGallery(1); event.stopPropagation();">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <div id="fullscreenGallery"></div>
+    <div id="fs-counter"></div>
+</div>
 
 <script>
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
@@ -495,6 +504,36 @@ window.onload = async function() {
         }
     }
 };
+
+// 1. Keyboard Support (Left/Right Arrows & Esc)
+document.addEventListener('keydown', (e) => {
+    const fs = document.getElementById('fullscreenView');
+    if (fs.style.display === "flex") {
+        if (e.key === "ArrowLeft") navGallery(-1);
+        if (e.key === "ArrowRight") navGallery(1);
+        if (e.key === "Escape") closeFullImage();
+    }
+});
+
+// 2. Navigation Logic
+function navGallery(direction) {
+    const fsGallery = document.getElementById('fullscreenGallery');
+    const scrollAmount = fsGallery.clientWidth;
+    fsGallery.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+
+// 3. Mobile Auto-hide Controls
+let controlTimer;
+function toggleControls() {
+    const fs = document.getElementById('fullscreenView');
+    fs.classList.add('show-controls');
+    
+    // Mawawala after 3 seconds pag walang ginagawa
+    clearTimeout(controlTimer);
+    controlTimer = setTimeout(() => {
+        fs.classList.remove('show-controls');
+    }, 3000);
+}
 
 </script>
 </body>
