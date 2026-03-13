@@ -190,11 +190,12 @@ async function fetchProducts() {
     try {
         const response = await fetch(webAppUrl + "?action=getProducts");
         const products = await response.json();
-        window.currentProducts = products; // I-save sa window level
+        window.currentProducts = products; // IMPORTANTE: Dito isasave ang data
         return products;
     } catch (error) {
         console.error("Error fetching products:", error);
-        document.getElementById('viewName').innerText = "Error loading product.";
+        document.getElementById('viewName').innerText = "Error loading product data.";
+        return [];
     }
 }
 
@@ -572,16 +573,22 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Ilagay ito sa loob ng window.onload sa product.html
+// Isang window.onload na lang dapat
 window.onload = async function() {
-    await fetchProducts(); // Kunin muna ang data
+    // 1. Kunin ang data mula sa Google Sheets
+    const products = await fetchProducts(); 
     
-    // Basahin ang ID mula sa URL (halimbawa: product.html?id=0)
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id');
-    
-    if (productId !== null) {
-        openProductDetails(parseInt(productId));
+    if (products && products.length > 0) {
+        // 2. Basahin ang ID mula sa URL (e.g., product.html?id=0)
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        
+        if (productId !== null) {
+            // 3. I-display ang details
+            openProductDetails(parseInt(productId));
+        } else {
+            document.getElementById('viewName').innerText = "Product not found.";
+        }
     }
 };
 
