@@ -391,10 +391,34 @@ function openProductDetails(index) {
             `;
             
             document.getElementById('addToCartBtn').onclick = () => {
-                const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
-                const cap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
-                alert(`Added to Cart: ${p.Name}\nColor: ${col}\nStorage: ${cap}`);
-            };
+    const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
+    const cap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
+    const qty = 1; // Default qty
+
+    const cartItem = {
+        id: new URLSearchParams(window.location.search).get('id'),
+        name: p.Name,
+        price: parseFloat(p.Cash_Price.split(',')[0]), // Kunin ang unang cash price
+        color: col,
+        capacity: cap,
+        quantity: qty,
+        image: `${p.Folder_Path}/1.png`
+    };
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Check kung nandoon na ang item na may parehong variation
+    const existingIndex = cart.findIndex(item => item.id === cartItem.id && item.color === col && item.capacity === cap);
+    
+    if (existingIndex > -1) {
+        cart[existingIndex].quantity += 1;
+    } else {
+        cart.push(cartItem);
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    window.location.href = 'cart.html';
+};
 
             document.getElementById('buyNowBtn').onclick = () => {
                 const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
