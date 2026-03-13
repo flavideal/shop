@@ -1,307 +1,393 @@
 <script>
-// Global variables
-let currentGalleryImages = [];
+const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
+let currentProducts = [];
 
-async function initProductPage() {
-    // 1. Kunin ang pangalan ng product mula sa URL
-    const params = new URLSearchParams(window.location.search);
-    const productNameFromUrl = params.get('name');
+function openProductDetails(index) {
+    const p = window.currentProducts[index];
+    if (!p) return;
 
-    if (!productNameFromUrl) {
-        alert("No product specified!");
-        window.location.href = "index.html";
-        return;
-    }
+    const modal = document.getElementById('productViewModal');
+    if (!modal) return;
+    modal.style.display = "flex";
 
-    // 2. FETCH DATA MULA SA GOOGLE SHEETS
-    // Palitan ang URL na ito ng iyong aktwal na Google Apps Script Web App URL
-    const sheetUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
+    const gallery = document.getElementById('photoGallery');
+    const counter = document.getElementById('image-counter');
+    
+    // 1. PHOTO LOADING (No changes here)
+    gallery.innerHTML = `
+        <div style="width:100%; height:300px; display:flex; align-items:center; justify-content:center; flex-direction:column;" class="skeleton">
+            <div class="spinner"></div>
+            <span style="font-size:12px; color:gray;">Fetching high-quality photos...</span>
+        </div>
+    `;
 
-    try {
-        const response = await fetch(sheetUrl);
-        const products = await response.json();
-        
-        // 3. HANAPIN ANG PRODUCT 'p'
-        const p = products.find(item => item.Name === productNameFromUrl);
+    if(counter) counter.innerText = "Loading...";
+    currentGalleryImages = [];
 
-        if (!p) {
-            alert("Product not found!");
-            window.location.href = "index.html";
-            return;
-        }
-
-        // --- DITO MAGSISIMULA ANG IYONG LOGIC AT NAME FIELDS (WALANG BINAGO) ---
-
-        const gallery = document.getElementById('photoGallery');
-        const counter = document.getElementById('image-counter');
-        
-        // 1. PHOTO LOADING
-        gallery.innerHTML = `
-            <div style="width:100%; height:300px; display:flex; align-items:center; justify-content:center; flex-direction:column;" class="skeleton">
-                <div class="spinner"></div>
-                <span style="font-size:12px; color:gray;">Fetching high-quality photos...</span>
-            </div>
-        `;
-
-        if(counter) counter.innerText = "Loading...";
-        currentGalleryImages = [];
-
-        let imagesToCheck = 15;
-        let checkedCount = 0;
-        for (let i = 1; i <= imagesToCheck; i++) {
-            let imgSrc = `${p.Folder_Path}/${i}.png`;
-            let img = new Image();
-            img.src = imgSrc;
-            img.onload = function() {
-                currentGalleryImages.push(imgSrc);
-                checkedCount++;
-                if (checkedCount === imagesToCheck) finalizeGallery(gallery, counter);
-            };
-            img.onerror = function() {
-                checkedCount++;
-                if (checkedCount === imagesToCheck) finalizeGallery(gallery, counter);
-            };
-        }
-
-        // 2. TEXT DETAILS & BADGES
-        const brandName = p.Brand || "Premium Brand";
-        const rating = parseFloat(p.Rating) || 5.0;
-        const isFreeShipping = p.Shipping === "Free" || p.Shipping === "FREE";
-        const isNewArrival = p.Status === "New" || p.Status === "NEW";
-        const isFlashSale = p.Flash_Sale === "Yes" || p.Flash_Sale === "YES";
-
-        // Item Name display
-        document.getElementById('viewName').innerHTML = `
-            <div style="margin-bottom: 5px; font-size: 20px; font-weight: 700;">${p.Name}</div>
-            
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-                <span style="color: #1B4D2E; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
-                    ${brandName}
-                </span>
-                <span style="height: 12px; width: 1px; background: #ddd;"></span>
-                <span style="color: #27ae60; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                    <i class="fas fa-check-circle"></i> 100% Authentic
-                </span>
-            </div>
-
-            <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
-                ${isFreeShipping ? `<span style="background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #c8e6c9;">FREE SHIPPING</span>` : ''}
-                ${isNewArrival ? `<span style="background: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #bbdefb;">NEW ARRIVAL</span>` : ''}
-                ${isFlashSale ? `<span style="background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #ffe0b2;"><i class="fas fa-bolt"></i> FLASH SALE</span>` : ''}
-                
-                <div style="background: #fafafa; padding: 3px 8px; border-radius: 4px; border: 1px solid #eee; display: flex; align-items: center; gap: 4px;">
-                    <i class="fas fa-star" style="color: #ffc107; font-size: 10px;"></i>
-                    <span style="font-size: 10px; font-weight: 700; color: #444;">${rating.toFixed(1)}</span>
-                    <span style="font-size: 9px; color: #888; text-transform: uppercase;">Credit Rating</span>
-                </div>
-            </div>
-        `;
-
-        document.getElementById('viewDesc').innerText = p.Description;
-
-        // --- COLOR VARIATION ---
-        const colorContainer = document.getElementById('viewColors');
-        if (colorContainer) {
-            const colors = p.Colors ? p.Colors.split(',').map(c => c.trim()) : [];
-            colorContainer.innerHTML = colors.length > 0 ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT COLOR:</p>' : '';
-            colors.forEach(color => {
-                const btn = document.createElement('button');
-                btn.innerText = color;
-                btn.className = "variation-btn color-btn";
-                btn.onclick = () => {
-                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                };
-                colorContainer.appendChild(btn);
-            });
-            if(colors.length > 0) colorContainer.querySelector('button').click();
-        }
-
-        // --- CAPACITY & ADVANCED PRICE LOGIC ---
-        const capacityContainer = document.getElementById('viewCapacity');
-        const priceElement = document.getElementById('viewPrice');
-        
-        const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"];
-        const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
-        const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
-        const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
-        
-        const interestRate = parseFloat(p.Interest_Rate) || 0;
-        const processingFee = parseFloat(p.Processing_Fee) || 0;
-
-        capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
-        
-        capacities.forEach((cap, i) => {
-            const btn = document.createElement('button');
-            btn.innerText = cap;
-            btn.className = "variation-btn capacity-btn";
-            
-            btn.onclick = () => {
-                document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
-                const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
-                const sheetMonths = parseInt(p.Plan) || 12;
-
-                let selectedTerm = sheetMonths;
-                let currentDP = 0;
-
-                const renderInstallmentUI = () => {
-                    const balance = curRegPrice - currentDP;
-                    const monthlyBase = (balance / selectedTerm) + (balance * interestRate);
-                    const firstPayTotal = monthlyBase + processingFee;
-                    const monthlyInterestPercent = (interestRate * 100).toFixed(0);
-                    let saleBadge = curCashPrice < curRegPrice ? `<span style="background:#f1c40f; color:#1B4D2E; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
-
-                    priceElement.innerHTML = `
-                        <div style="margin-bottom:12px;">
-                            <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> ${saleBadge}
-                            <div style="font-size:26px; font-weight:800; color:#1B4D2E; letter-spacing:-1px;">₱${curCashPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-                        </div>
-
-                        <div class="clickable-monthly" id="toggleSchedule" 
-                             style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
-                                    display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
-                            <div style="display:flex; flex-direction:column; gap:2px;">
-                                <div style="font-size:14px; font-weight:700; color:#e67e22;">
-                                    Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2})} / mo.
-                                </div>
-                                <div style="font-size:11px; color:#888; font-weight:500;">
-                                    For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString(undefined, {minimumFractionDigits: 2})} DP)` : ''}
-                                </div>
-                            </div>
-                            <div style="text-align:right;">
-                                <span style="font-size:10px; color:#1B4D2E; font-weight:700; text-transform:uppercase; display:block;">View Plan</span>
-                                <i class="fas fa-chevron-down" style="font-size:10px; color:#1B4D2E;"></i>
-                            </div>
-                        </div>
-
-                        <div id="scheduleTableContainer" style="display:none; margin-top:15px; border:1px solid #eee; border-radius:12px; overflow:hidden; background:#f9f9f9;">
-                            <div style="padding:15px; background:white; border-bottom:1px solid #eee;">
-                                <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Select Payment Term:</label>
-                                <div style="display:flex; gap:5px; margin-bottom:15px;">
-                                    ${[3, 6, sheetMonths].filter((v, idx, a) => a.indexOf(v) === idx).sort((a,b) => a-b).map(m => `
-                                        <button class="term-selector-btn" data-months="${m}"
-                                                style="flex:1; padding:10px; font-size:11px; font-weight:bold; border-radius:8px; cursor:pointer; 
-                                                border:1px solid ${m === selectedTerm ? '#1B4D2E' : '#eee'};
-                                                background:${m === selectedTerm ? '#1B4D2E' : '#fff'};
-                                                color:${m === selectedTerm ? 'white' : '#666'}; transition:0.2s;">
-                                            ${m} Months
-                                        </button>
-                                    `).join('')}
-                                </div>
-
-                                <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Custom Downpayment (Optional):</label>
-                                <div style="position:relative;">
-                                    <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:bold; color:#444;">₱</span>
-                                    <input type="number" id="dpInput" value="${currentDP || ''}" placeholder="0.00" 
-                                           style="width:100%; padding:12px 12px 12px 25px; border-radius:8px; border:1px solid #ddd; font-weight:700; font-size:14px; outline:none; box-sizing:border-box;">
-                                </div>
-                            </div>
-
-                            <div style="background:#1B4D2E; color:white; padding:10px; font-size:10px; font-weight:bold; text-align:center; text-transform:uppercase;">
-                                FLAVI DEAL INSTALLMENT PLAN
-                            </div>
-                            <table style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
-                                <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
-                                    <th style="padding:12px 5px; text-align:left; width:15%; padding-left:15px;">Month</th>
-                                    <th style="padding:12px 5px; text-align:center;">Interest Rate</th>
-                                    <th style="padding:12px 5px; text-align:right; padding-right:15px;">Monthly Due</th>
-                                </tr>
-                                ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => {
-                                    let isFirst = m === 1;
-                                    let amt = isFirst ? firstPayTotal : monthlyBase;
-                                    return `
-                                    <tr style="border-bottom:1px solid #f9f9f9;">
-                                        <td style="padding:12px 5px; font-weight:bold; color:#555; padding-left:15px;">${m}</td>
-                                        <td style="padding:12px 5px; text-align:center; color:#999;">${monthlyInterestPercent}%</td>
-                                        <td style="padding:12px 5px; text-align:right; font-weight:700; color:#333; padding-right:15px;">
-                                            ₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2})}
-                                            ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} Proc. Fee</div>` : ''}
-                                        </td>
-                                    </tr>`;
-                                }).join('')}
-                            </table>
-                        </div>
-                    `;
-
-                    // RE-BIND CLICK EVENTS
-                    const tableDiv = document.getElementById('scheduleTableContainer');
-                    document.getElementById('toggleSchedule').onclick = () => {
-                        tableDiv.style.display = tableDiv.style.display === "none" ? "block" : "none";
-                    };
-
-                    document.querySelectorAll('.term-selector-btn').forEach(tBtn => {
-                        tBtn.onclick = () => {
-                            selectedTerm = parseInt(tBtn.getAttribute('data-months'));
-                            renderInstallmentUI();
-                            document.getElementById('scheduleTableContainer').style.display = "block";
-                        };
-                    });
-
-                    const dpInput = document.getElementById('dpInput');
-                    dpInput.oninput = (e) => {
-                        currentDP = parseFloat(e.target.value) || 0;
-                        clearTimeout(window.dpTimer);
-                        window.dpTimer = setTimeout(() => {
-                            renderInstallmentUI();
-                            document.getElementById('scheduleTableContainer').style.display = "block";
-                            document.getElementById('dpInput').focus();
-                        }, 800);
-                    };
-                };
-
-                renderInstallmentUI();
-            };
-            capacityContainer.appendChild(btn);
-        });
-
-        // --- REVIEW BUTTON ---
-        const reviewDiv = document.createElement('div');
-        reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
-        reviewDiv.innerHTML = `
-            <p style="font-size: 11px; color: #888; margin-bottom: 12px; font-weight: 500;">Purchased this item? Share your experience!</p>
-            <button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fas fa-pen-to-square"></i> WRITE A REVIEW
-            </button>
-        `;
-        
-        reviewDiv.querySelector('#btnGoToReview').onclick = () => {
-            const pName = encodeURIComponent(p.Name);
-            const pBrand = encodeURIComponent(brandName);
-            const pImg = encodeURIComponent(`${p.Folder_Path}/1.png`);
-            window.location.href = `review.html?name=${pName}&brand=${pBrand}&img=${pImg}`;
+    let imagesToCheck = 15;
+    let checkedCount = 0;
+    for (let i = 1; i <= imagesToCheck; i++) {
+        let imgSrc = `${p.Folder_Path}/${i}.png`;
+        let img = new Image();
+        img.src = imgSrc;
+        img.onload = function() {
+            currentGalleryImages.push(imgSrc);
+            checkedCount++;
+            if (checkedCount === imagesToCheck) finalizeGallery(gallery, counter);
         };
+        img.onerror = function() {
+            checkedCount++;
+            if (checkedCount === imagesToCheck) finalizeGallery(gallery, counter);
+        };
+    }
 
-        priceElement.parentElement.appendChild(reviewDiv);
+    // 2. TEXT DETAILS & BADGES
+    const brandName = p.Brand || "Premium Brand";
+    const rating = parseFloat(p.Rating) || 5.0;
+    const isFreeShipping = p.Shipping === "Free" || p.Shipping === "FREE";
+    const isNewArrival = p.Status === "New" || p.Status === "NEW";
+    const isFlashSale = p.Flash_Sale === "Yes" || p.Flash_Sale === "YES";
+
+    // Item Name display
+    document.getElementById('viewName').innerHTML = `
+        <div style="margin-bottom: 5px;">${p.Name}</div>
         
-        const firstCapBtn = capacityContainer.querySelector('.capacity-btn');
-        if(firstCapBtn) firstCapBtn.click();
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+            <span style="color: #1B4D2E; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                ${brandName}
+            </span>
+            <span style="height: 12px; width: 1px; background: #ddd;"></span>
+            <span style="color: #27ae60; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-check-circle"></i> 100% Authentic
+            </span>
+        </div>
 
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
+        <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+            ${isFreeShipping ? `<span style="background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #c8e6c9;">FREE SHIPPING</span>` : ''}
+            ${isNewArrival ? `<span style="background: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #bbdefb;">NEW ARRIVAL</span>` : ''}
+            ${isFlashSale ? `<span style="background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid #ffe0b2;"><i class="fas fa-bolt"></i> FLASH SALE</span>` : ''}
+            
+            <div style="background: #fafafa; padding: 3px 8px; border-radius: 4px; border: 1px solid #eee; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-star" style="color: #ffc107; font-size: 10px;"></i>
+                <span style="font-size: 10px; font-weight: 700; color: #444;">${rating.toFixed(1)}</span>
+                <span style="font-size: 9px; color: #888; text-transform: uppercase;">Credit Rating</span>
+            </div>
+        </div>
+    `;
 
-// 4. FUNCTION PARA SA GALLERY FINALIZE (Placeholder)
-function finalizeGallery(gallery, counter) {
-    if (currentGalleryImages.length > 0) {
-        gallery.innerHTML = ""; // Clear loader
-        currentGalleryImages.forEach(src => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.style.width = "100%";
-            img.style.marginBottom = "10px";
-            img.style.borderRadius = "8px";
-            gallery.appendChild(img);
+    document.getElementById('viewDesc').innerText = p.Description;
+
+    // --- COLOR VARIATION ---
+    const colorContainer = document.getElementById('viewColors');
+    if (colorContainer) {
+        const colors = p.Colors ? p.Colors.split(',').map(c => c.trim()) : [];
+        colorContainer.innerHTML = colors.length > 0 ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT COLOR:</p>' : '';
+        colors.forEach(color => {
+            const btn = document.createElement('button');
+            btn.innerText = color;
+            btn.className = "variation-btn color-btn";
+            btn.onclick = () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+            colorContainer.appendChild(btn);
         });
-        if(counter) counter.innerText = `${currentGalleryImages.length} Photos Available`;
-    } else {
-        gallery.innerHTML = "<p style='text-align:center; color:gray;'>No images found.</p>";
+        if(colors.length > 0) colorContainer.querySelector('button').click();
+    }
+
+   // --- CAPACITY & ADVANCED PRICE LOGIC ---
+    const capacityContainer = document.getElementById('viewCapacity');
+    const priceElement = document.getElementById('viewPrice');
+    
+    // Arrays from Sheets
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"];
+    const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
+    const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
+    const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
+    
+    const interestRate = parseFloat(p.Interest_Rate) || 0;
+    const processingFee = parseFloat(p.Processing_Fee) || 0;
+
+    capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
+    
+    capacities.forEach((cap, i) => {
+        const btn = document.createElement('button');
+        btn.innerText = cap;
+        btn.className = "variation-btn capacity-btn";
+        
+        btn.onclick = () => {
+            document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const curRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
+            const curCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
+            const sheetMonths = parseInt(p.Plan) || 12;
+
+            let selectedTerm = sheetMonths;
+            let currentDP = 0;
+
+            const renderInstallmentUI = () => {
+                const balance = curRegPrice - currentDP;
+                const monthlyBase = (balance / selectedTerm) + (balance * interestRate);
+                const firstPayTotal = monthlyBase + processingFee;
+                const monthlyInterestPercent = (interestRate * 100).toFixed(0);
+                let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
+
+                priceElement.innerHTML = `
+                    <div style="margin-bottom:12px; text-decoration: none !important;">
+                        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
+                        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    </div>
+
+                    <div class="clickable-monthly" id="toggleSchedule" 
+                         style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
+                                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+                                text-decoration: none !important; outline: none !important;">
+                        <div style="display:flex; flex-direction:column; gap:2px; text-decoration: none !important;">
+                            <div style="font-size:14px; font-weight:700; color:#e67e22; text-decoration: none !important;">
+                                Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
+                            </div>
+                            <div style="font-size:11px; color:#888; font-weight:500; text-decoration: none !important;">
+                                For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString(undefined, {minimumFractionDigits: 2})} DP)` : ''}
+                            </div>
+                        </div>
+                        <div style="text-align:right; text-decoration: none !important;">
+                            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; text-decoration: none !important;">View Plan</span>
+                            <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
+                        </div>
+                    </div>
+
+                    <div id="scheduleTableContainer" style="display:none; margin-top:15px; border:1px solid #eee; border-radius:12px; overflow:hidden; background:#f9f9f9;">
+                        <div style="padding:15px; background:white; border-bottom:1px solid #eee;">
+                            <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Select Payment Term:</label>
+                            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                                ${[3, 6, sheetMonths].filter((v, idx, a) => a.indexOf(v) === idx).sort((a,b) => a-b).map(m => `
+                                    <button class="term-selector-btn" data-months="${m}"
+                                            style="flex:1; padding:10px; font-size:11px; font-weight:bold; border-radius:8px; cursor:pointer; 
+                                            border:1px solid ${m === selectedTerm ? 'var(--forest-green)' : '#eee'};
+                                            background:${m === selectedTerm ? 'var(--forest-green)' : '#fff'};
+                                            color:${m === selectedTerm ? 'white' : '#666'}; transition:0.2s;">
+                                        ${m} Months
+                                    </button>
+                                `).join('')}
+                            </div>
+
+                            <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Custom Downpayment (Optional):</label>
+                            <div style="position:relative;">
+                                <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:bold; color:#444;">₱</span>
+                                <input type="number" id="dpInput" value="${currentDP || ''}" placeholder="0.00" 
+                                       style="width:100%; padding:12px 12px 12px 25px; border-radius:8px; border:1px solid #ddd; font-weight:700; font-size:14px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="background:#1B4D2E; color:white; padding:10px; font-size:10px; font-weight:bold; text-align:center; text-transform:uppercase;">
+                            FLAVI DEAL INSTALLMENT PLAN
+                        </div>
+                        <table style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
+                            <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
+                                <th style="padding:12px 5px; text-align:left; width:15%; padding-left:15px;">Month</th>
+                                <th style="padding:12px 5px; text-align:center; white-space:nowrap;">Monthly Interest Rate</th>
+                                <th style="padding:12px 5px; text-align:right; padding-right:15px;">Monthly Due</th>
+                            </tr>
+                            ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => {
+                                let isFirst = m === 1;
+                                let amt = isFirst ? firstPayTotal : monthlyBase;
+                                return `
+                                <tr style="border-bottom:1px solid #f9f9f9;">
+                                    <td style="padding:12px 5px; font-weight:bold; color:#555; padding-left:15px;">${m}</td>
+                                    <td style="padding:12px 5px; text-align:center; color:#999;">${monthlyInterestPercent}%</td>
+                                    <td style="padding:12px 5px; text-align:right; font-weight:700; color:#333; padding-right:15px;">
+                                        ₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                        ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Proc. Fee</div>` : ''}
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </table>
+                        
+                        <div style="padding:15px; background:#fffcf5; border-top:1px solid #eee;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:11px; font-weight:700; border-bottom:1px dashed #ddd; padding-bottom:8px;">
+                                <span>Total Loan Balance:</span>
+                                <span>₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            </div>
+                            <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
+                                * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})}</b> will be added on the first due date.
+                            </p>
+                            <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
+                                POWERED BY ERRIHO PERSONAL FINANCE
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // RE-BIND CLICK EVENTS
+                const tableDiv = document.getElementById('scheduleTableContainer');
+                document.getElementById('toggleSchedule').onclick = () => {
+                    tableDiv.style.display = tableDiv.style.display === "none" ? "block" : "none";
+                };
+
+                document.querySelectorAll('.term-selector-btn').forEach(tBtn => {
+                    tBtn.onclick = () => {
+                        selectedTerm = parseInt(tBtn.getAttribute('data-months'));
+                        renderInstallmentUI();
+                        document.getElementById('scheduleTableContainer').style.display = "block";
+                    };
+                });
+
+                const dpInput = document.getElementById('dpInput');
+                dpInput.oninput = (e) => {
+                    currentDP = parseFloat(e.target.value) || 0;
+                    clearTimeout(window.dpTimer);
+                    window.dpTimer = setTimeout(() => {
+                        renderInstallmentUI();
+                        document.getElementById('scheduleTableContainer').style.display = "block";
+                        document.getElementById('dpInput').focus();
+                    }, 800);
+                };
+            };
+
+            renderInstallmentUI();
+        };
+        capacityContainer.appendChild(btn);
+    });
+
+     // --- INSERT REVIEW BUTTON HERE ---
+    const reviewDiv = document.createElement('div');
+    reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
+    reviewDiv.innerHTML = `
+        <p style="font-size: 11px; color: #888; margin-bottom: 12px; font-weight: 500;">
+            Purchased this item? Share your experience with us!
+        </p>
+        <button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-pen-to-square"></i> WRITE A REVIEW
+        </button>
+    `;
+    
+    // Isasama natin ang data sa URL para makuha ng review.html
+    reviewDiv.querySelector('#btnGoToReview').onclick = () => {
+        const pName = encodeURIComponent(p.Name);
+        const pBrand = encodeURIComponent(brandName);
+        const pImg = encodeURIComponent(`${p.Folder_Path}/1.png`);
+        window.location.href = `review.html?name=${pName}&brand=${pBrand}&img=${pImg}`;
+    };
+
+    // Idagdag sa main container ng modal (karaniwang sa baba ng priceElement o sa main scrollable area)
+    priceElement.parentElement.appendChild(reviewDiv);
+    
+    const firstCapBtn = capacityContainer.querySelector('.capacity-btn');
+    if(firstCapBtn) firstCapBtn.click();
+
+    // 3. ACTION BUTTONS
+    const actionContainer = document.querySelector('.action-buttons');
+    if (actionContainer) {
+        if (p.Stock_Count <= 0) {
+            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
+        } else {
+            actionContainer.innerHTML = `
+                <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
+                <button id="buyNowBtn" class="btn-easy">Buy Now</button>
+            `;
+            
+            document.getElementById('addToCartBtn').onclick = () => {
+                const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
+                const cap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
+                alert(`Added to Cart: ${p.Name}\nColor: ${col}\nStorage: ${cap}`);
+            };
+
+            document.getElementById('buyNowBtn').onclick = () => {
+                const col = document.querySelector('.color-btn.active')?.innerText || "N/A";
+                const cap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
+                alert(`Redirecting to Checkout...\nItem: ${p.Name} (${cap})`);
+            };
+        }
     }
 }
 
-// Run the script on load
-window.onload = initProductPage;
+// Function para ayusin ang gallery pagkatapos ma-check lahat ng images
+function finalizeGallery(gallery, counter) {
+    // I-sort para hindi maghalo-halo ang sequence (1, 2, 3...)
+    currentGalleryImages.sort((a, b) => {
+        return parseInt(a.split('/').pop()) - parseInt(b.split('/').pop());
+    });
+
+    gallery.innerHTML = currentGalleryImages.map((src, idx) => 
+        `<img src="${src}" class="gallery-img" onclick="openFullscreenSwipe(${idx})">`
+    ).join('');
+
+    const total = currentGalleryImages.length;
+    if(counter) counter.innerText = `1 / ${total}`;
+
+    gallery.onscroll = () => {
+        let page = Math.round(gallery.scrollLeft / gallery.clientWidth) + 1;
+        if(counter) counter.innerText = `${page} / ${total}`;
+    };
+}
+
+// FULLSCREEN SWIPE LOGIC
+function openFullscreenSwipe(startIndex) {
+    const fs = document.getElementById('fullscreenView');
+    const fsGallery = document.getElementById('fullscreenGallery');
+    const fsCounter = document.getElementById('fs-counter');
+    
+    fs.style.display = "flex";
+    
+    // I-render ang lahat ng images sa loob ng fullscreen container para swipeable
+    fsGallery.innerHTML = currentGalleryImages.map(src => 
+        `<img src="${src}" class="fs-slide">`
+    ).join('');
+    
+    const total = currentGalleryImages.length;
+    
+    // I-scroll sa saktong image na ni-click
+    setTimeout(() => {
+        fsGallery.scrollLeft = fsGallery.clientWidth * startIndex;
+        if(fsCounter) fsCounter.innerText = `${startIndex + 1} / ${total}`;
+    }, 50);
+
+    fsGallery.onscroll = () => {
+        let page = Math.round(fsGallery.scrollLeft / fsGallery.clientWidth) + 1;
+        if(fsCounter) fsCounter.innerText = `${page} / ${total}`;
+    };
+}
+
+function closeFullImage() {
+    document.getElementById('fullscreenView').style.display = "none";
+}
+// 4. Tawagin ang fetch function pagka-load ng page
+window.onload = fetchProducts;
+
+function toggleModal() {
+    const modal = document.getElementById('accountModal');
+    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
+}
+
+// Keyboard Support para sa Fullscreen Gallery
+document.addEventListener('keydown', (e) => {
+    const fs = document.getElementById('fullscreenView');
+    const gallery = document.getElementById('fullscreenGallery');
+    
+    if (fs && fs.style.display === "flex") {
+        if (e.key === "ArrowRight") {
+            gallery.scrollBy({ left: gallery.clientWidth, behavior: 'smooth' });
+        } else if (e.key === "ArrowLeft") {
+            gallery.scrollBy({ left: -gallery.clientWidth, behavior: 'smooth' });
+        } else if (e.key === "Escape") {
+            closeFullImage();
+        }
+    }
+});
+
+// Ilagay ito sa loob ng window.onload sa product.html
+window.onload = async function() {
+    await fetchProducts(); // Kunin muna ang data
+    
+    // Basahin ang ID mula sa URL (halimbawa: product.html?id=0)
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+    
+    if (productId !== null) {
+        openProductDetails(parseInt(productId));
+    }
+};
+
+
 </script>
