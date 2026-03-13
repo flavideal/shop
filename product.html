@@ -139,6 +139,35 @@
     font-size: 12px;
     z-index: 10;
 }
+
+/* Styling para sa Back to Shop Nav */
+nav {
+    padding: 20px 5%;
+    background: white;
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.logo {
+    text-decoration: none;
+    color: #1B4D2E; /* Forest Green */
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+}
+
+.logo:hover {
+    color: #27ae60;
+    transform: translateX(-5px); /* Konting galaw pabalik */
+}
     </style> 
 </head>
 <body style="background: #f8f9fa;">
@@ -202,10 +231,6 @@ async function fetchProducts() {
 function openProductDetails(index) {
     const p = window.currentProducts[index];
     if (!p) return;
-
-    const modal = document.getElementById('productViewModal');
-    if (!modal) return;
-    modal.style.display = "flex";
 
     const gallery = document.getElementById('photoGallery');
     const counter = document.getElementById('image-counter');
@@ -548,13 +573,6 @@ function openFullscreenSwipe(startIndex) {
 
 function closeFullImage() {
     document.getElementById('fullscreenView').style.display = "none";
-}
-// 4. Tawagin ang fetch function pagka-load ng page
-window.onload = fetchProducts;
-
-function toggleModal() {
-    const modal = document.getElementById('accountModal');
-    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
 }
 
 // Keyboard Support para sa Fullscreen Gallery
