@@ -7,102 +7,149 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 
-<style>
-    /* VARIABLES & RESET */
-    :root {
-        --forest-green: #1B4D2E;
-        --golden-yellow: #FFD275;
-        --light-bg: #F8F9FA;
-        --white: #ffffff;
-        --shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: #333; margin: 0; padding: 0; }
-    * { box-sizing: border-box; transition: 0.3s; }
+    <style>
+        :root {
+            --forest-green: #1B4D2E;
+            --golden-yellow: #FFD275;
+            --light-bg: #F8F9FA;
+            --white: #ffffff;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: #333; margin: 0; padding: 0; padding-bottom: 50px; }
+        * { box-sizing: border-box; transition: 0.3s; }
 
-    /* SHARED STYLES */
-    .login-btn { 
-        background: var(--forest-green); 
-        color: white; 
-        width: 100%; 
-        padding: 14px; 
-        margin-top: 10px; 
-        border: none; 
-        font-weight: bold; 
-        border-radius: 12px; 
-        cursor: pointer; 
-    }
+        .login-btn { 
+            background: var(--forest-green); 
+            color: white; 
+            width: 100%; 
+            padding: 14px; 
+            margin-top: 10px; 
+            border: none; 
+            font-weight: bold; 
+            border-radius: 12px; 
+            cursor: pointer; 
+        }
 
-    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; }
 
-    /* DASHBOARD COMPONENTS */
-    .dash-tabs-container { display: flex; gap: 10px; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; overflow-x: auto; white-space: nowrap; }
-    .dash-tab { cursor: pointer; padding: 10px 15px; color: #888; font-weight: 600; font-size: 14px; border-bottom: 3px solid transparent; }
-    .dash-tab.active { color: var(--forest-green); border-bottom: 3px solid var(--forest-green); }
+        /* DASHBOARD COMPONENTS */
+        .dash-tabs-container { display: flex; gap: 10px; border-bottom: 2px solid #f0f0f0; margin-top: 20px; margin-bottom: 20px; overflow-x: auto; }
+        .dash-tab { cursor: pointer; padding: 10px 15px; color: #888; font-weight: 600; font-size: 13px; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .dash-tab.active { color: var(--forest-green); border-bottom: 3px solid var(--forest-green); }
 
-    .order-status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
-    .status-item { background: #f8fcf9; padding: 12px 5px; border-radius: 12px; border: 1px solid #edf5ef; color: var(--forest-green); font-size: 10px; text-align: center; }
-    .status-item i { font-size: 20px; margin-bottom: 5px; display: block; }
+        .order-status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
+        .status-item { background: #f8fcf9; padding: 12px 5px; border-radius: 12px; border: 1px solid #edf5ef; color: var(--forest-green); font-size: 10px; text-align: center; }
+        .status-item i { font-size: 20px; margin-bottom: 5px; display: block; }
 
-    .referral-box { background: #f4f4f4; padding: 15px; border-radius: 10px; text-align: center; font-family: monospace; font-size: 20px; letter-spacing: 2px; border: 2px dashed #ccc; margin: 10px 0; }
+        .referral-box { background: #f4f4f4; padding: 15px; border-radius: 10px; text-align: center; font-family: monospace; font-size: 18px; letter-spacing: 2px; border: 2px dashed #ccc; margin: 10px 0; }
 
-    /* ANIMATIONS & OTP */
-    .dash-section { animation: fadeIn 0.4s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    
-    #otpInput { font-size: 24px; height: 60px !important; border: 2px solid var(--forest-green) !important; text-align: center; letter-spacing: 5px; font-weight: bold; }
+        .dash-section { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #otpInput { font-size: 24px; height: 60px !important; border: 2px solid var(--forest-green) !important; text-align: center; letter-spacing: 5px; font-weight: bold; }
+        .profile-input[readonly] { background: #f9f9f9; color: #777; cursor: not-allowed; border: 1px solid #eee; }
 
-    /* PROFILE INPUT READONLY STYLE */
-    .profile-input[readonly] { background: #f0f0f0; border-color: #eee; color: #777; cursor: not-allowed; }
-
-    /* DESKTOP RESPONSIVE */
-    @media (min-width: 1024px) {
-        #dash-profile { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        #dash-profile .login-btn { grid-column: span 2; }
-    }
-</style>
+        @media (min-width: 1024px) {
+            #dash-profile-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        }
+    </style>
 </head>
-<body style="background: #f4f7f6;">
+<body>
 
     <nav>
         <a href="index.html" class="logo"><i class="fas fa-arrow-left"></i> FLAVI DEAL</a>
     </nav>
 
-    <div class="account-container" style="max-width: 500px; margin: 20px auto; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    <div class="account-container" style="max-width: 500px; margin: 20px auto; padding: 25px; background: white; border-radius: 20px; box-shadow: var(--shadow);">
         
-        <h2 id="modalTitle" style="text-align:center; color: var(--forest-green);">Customer Login</h2>
-        <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+        <h2 id="modalTitle" style="text-align:center; color: var(--forest-green); margin-bottom: 10px;">Customer Login</h2>
+        <hr style="border:0; border-top:1px solid #eee; margin: 15px 0;">
 
         <div id="loginFields">
-            <input type="text" id="username" placeholder="Username or Mobile Number" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:1px solid #ddd;">
-            <input type="password" id="pin" placeholder="6-Digit PIN" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:1px solid #ddd;">
-            <button class="login-btn" onclick="handleLogin()" style="width:100%; padding:15px; background: var(--forest-green); color:white; border:none; border-radius:10px; font-weight:bold;">Login</button>
+            <input type="text" id="username" placeholder="Username or Mobile Number">
+            <input type="password" id="pin" placeholder="6-Digit PIN">
+            <button class="login-btn" onclick="handleLogin()">Login</button>
             <p style="font-size: 12px; margin-top: 15px; text-align:center;">
                 No account? <a href="#" onclick="showRegister()" style="color: var(--forest-green); font-weight:bold;">Register here</a>
             </p>
         </div>
 
         <div id="registerFields" style="display: none;">
-            <input type="text" id="regName" placeholder="Full Name" style="width:100%; margin-bottom:10px; padding:12px;">
-            <input type="text" id="regUser" placeholder="Choose Username" style="width:100%; margin-bottom:10px; padding:12px;"> 
-            <input type="email" id="regEmail" placeholder="Email Address" style="width:100%; margin-bottom:10px; padding:12px;">
-            <input type="text" id="regMobile" placeholder="Mobile Number" style="width:100%; margin-bottom:10px; padding:12px;">
-            <input type="password" id="regPin" placeholder="Create 6-Digit PIN" style="width:100%; margin-bottom:10px; padding:12px;">
-            <button id="regBtn" class="login-btn" onclick="handleRegister()" style="width:100%; padding:15px;">Send OTP to Email</button>
-            <p onclick="showLogin()" style="text-align:center; font-size:12px; margin-top:15px; cursor:pointer; color:gray;">Already have an account? Login</p>
+            <input type="text" id="regName" placeholder="Full Name">
+            <input type="text" id="regUser" placeholder="Choose Username"> 
+            <input type="email" id="regEmail" placeholder="Email Address">
+            <input type="text" id="regMobile" placeholder="Mobile Number">
+            <input type="password" id="regPin" placeholder="Create 6-Digit PIN">
+            <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 12px; color: #666;">
+                <input type="checkbox" id="regSubscribe" style="width: auto;"> Subscribe to updates
+            </div>
+            <button id="regBtn" class="login-btn" onclick="handleRegister()">Send OTP to Email</button>
+            <p onclick="showLogin()" style="text-align:center; font-size:12px; margin-top:15px; cursor:pointer; color:gray;">Back to Login</p>
         </div>
 
         <div id="otpFields" style="display: none;">
-            <p style="font-size: 14px; color: #666; text-align:center;">Enter the 6-digit code sent to your email.</p>
-            <input type="text" id="otpInput" placeholder="000000" maxlength="6" style="width:100%; padding:15px; text-align:center; font-size:24px; letter-spacing:8px; font-weight:bold; border-radius:10px; border:2px solid var(--forest-green); margin-bottom:15px;">
-            <button id="verifyBtn" class="login-btn" onclick="verifyOTP()" style="width:100%; padding:15px;">Verify & Complete</button>
+            <p style="font-size: 14px; color: #666; text-align:center;">Enter the code sent to your email.</p>
+            <input type="text" id="otpInput" placeholder="000000" maxlength="6">
+            <button id="verifyBtn" class="login-btn" onclick="verifyOTP()">Verify & Complete</button>
         </div>
 
         <div id="dashboardFields" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="color: var(--forest-green); margin: 0;">Hi, <span id="dashName">User</span>!</h3>
+                    <p style="font-size: 11px; color: #888;">Verified Member</p>
+                </div>
+                <i class="fas fa-user-check" style="color: var(--forest-green); font-size: 24px;"></i>
             </div>
 
-    </div>
+            <div class="dash-tabs-container">
+                <span onclick="switchDash('profile')" class="dash-tab active"><i class="fas fa-user"></i> Profile</span>
+                <span onclick="switchDash('orders')" class="dash-tab"><i class="fas fa-box"></i> Orders</span>
+                <span onclick="switchDash('referral')" class="dash-tab"><i class="fas fa-gift"></i> Referral</span>
+            </div>
 
+            <div id="dash-profile" class="dash-section">
+                <div id="dash-profile-fields">
+                    <label style="font-size:10px; color:gray;">FULL NAME</label>
+                    <input type="text" id="editName" readonly class="profile-input">
+                    <label style="font-size:10px; color:gray;">EMAIL</label>
+                    <input type="email" id="editEmail" readonly class="profile-input">
+
+                    <div id="extraFields" style="display:none;">
+                        <label style="font-size:10px; color:gray;">MOBILE</label>
+                        <input type="text" id="editMobile" class="profile-input">
+                        <label style="font-size:10px; color:gray;">USERNAME</label>
+                        <input type="text" id="editUser" class="profile-input">
+                        <label style="font-size:10px; color:gray;">NEW PIN</label>
+                        <input type="password" id="editPin" placeholder="Keep blank to stay same" class="profile-input">
+                    </div>
+                </div>
+                <button id="requestUpdateBtn" class="login-btn" style="background:#e67e22;" onclick="requestProfileOTP()">Request OTP to Edit</button>
+                <button id="saveProfileBtn" class="login-btn" style="display:none;" onclick="saveProfileChanges()">Save Changes</button>
+            </div>
+
+            <div id="dash-orders" class="dash-section" style="display:none;">
+                <div class="order-status-grid">
+                    <div class="status-item"><i class="fas fa-clock"></i>Pending</div>
+                    <div class="status-item"><i class="fas fa-truck"></i>Shipping</div>
+                    <div class="status-item"><i class="fas fa-check-circle"></i>Done</div>
+                </div>
+                <p style="text-align:center; font-size:12px; color:#999; padding:20px;">No orders found.</p>
+            </div>
+
+            <div id="dash-referral" class="dash-section" style="display:none;">
+                <p style="font-size:12px; color:#666;">Your Referral Code:</p>
+                <div class="referral-box" id="referralCode">FD-USER</div>
+                <p style="font-size:10px; color:#888; text-align:center;">Earn rewards for every successful referral!</p>
+            </div>
+
+            <button class="login-btn" style="background: #c0392b; margin-top: 30px;" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+    
     <script>
     // 1. URL ng Google Apps Script mo
     const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec"; 
