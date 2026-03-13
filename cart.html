@@ -44,60 +44,118 @@
 </div>
 
 <script>
-// 1. LOAD CART FROM LOCALSTORAGE
+// --- KONFIGURASYON ---
+const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
+
+// 1. RENDER UI - Ito ang magpapakita ng items sa screen
+function renderCartUI(cart) {
+    const container = document.getElementById('cartItemsList');
+    const summary = document.getElementById('cartSummary');
+    
+    if (!cart || cart.length === 0) {
+        container.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-basket" style="font-size:40px;"></i><p>Your cart is empty.</p></div>`;
+        summary.style.display = "none";
+        return;
+    }
+
+    summary.style.display = "block";
+    let total = 0;
+    
+    container.innerHTML = cart.map((item, index) => {
+        total += item.price * item.quantity;
+        return `
+            <div class="cart-item">
+                <img src="${item.image}" alt="">
+                <div class="item-info">
+                    <h4>${item.name}</h4>
+                    <div class="item-meta">Variation: ${item.color} | ${item.capacity}</div>
+                    <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                    </div>
+                    <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+}
+
+// 2. LOAD CART - Kinukuha ang data sa LocalStorage + Cloud Sync
 async function loadCart() {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     const user = JSON.parse(localStorage.getItem('currentUser'));
 
-    // KUNG NAKA-LOGIN: Kunin ang data sa Sheets at pagsamahin (Merge)
     if (user && user.email) {
         try {
-            const response = await fetch(`${webAppUrl}?action=getCart&email=${user.email}`);
+            // Kunin ang cart mula sa Google Sheets
+            const response = await fetch(`${webAppUrl}?action=getCart&email=${encodeURIComponent(user.email)}`);
             const serverCart = await response.json();
             
-            // I-merge ang server cart at local cart (i-remove ang duplicates)
-            serverCart.forEach(sItem => {
-                const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color);
-                if (!exists) cart.push(sItem);
-            });
-            
-            // I-save ang updated/merged cart pabalik sa local
-            localStorage.setItem('cart', JSON.stringify(cart));
+            if (serverCart && serverCart.length > 0) {
+                // I-merge: idagdag ang wala sa local mula sa server
+                serverCart.forEach(sItem => {
+                    const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color && lItem.capacity === sItem.capacity);
+                    if (!exists) cart.push(sItem);
+                });
+                localStorage.setItem('cart', JSON.stringify(cart));
+            }
         } catch (e) {
-            console.log("Offline mode: Using local cart only.");
+            console.log("Using offline cart data.");
         }
     }
-
-    renderCartUI(cart); // Tawagin ang function na mag-didisplay ng items
+    renderCartUI(cart);
 }
 
-// 2. UPDATE QUANTITY
-function updateQty(index, change) {
+// 3. SYNC TO CLOUD - Sine-save ang cart sa Google Sheets
+async function syncCartToCloud() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const cart = localStorage.getItem('cart');
+    
+    if (user && user.email && cart) {
+        try {
+            await fetch(`${webAppUrl}?action=syncCart&email=${encodeURIComponent(user.email)}&cartData=${encodeURIComponent(cart)}`);
+            console.log("Cloud synced.");
+        } catch (err) {
+            console.error("Sync error:", err);
+        }
+    }
+}
+
+// 4. UPDATE QUANTITY
+async function updateQty(index, change) {
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart[index].quantity += change;
     
     if (cart[index].quantity < 1) cart[index].quantity = 1;
     
     localStorage.setItem('cart', JSON.stringify(cart));
-    loadCart();
+    renderCartUI(cart);
+    await syncCartToCloud(); // I-save sa cloud pagkatapos palitan
 }
 
-// 3. REMOVE ITEM
-function removeItem(index) {
+// 5. REMOVE ITEM
+async function removeItem(index) {
+    if(!confirm("Remove this item?")) return;
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart.splice(index, 1);
     localStorage.setItem('cart', JSON.stringify(cart));
-    loadCart();
+    renderCartUI(cart);
+    await syncCartToCloud(); // I-save sa cloud pagkatapos burahin
 }
 
-// 4. CHECKOUT LOGIC (Dito papasok ang Sync sa Sheets kung naka-login)
+// 6. CHECKOUT
 function processCheckout() {
-    const user = JSON.parse(localStorage.getItem('currentUser')); // Sample check for login
+    const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) {
-        alert("Please login first to proceed with checkout.");
-        // window.location.href = 'login.html'; 
+        alert("Please login first to proceed.");
+        window.location.href = 'account.html'; 
     } else {
-        alert("Redirecting to payment...");
+        alert("Thank you! Processing your order...");
+        // Dito mo ilalagay ang sunod na step para sa payment/order form
     }
 }
 
