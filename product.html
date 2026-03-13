@@ -5,7 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details | Flavi Deal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+
+<style>
+.product-page-container {
+            max-width: 1000px;
+            margin: 80px auto;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .gallery-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .gallery-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .gallery-img {
+            width: 100%;
+            flex-shrink: 0;
+            object-fit: contain;
+            cursor: zoom-in;
+        }
+
+        .variation-btn {
+            border: 1px solid #ddd;
+            background: white;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .variation-btn.active {
+            border-color: #1B4D2E;
+            background: #e8f5e9;
+            color: #1B4D2E;
+            font-weight: bold;
+        }
+
+        #addToCartBtn { background: #f39c12; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        #buyNowBtn { background: #1B4D2E; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+
+        @media (min-width: 1024px) {
+            .product-page-container { flex-direction: row; padding: 20px; }
+            .gallery-wrapper { flex: 1; position: sticky; top: 100px; }
+            .details-body { flex: 1; padding: 0 40px; }
+        }
+
+        /* Fullscreen styles (copy directly from previous response) */
+        .fullscreen-view { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: column; justify-content: center; align-items: center; }
+        #fullscreenGallery { display: flex; width: 100%; height: 85vh; overflow-x: auto; scroll-snap-type: x mandatory; }
+        .fs-slide { width: 100%; height: 100%; flex-shrink: 0; object-fit: contain; }
+        .close-fs { position: absolute; top: 20px; right: 20px; color: white; font-size: 35px; cursor: pointer; }
+    </style> 
 </head>
 <body style="background: #f8f9fa;">
 
