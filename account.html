@@ -510,6 +510,23 @@ async function saveProfileChanges() {
     }
 }
 
+async function syncCartAfterLogin(userEmail) {
+    const localCart = JSON.parse(localStorage.getItem('cart')) || [];
+    if (localCart.length === 0) return;
+
+    // I-send sa Google Sheets
+    await fetch(webAppUrl, {
+        method: "POST",
+        body: JSON.stringify({
+            action: "syncCart",
+            email: userEmail,
+            cartData: localCart
+        })
+    });
+    
+    // Opsyonal: Linisin ang local cart o hayaan lang (mas safe hayaan lang)
+}
+
 </script>
 </body>
 </html>
