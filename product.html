@@ -410,6 +410,29 @@ function openProductDetails(index) {
     const firstCapBtn = capacityContainer.querySelector('.capacity-btn');
     if(firstCapBtn) firstCapBtn.click();
 
+    const qtyContainer = document.createElement('div');
+    qtyContainer.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px; padding: 0 10px;";
+    qtyContainer.innerHTML = `
+        <span style="font-size:11px; font-weight:bold; color:#888;">QUANTITY:</span>
+        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+            <button onclick="changeQty(-1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">-</button>
+            <input type="number" id="qtyValue" value="1" readonly style="width: 40px; text-align: center; border: none; font-weight: bold; font-size: 14px; outline: none;">
+            <button onclick="changeQty(1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">+</button>
+        </div>
+        <span style="font-size: 11px; color: #999;">(${p.Stock_Count} available)</span>
+    `;
+
+    // Hanapin natin kung saan natin isisingit (bago ang action buttons)
+    const actionContainer = document.querySelector('.action-buttons');
+    if (actionContainer) {
+        // Isisingit natin ang qtyContainer bago ang action buttons (Add to Cart/Buy Now)
+        actionContainer.parentNode.insertBefore(qtyContainer, actionContainer);
+
+        if (p.Stock_Count <= 0) {
+            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
+            qtyContainer.style.display = "none"; // Itago ang quantity kung sold out
+        } else {
+
     // 3. ACTION BUTTONS
     const actionContainer = document.querySelector('.action-buttons');
     if (actionContainer) {
@@ -594,13 +617,18 @@ function toggleControls() {
     }, 3000);
 }
 
-function changeQty(amt) {
+function changeQty(amt, maxStock) {
     const qtyInput = document.getElementById('qtyValue');
     let currentQty = parseInt(qtyInput.value);
     let newQty = currentQty + amt;
     
+    // Limits: Hindi pwedeng bababa sa 1, at hindi lalampas sa Stock_Count
     if (newQty < 1) newQty = 1;
-    // Pwede mo ring lagyan ng max base sa p.Stock_Count
+    if (newQty > maxStock) {
+        newQty = maxStock;
+        alert("Pasensya na, hanggang " + maxStock + " units lang ang available na stock.");
+    }
+    
     qtyInput.value = newQty;
 }
 
