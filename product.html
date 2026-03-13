@@ -114,6 +114,8 @@
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
 let currentProducts = [];
 
+let currentGalleryImages = []; // Dito itatago ang mga gumaganang image links
+
 function openProductDetails(index) {
     const p = window.currentProducts[index];
     if (!p) return;
