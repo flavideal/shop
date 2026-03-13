@@ -45,41 +45,30 @@
 
 <script>
 // 1. LOAD CART FROM LOCALSTORAGE
-function loadCart() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const container = document.getElementById('cartItemsList');
-    const summary = document.getElementById('cartSummary');
-    
-    if (cart.length === 0) {
-        container.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-basket" style="font-size:40px;"></i><p>Your cart is empty.</p></div>`;
-        summary.style.display = "none";
-        return;
+async function loadCart() {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+    // KUNG NAKA-LOGIN: Kunin ang data sa Sheets at pagsamahin (Merge)
+    if (user && user.email) {
+        try {
+            const response = await fetch(`${webAppUrl}?action=getCart&email=${user.email}`);
+            const serverCart = await response.json();
+            
+            // I-merge ang server cart at local cart (i-remove ang duplicates)
+            serverCart.forEach(sItem => {
+                const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color);
+                if (!exists) cart.push(sItem);
+            });
+            
+            // I-save ang updated/merged cart pabalik sa local
+            localStorage.setItem('cart', JSON.stringify(cart));
+        } catch (e) {
+            console.log("Offline mode: Using local cart only.");
+        }
     }
 
-    summary.style.display = "block";
-    let total = 0;
-    
-    container.innerHTML = cart.map((item, index) => {
-        total += item.price * item.quantity;
-        return `
-            <div class="cart-item">
-                <img src="${item.image}" alt="">
-                <div class="item-info">
-                    <h4>${item.name}</h4>
-                    <div class="item-meta">Variation: ${item.color} | ${item.capacity}</div>
-                    <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString()}</div>
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
-                        <span>${item.quantity}</span>
-                        <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
-                    </div>
-                    <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    renderCartUI(cart); // Tawagin ang function na mag-didisplay ng items
 }
 
 // 2. UPDATE QUANTITY
