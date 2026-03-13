@@ -52,13 +52,7 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
     text-decoration: none;
 }
 
-.login-btn { 
-    background: var(--forest-green); 
-    color: white; 
-    width: 100%; 
-    padding: 14px; 
-    margin-top: 10px; 
-}
+
 
 /* Specific Styles for Modal Buttons */
 #addToCartBtn { 
@@ -216,18 +210,6 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
     font-size: 13px;
 }
 
-/* Re-add modal input styling */
-.modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; }
-
-/* Dashboard Components */
-.dash-tabs-container { display: flex; gap: 10px; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; overflow-x: auto; white-space: nowrap; }
-.dash-tab { cursor: pointer; padding: 10px 15px; color: #888; font-weight: 600; font-size: 14px; border-bottom: 3px solid transparent; }
-.dash-tab.active { color: var(--forest-green); border-bottom: 3px solid var(--forest-green); }
-
-.order-status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
-.status-item { background: #f8fcf9; padding: 12px 5px; border-radius: 12px; border: 1px solid #edf5ef; color: var(--forest-green); font-size: 10px; text-align: center; }
-.status-item i { font-size: 20px; margin-bottom: 5px; display: block; }
-.referral-box { background: #f4f4f4; padding: 15px; border-radius: 10px; text-align: center; font-family: monospace; font-size: 20px; letter-spacing: 2px; border: 2px dashed #ccc; margin: 10px 0; }
 
 /* Media Queries */
 @media (min-width: 768px) {
@@ -247,10 +229,7 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
     .modal-content { max-width: 850px; }
 }
 
-/* Animations */
-.dash-section { animation: fadeIn 0.4s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-#otpInput { font-size: 24px; height: 50px; border: 2px solid var(--forest-green); text-align: center; letter-spacing: 5px; font-weight: bold; }
+
 
 /* Loading Animation */
 .loader-container {
