@@ -168,9 +168,50 @@ nav {
     color: #27ae60;
     transform: translateX(-5px); /* Konting galaw pabalik */
 }
+
+/* Full Page Loading Screen */
+#page-loader {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease;
+}
+
+.loader-logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1B4D2E;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.spinner-large {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #1B4D2E;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style> 
 </head>
 <body style="background: #f8f9fa;">
+
+<div id="page-loader">
+    <div class="loader-logo">FLAVI DEAL</div>
+    <div class="spinner-large"></div>
+    <p style="margin-top: 15px; color: #666; font-size: 14px; font-weight: 500;">Fetching product details...</p>
+</div>
 
     <nav>
         <a href="index.html" class="logo"><i class="fas fa-arrow-left"></i> BACK TO SHOP</a>
@@ -591,25 +632,32 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Isang window.onload na lang dapat
 window.onload = async function() {
     // 1. Kunin ang data mula sa Google Sheets
     const products = await fetchProducts(); 
     
     if (products && products.length > 0) {
-        // 2. Basahin ang ID mula sa URL (e.g., product.html?id=0)
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
         
         if (productId !== null) {
-            // 3. I-display ang details
+            // 2. I-display ang details
             openProductDetails(parseInt(productId));
+            
+            // 3. PAGKATAPOS ma-load ang details, itago ang loader
+            setTimeout(() => {
+                const loader = document.getElementById('page-loader');
+                loader.style.opacity = '0'; // Fade out effect
+                setTimeout(() => {
+                    loader.style.display = 'none'; // Tuluyang alisin
+                }, 500);
+            }, 800); // 0.8 seconds delay para hindi masyadong mabilis ang pagkawala
+
         } else {
             document.getElementById('viewName').innerText = "Product not found.";
         }
     }
 };
-
 
 </script>
 </body>
