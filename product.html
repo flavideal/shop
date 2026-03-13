@@ -111,6 +111,22 @@
     :root {
     --forest-green: #1B4D2E; /* Kung wala ito, hindi kukulay ang spinner */
 }
+
+@media (min-width: 1024px) {
+    .loader-container { grid-column: span 4; }
+}
+
+.payment-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+.payment-table th { background: #f4f4f4; padding: 8px; text-align: left; border-bottom: 2px solid #ddd; }
+.payment-table td { padding: 8px; border-bottom: 1px solid #eee; }
+.fee-row { color: #e67e22; font-weight: bold; font-size: 11px; }
+.clickable-monthly { cursor: pointer; color: var(--forest-green); text-decoration: underline; }
+.clickable-monthly:hover { color: #27ae60; }
+
+.term-btn:hover:not(.active) {
+    background: #f0f0f0 !important;
+    border-color: #ccc !important;
+}
     </style> 
 </head>
 <body style="background: #f8f9fa;">
