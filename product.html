@@ -230,7 +230,7 @@ function openProductDetails(index) {
         };
     };
 
-    const renderInstallmentUI = () => {
+   const renderInstallmentUI = () => {
     const data = getActiveData(); 
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
@@ -238,23 +238,29 @@ function openProductDetails(index) {
     const curRegPrice = data.reg * qty;
     const curCashPrice = data.cash * qty;
     
-    // 2. DOWNPAYMENT LOGIC
+    // 2. DOWNPAYMENT LOGIC (Auto-bawas sa principal)
     const dpInput = document.getElementById('dpInput');
     currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
 
-    // 3. DYNAMIC COMPUTATION (Principal / Term + Interest)
-    let baseAmountToFinance = curCashPrice - currentDP;
-    let interestRate = parseFloat(data.monthlyRate) / 100;
+    // 3. COMPUTATION LOGIC
+    let principal = curCashPrice - currentDP;
+    // Interest Rate conversion (e.g., kung 5 ang nasa sheet, gagawin itong 0.05)
+    let interestRateDecimal = parseFloat(data.monthlyRate) / 100;
     
-    // Ito ang gagamitin nating main variable para sa monthly payment
-    let computedMonthly = (baseAmountToFinance / selectedTerm) + (baseAmountToFinance * interestRate);
+    // Formula: (Principal / Term) + (Principal * Rate)
+    let monthlyPrincipal = principal / selectedTerm;
+    let monthlyInterestValue = principal * interestRateDecimal;
+    let computedMonthly = monthlyPrincipal + monthlyInterestValue;
     
-    // Siguraduhin na hindi negative ang result
-    if (computedMonthly < 0) computedMonthly = 0;
+    // Month 1 specific total (Amortization + Proc Fee)
+    let firstMonthTotal = computedMonthly + processingFee;
 
-    const balance = computedMonthly * selectedTerm;
-    const firstPayTotal = computedMonthly;
-    const monthlyInterestPercent = data.monthlyRate;
+    // Para sa display ng balance (lahat ng monthly dues)
+    const totalLoanBalance = computedMonthly * selectedTerm;
+    
+    // Display setting para sa Interest Rate (5% imbes na 0.05%)
+    const displayInterestRate = parseFloat(data.monthlyRate).toFixed(0); 
+
     const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
     // Update Stock Display
@@ -363,7 +369,6 @@ function openProductDetails(index) {
     if(dpIn) {
         dpIn.oninput = () => {
             renderInstallmentUI();
-            // Upang hindi mawala ang cursor focus habang nagta-type
             const input = document.getElementById('dpInput');
             input.focus();
             const val = input.value;
