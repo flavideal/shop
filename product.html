@@ -213,11 +213,35 @@ function openProductDetails(index) {
     const capacityContainer = document.getElementById('viewCapacity');
     const priceElement = document.getElementById('viewPrice');
     
-    // Arrays from Sheets
-    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : ["Standard"];
+    // --- SMART ARRAYS & LOGIC ---
+    // Kunin ang lahat ng arrays mula sa Google Sheets
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
+    const colors = p.Colors ? p.Colors.toString().split(',').map(s => s.trim()) : [];
     const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
     const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
     const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
+    const stockCounts = p.Stock_Count ? p.Stock_Count.toString().split(',').map(s => parseInt(s.trim())) : [];
+
+    // Smart Price/Stock Finder: Dito natin malalaman kung ano ang susundin na index
+    const getActiveData = () => {
+        const activeCapBtn = document.querySelector('.capacity-btn.active');
+        const activeColBtn = document.querySelector('.color-btn.active');
+        
+        // Priority 1: Capacity Index | Priority 2: Color Index | Fallback: Index 0
+        let targetIndex = 0;
+        if (capacities.length > 0 && activeCapBtn) {
+            targetIndex = capacities.indexOf(activeCapBtn.innerText);
+        } else if (colors.length > 0 && activeColBtn && regPrices.length > 1) {
+            targetIndex = colors.indexOf(activeColBtn.innerText);
+        }
+
+        return {
+            reg: parseFloat(regPrices[targetIndex]) || parseFloat(regPrices[0]) || 0,
+            cash: parseFloat(cashPrices[targetIndex]) || parseFloat(cashPrices[0]) || 0,
+            inst: parseFloat(instPrices[targetIndex]) || parseFloat(instPrices[0]) || 0,
+            stock: stockCounts[targetIndex] !== undefined ? stockCounts[targetIndex] : (stockCounts[0] || 0)
+        };
+    };
     
     const interestRate = parseFloat(p.Interest_Rate) || 0;
     const processingFee = parseFloat(p.Processing_Fee) || 0;
@@ -242,18 +266,35 @@ function openProductDetails(index) {
                 let currentDP = 0;
 
                 const renderInstallmentUI = () => {
-                    // 2. KUNIN ANG QUANTITY AT I-COMPUTE ANG TOTALS
+                    const data = getActiveData(); // Kunin ang smart data (price at stock)
                     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
-                    const curRegPrice = baseRegPrice * qty;
-                    const curCashPrice = baseCashPrice * qty;
                     
-                    const balance = curRegPrice - currentDP;
-                    const monthlyBase = (balance / selectedTerm) + (balance * interestRate);
-                    const firstPayTotal = monthlyBase + processingFee;
-                    const monthlyInterestPercent = (interestRate * 100).toFixed(0);
-                    let saleBadge = curCashPrice < curRegPrice ? `<span style="background:var(--golden-yellow); color:var(--forest-green); font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:8px;">CASH SALE</span>` : '';
+                    // Gamitin ang data mula sa resolver
+                    const curRegPrice = data.reg * qty;
+                    const curCashPrice = data.cash * qty;
+                    const monthlyBase = data.inst * qty; // Gagamit ng Installment_Price mula sa Sheets
+                    
+                    // I-update ang Stock Display sa UI
+                    const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
+                    if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
 
-                    // 3. I-DISPLAY ANG BUONG DESIGN (WALANG BINAWAS)
+                    // I-check kung Sold Out ang specific variant na napili
+                    const actionContainer = document.querySelector('.action-buttons');
+                    if (data.stock <= 0) {
+                        actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
+                        document.getElementById('qtyMainContainer').style.opacity = "0.5";
+                        document.getElementById('qtyMainContainer').style.pointerEvents = "none";
+                    } else {
+                        // Ibalik ang buttons kung may stock
+                        actionContainer.innerHTML = `
+                            <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
+                            <button id="buyNowBtn" class="btn-easy">Buy Now</button>
+                        `;
+                        document.getElementById('qtyMainContainer').style.opacity = "1";
+                        document.getElementById('qtyMainContainer').style.pointerEvents = "auto";
+                    }
+
+                    // ... (Dito na yung dati mong priceElement.innerHTML logic)
                 priceElement.innerHTML = `
                     <div style="margin-bottom:12px; text-decoration: none !important;">
                         <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
@@ -574,21 +615,23 @@ function toggleControls() {
     }, 3000);
 }
 
-function changeQty(amt, maxStock) {
+function changeQty(amt) {
+    // Kunin ang current stock ng active variant
+    const data = getActiveData(); 
     const qtyInput = document.getElementById('qtyValue');
     let currentQty = parseInt(qtyInput.value);
     let newQty = currentQty + amt;
     
     if (newQty < 1) newQty = 1;
-    if (newQty > maxStock) {
-        newQty = maxStock;
-        alert("Maximum stock reached.");
+    if (newQty > data.stock) {
+        newQty = data.stock;
+        alert(`Sorry, only ${data.stock} items left for this selection.`);
     }
     
     qtyInput.value = newQty;
 
-    // ETO ANG TRICK: Pindutin uli ang active button para mag-refresh ang installment table
-    const activeBtn = document.querySelector('.capacity-btn.active');
+    // Refresh the UI
+    const activeBtn = document.querySelector('.capacity-btn.active') || document.querySelector('.color-btn.active');
     if (activeBtn) activeBtn.click();
 }
 
