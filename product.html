@@ -245,9 +245,10 @@ function openProductDetails(index) {
     // 3. PRINCIPAL (Base sa Installment Price - Downpayment)
     let principal = curRegPrice - currentDP;
     
-    // 4. INTEREST LOGIC (Example: 91,990 * 0.05 = 4,599.50 fixed interest)
+    // 4. INTEREST LOGIC (Base sa math mo: Principal * Rate)
     let rate = parseFloat(data.monthlyRate); 
     let monthlyInterestAmount = principal * rate; 
+    let monthlyInterestPercent = rate * 100; // Para sa display sa table
     
     // 5. MONTHLY DUE ( (Principal / Term) + Fixed Interest )
     let monthlyPrincipalDiv = principal / selectedTerm;
@@ -256,14 +257,17 @@ function openProductDetails(index) {
     // First Month Total (Monthly Due + Processing Fee)
     let firstMonthTotal = computedMonthly + processingFee;
     
-    // Total Balance (Monthly x Months)
-    const totalLoanBalance = computedMonthly * selectedTerm;
+    // Total Balance
+    const balance = computedMonthly * selectedTerm;
+
+    // Sale Badge check (kung defined si isFlashSale)
+    const saleBadge = typeof isFlashSale !== 'undefined' && isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
     // 6. STOCK UPDATE
     const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
     if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
     
-    // --- FIX 2: UPDATE PRICE ELEMENT ---
+    // --- UPDATE PRICE ELEMENT ---
     priceElement.innerHTML = `
         <div style="margin-bottom:12px; text-decoration: none !important;">
             <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
