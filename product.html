@@ -264,8 +264,8 @@ function openProductDetails(index) {
         // --- FIX 2: UPDATE PRICE ELEMENT ---
                 priceElement.innerHTML = `
                     <div style="margin-bottom:12px; text-decoration: none !important;">
-                        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
-                        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> ${saleBadge}
+                        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                     </div>
 
                     <div class="clickable-monthly" id="toggleSchedule" 
@@ -274,10 +274,10 @@ function openProductDetails(index) {
                                 text-decoration: none !important; outline: none !important;">
                         <div style="display:flex; flex-direction:column; gap:2px; text-decoration: none !important;">
                             <div style="font-size:14px; font-weight:700; color:#e67e22; text-decoration: none !important;">
-                                Installment: ₱${monthlyBase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
+                                Installment: ₱${computedMonthly.toLocaleString(undefined, {minimumFractionDigits: 2})} / mo.
                             </div>
                             <div style="font-size:11px; color:#888; font-weight:500; text-decoration: none !important;">
-                                For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString(undefined, {minimumFractionDigits: 2})} DP)` : ''}
+                                For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : '(0 Downpayment)'}
                             </div>
                         </div>
                         <div style="text-align:right; text-decoration: none !important;">
@@ -318,7 +318,7 @@ function openProductDetails(index) {
                                 <th style="padding:12px 5px; text-align:center; white-space:nowrap;">Monthly Interest Rate</th>
                                 <th style="padding:12px 5px; text-align:right; padding-right:15px;">Monthly Due</th>
                             </tr>
-                            ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => {
+                           ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => `
                                 let isFirst = m === 1;
                                 let amt = isFirst ? firstPayTotal : monthlyBase;
                                 return `
@@ -326,8 +326,8 @@ function openProductDetails(index) {
                                     <td style="padding:12px 5px; font-weight:bold; color:#555; padding-left:15px;">${m}</td>
                                     <td style="padding:12px 5px; text-align:center; color:#999;">${monthlyInterestPercent}%</td>
                                     <td style="padding:12px 5px; text-align:right; font-weight:700; color:#333; padding-right:15px;">
-                                        ₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                        ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})} One-time Proc. Fee</div>` : ''}
+                                       ₱${computedMonthly.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                                       ${m === 1 ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString()} One-time Proc. Fee</div>` : ''}
                                     </td>
                                 </tr>`;
                             }).join('')}
@@ -336,10 +336,10 @@ function openProductDetails(index) {
                         <div style="padding:15px; background:#fffcf5; border-top:1px solid #eee;">
                             <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:11px; font-weight:700; border-bottom:1px dashed #ddd; padding-bottom:8px;">
                                 <span>Total Loan Balance:</span>
-                                <span>₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                                <span>₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                             </div>
                             <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
-                                * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString(undefined, {minimumFractionDigits: 2})}</b> will be added on the first due date.
+                                * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString()}</b> will be added on the first due date.
                             </p>
                             <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
                                 POWERED BY ERRIHO PERSONAL FINANCE
