@@ -231,32 +231,27 @@ function openProductDetails(index) {
     };
 
     const renderInstallmentUI = () => {
-    const data = getActiveData(); // Kukuha ng base price base sa selected Capacity
+    const data = getActiveData(); 
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
-    // 1. BASE PRICES (Multiplied by Quantity)
+    // 1. BASE PRICES
     const curRegPrice = data.reg * qty;
     const curCashPrice = data.cash * qty;
     
     // 2. DOWNPAYMENT LOGIC
-    // Kukunin ang value mula sa input kung meron, kung wala ay 0
     const dpInput = document.getElementById('dpInput');
     currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
 
-    // 3. INSTALLMENT COMPUTATION
-    // Logic: (Cash Price - Downpayment) / Selected Term + (Interest kung meron)
-    // Pero kung ang "data.inst" ay fixed monthly mula sa Sheets, gagamitin natin yun as base.
-    
+    // 3. DYNAMIC COMPUTATION (Principal / Term + Interest)
     let baseAmountToFinance = curCashPrice - currentDP;
     let interestRate = parseFloat(data.monthlyRate) / 100;
     
-    // Compute monthly amortization
-    // Formula: (Principal / Term) + (Principal * Interest Rate)
+    // Ito ang gagamitin nating main variable para sa monthly payment
     let computedMonthly = (baseAmountToFinance / selectedTerm) + (baseAmountToFinance * interestRate);
     
-    // Kung gusto mong gamitin yung "Installment_Price" column as static reference:
-    // let computedMonthly = (data.inst * qty); // I-uncomment ito kung ayaw mo ng auto-compute
-    
+    // Siguraduhin na hindi negative ang result
+    if (computedMonthly < 0) computedMonthly = 0;
+
     const balance = computedMonthly * selectedTerm;
     const firstPayTotal = computedMonthly;
     const monthlyInterestPercent = data.monthlyRate;
@@ -353,7 +348,7 @@ function openProductDetails(index) {
                     </div>
                 `;
 
-           // --- RE-BIND EVENTS ---
+    // --- RE-BIND EVENTS ---
     document.getElementById('toggleSchedule').onclick = () => {
         const table = document.getElementById('scheduleTableContainer');
         table.style.display = table.style.display === "none" ? "block" : "none";
@@ -367,13 +362,16 @@ function openProductDetails(index) {
         };
     });
 
-    // Importante: Ang listener para sa Downpayment input
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
         dpIn.oninput = () => {
-            // Re-render UI after typing (debounce optional)
             renderInstallmentUI();
-            document.getElementById('dpInput').focus(); // Maintain focus
+            // Upang hindi mawala ang cursor focus habang nagta-type
+            const input = document.getElementById('dpInput');
+            input.focus();
+            const val = input.value;
+            input.value = '';
+            input.value = val;
             document.getElementById('scheduleTableContainer').style.display = "block";
         };
     }
