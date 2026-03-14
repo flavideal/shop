@@ -191,20 +191,19 @@ function openProductDetails(index) {
 
     document.getElementById('viewDesc').innerText = p.Description;
 
-    // --- 1. UI CONTAINERS & INITIALIZATION ---
+   // --- 3. UI CONTAINERS ---
+    const capacityContainer = document.getElementById('viewCapacity');
+    const colorContainer = document.getElementById('viewColors');
+    const priceElement = document.getElementById('viewPrice');
     let sizeContainer = document.getElementById('viewSize');
     if (!sizeContainer) {
         sizeContainer = document.createElement('div');
         sizeContainer.id = 'viewSize';
-        document.getElementById('viewCapacity').after(sizeContainer);
+        capacityContainer.after(sizeContainer);
     }
-    const capacityContainer = document.getElementById('viewCapacity');
-    const colorContainer = document.getElementById('viewColors');
-    const priceElement = document.getElementById('viewPrice');
 
-    // --- 2. DATA PREPARATION (Arrays from Sheets) ---
+    // --- 4. DATA PREPARATION ---
     const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
-    const sizes = p.Size ? p.Size.toString().split(',').map(s => s.trim()) : [];
     const colorGroups = p.Colors ? p.Colors.toString().split(',').map(s => s.trim()) : [];
     const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
     const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
@@ -216,22 +215,21 @@ function openProductDetails(index) {
     let selectedTerm = sheetMonths;
     let currentDP = 0;
 
-    // --- 3. SMART DATA RESOLVER ---
+    // --- 5. LOGIC FUNCTIONS ---
     const getActiveData = () => {
         const activeCapBtn = document.querySelector('.capacity-btn.active');
-        let targetIndex = activeCapBtn ? capacities.indexOf(activeCapBtn.innerText) : 0;
-        if (targetIndex === -1) targetIndex = 0;
+        let idx = activeCapBtn ? capacities.indexOf(activeCapBtn.innerText) : 0;
+        if (idx === -1) idx = 0;
 
         return {
-            reg: parseFloat(regPrices[targetIndex]) || 0,
-            cash: parseFloat(cashPrices[targetIndex]) || 0,
-            inst: parseFloat(instPrices[targetIndex]) || 0,
-            stock: stockCounts[targetIndex] !== undefined ? stockCounts[targetIndex] : 0,
-            index: targetIndex
+            reg: parseFloat(regPrices[idx]) || 0,
+            cash: parseFloat(cashPrices[idx]) || 0,
+            inst: parseFloat(instPrices[idx]) || 0,
+            stock: stockCounts[idx] !== undefined ? stockCounts[idx] : 0,
+            monthlyRate: p.Interest_Rate || "0"
         };
     };
 
-    // --- 4. CORE RENDERER (INSTALLMENT & UI UPDATES) ---
     const renderInstallmentUI = () => {
         const data = getActiveData();
         const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
@@ -239,14 +237,14 @@ function openProductDetails(index) {
         const curRegPrice = data.reg * qty;
         const curCashPrice = data.cash * qty;
         const monthlyBase = data.inst * qty;
-        const balance = (monthlyBase * selectedTerm); 
-        const monthlyInterestPercent = p.Interest_Rate || "0";
-        const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
+        const balance = (monthlyBase * selectedTerm);
+        const firstPayTotal = monthlyBase;
 
-        // Update Stock Label and Buttons
+        // Update Stock Display
         const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
         if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
 
+        // Action Buttons logic
         const actionContainer = document.querySelector('.action-buttons');
         if (data.stock <= 0) {
             actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
@@ -255,11 +253,9 @@ function openProductDetails(index) {
                 <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
                 <button id="buyNowBtn" class="btn-easy">Buy Now</button>
             `;
-            // Re-bind click events for new buttons
-            document.getElementById('addToCartBtn').onclick = () => alert(`Added ${qty} item(s) to cart!`);
+            document.getElementById('addToCartBtn').onclick = () => alert("Added to cart!");
             document.getElementById('buyNowBtn').onclick = () => alert("Proceeding to Buy Now...");
         }
-
         // Update Price and Plan Display
                 priceElement.innerHTML = `
                     <div style="margin-bottom:12px; text-decoration: none !important;">
@@ -347,13 +343,11 @@ function openProductDetails(index) {
                     </div>
                 `;
 
-               // RE-BIND TABLE TOGGLE
-        const tableDiv = document.getElementById('scheduleTableContainer');
-        document.getElementById('toggleSchedule').onclick = () => {
-            tableDiv.style.display = tableDiv.style.display === "none" ? "block" : "none";
+              document.getElementById('toggleSchedule').onclick = () => {
+            const table = document.getElementById('scheduleTableContainer');
+            table.style.display = table.style.display === "none" ? "block" : "none";
         };
 
-        // RE-BIND TERM SELECTORS
         document.querySelectorAll('.term-selector-btn').forEach(btn => {
             btn.onclick = () => {
                 selectedTerm = parseInt(btn.getAttribute('data-months'));
@@ -363,13 +357,11 @@ function openProductDetails(index) {
         });
     };
 
-    // --- 5. VARIATION RENDERERS (CAPACITY & COLORS) ---
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
         const availableColors = colorGroups[capIndex] ? colorGroups[capIndex].split('|').map(c => c.trim()) : [];
-
         if (availableColors.length > 0 && availableColors[0] !== "") {
-            colorContainer.innerHTML = '<p style="font-size:11px; font-weight:bold; color:#888; margin-top:15px; margin-bottom:5px;">SELECT COLOR:</p>';
+            colorContainer.innerHTML = '<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">COLOR:</p>';
             availableColors.forEach(color => {
                 const btn = document.createElement('button');
                 btn.innerText = color;
@@ -385,10 +377,10 @@ function openProductDetails(index) {
         }
     }
 
-    // Initialize Capacities
+    // --- 6. INITIALIZE VARIATIONS ---
     capacityContainer.innerHTML = '';
     if (capacities.length > 0 && capacities[0] !== "") {
-        capacityContainer.innerHTML = '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>';
+        capacityContainer.innerHTML = '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">STORAGE:</p>';
         capacities.forEach((cap, i) => {
             const btn = document.createElement('button');
             btn.innerText = cap;
@@ -407,96 +399,36 @@ function openProductDetails(index) {
         renderInstallmentUI();
     }
 
-    // --- 6. QUANTITY & REVIEW BUTTONS ---
-    const oldQty = document.getElementById('qtyMainContainer');
-    if(oldQty) oldQty.remove();
+    // --- 7. QUANTITY CONTROLS ---
+    const existingQty = document.getElementById('qtyMainContainer');
+    if(existingQty) existingQty.remove();
 
-    const qtyContainer = document.createElement('div');
-    qtyContainer.id = "qtyMainContainer";
-    qtyContainer.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px; padding: 0 10px;";
-    qtyContainer.innerHTML = `
-        <span style="font-size:11px; font-weight:bold; color:#888;">QUANTITY:</span>
-        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-            <button id="qtyMinus" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer;">-</button>
-            <input type="number" id="qtyValue" value="1" readonly style="width: 40px; text-align: center; border: none; font-weight: bold;">
-            <button id="qtyPlus" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer;">+</button>
+    const qtyDiv = document.createElement('div');
+    qtyDiv.id = "qtyMainContainer";
+    qtyDiv.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px;";
+    qtyDiv.innerHTML = `
+        <span style="font-size:11px; font-weight:bold; color:#888;">QTY:</span>
+        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px;">
+            <button id="qMin" style="padding: 8px 15px; border: none; background: none; cursor: pointer;">-</button>
+            <input type="number" id="qtyValue" value="1" readonly style="width: 30px; text-align: center; border: none; font-weight: bold;">
+            <button id="qPlus" style="padding: 8px 15px; border: none; background: none; cursor: pointer;">+</button>
         </div>
         <span style="font-size: 11px; color: #999;">(0 available)</span>
     `;
-    
-    const actionContainer = document.querySelector('.action-buttons');
-    actionContainer.parentNode.insertBefore(qtyContainer, actionContainer);
+    const actContainer = document.querySelector('.action-buttons');
+    actContainer.parentNode.insertBefore(qtyDiv, actContainer);
 
-    document.getElementById('qtyMinus').onclick = () => {
-        let val = parseInt(document.getElementById('qtyValue').value);
-        if(val > 1) { document.getElementById('qtyValue').value = val - 1; renderInstallmentUI(); }
+    document.getElementById('qMin').onclick = () => {
+        let v = parseInt(document.getElementById('qtyValue').value);
+        if(v > 1) { document.getElementById('qtyValue').value = v - 1; renderInstallmentUI(); }
     };
-    document.getElementById('qtyPlus').onclick = () => {
+    document.getElementById('qPlus').onclick = () => {
+        let v = parseInt(document.getElementById('qtyValue').value);
         const data = getActiveData();
-        let val = parseInt(document.getElementById('qtyValue').value);
-        if(val < data.stock) { document.getElementById('qtyValue').value = val + 1; renderInstallmentUI(); }
+        if(v < data.stock) { document.getElementById('qtyValue').value = v + 1; renderInstallmentUI(); }
     };
 
-    const reviewDiv = document.createElement('div');
-    reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
-    reviewDiv.innerHTML = `<button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; cursor: pointer;">WRITE A REVIEW</button>`;
-    reviewDiv.querySelector('#btnGoToReview').onclick = () => {
-        window.location.href = `review.html?name=${encodeURIComponent(p.Name)}&brand=${encodeURIComponent(brandName)}&img=${encodeURIComponent(p.Folder_Path + '/1.png')}`;
-    };
-    priceElement.parentElement.appendChild(reviewDiv);
-
-    // --- 4. QUANTITY SELECTOR ---
-    // Siguraduhin nating malinis ang container bago mag-add
-    const oldQty = document.getElementById('qtyMainContainer');
-    if(oldQty) oldQty.remove();
-
-    const qtyContainer = document.createElement('div');
-    qtyContainer.id = "qtyMainContainer";
-    qtyContainer.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px; padding: 0 10px;";
-    qtyContainer.innerHTML = `
-        <span style="font-size:11px; font-weight:bold; color:#888;">QUANTITY:</span>
-        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-            <button onclick="changeQty(-1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">-</button>
-            <input type="number" id="qtyValue" value="1" readonly style="width: 40px; text-align: center; border: none; font-weight: bold; font-size: 14px; outline: none;">
-            <button onclick="changeQty(1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">+</button>
-        </div>
-        <span style="font-size: 11px; color: #999;">(${p.Stock_Count} available)</span>
-    `;
-
-    // --- 5. ACTION BUTTONS (ADD TO CART / BUY NOW) ---
-    const actionContainer = document.querySelector('.action-buttons');
-    if (actionContainer) {
-        // Isisingit ang Qty sa taas ng buttons
-        actionContainer.parentNode.insertBefore(qtyContainer, actionContainer);
-
-        if (p.Stock_Count <= 0) {
-            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
-            qtyContainer.style.display = "none";
-        } else {
-            actionContainer.innerHTML = `
-                <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
-                <button id="buyNowBtn" class="btn-easy">Buy Now</button>
-            `;
-            
-            document.getElementById('addToCartBtn').onclick = () => {
-                const col = document.querySelector('.color-btn.active')?.innerText || "Standard";
-                const cap = document.querySelector('.capacity-btn.active')?.innerText || "Standard";
-                const qty = parseInt(document.getElementById('qtyValue').value);
-                alert(`Added ${qty} item(s) to cart!`);
-                // Dito ang logic mo para sa localStorage kung kailangan
-            };
-
-            document.getElementById('buyNowBtn').onclick = () => {
-                alert("Proceeding to Buy Now...");
-            };
-        }
-    }
-
-    // Auto-click the first capacity to initialize prices
-    const firstCap = capacityContainer.querySelector('.capacity-btn');
-    if(firstCap) firstCap.click();
-
-} // <--- END OF openProductDetails
+} // END OF FUNCTION
 
 // Function para ayusin ang gallery pagkatapos ma-check lahat ng images
 function finalizeGallery(gallery, counter) {
