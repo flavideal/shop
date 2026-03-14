@@ -191,110 +191,76 @@ function openProductDetails(index) {
 
     document.getElementById('viewDesc').innerText = p.Description;
 
-    // --- COLOR VARIATION ---
-    const colorContainer = document.getElementById('viewColors');
-    if (colorContainer) {
-        const colors = p.Colors ? p.Colors.split(',').map(c => c.trim()) : [];
-        colorContainer.innerHTML = colors.length > 0 ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT COLOR:</p>' : '';
-        colors.forEach(color => {
-            const btn = document.createElement('button');
-            btn.innerText = color;
-            btn.className = "variation-btn color-btn";
-            btn.onclick = () => {
-                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            };
-            colorContainer.appendChild(btn);
-        });
-        if(colors.length > 0) colorContainer.querySelector('button').click();
+    // --- 1. UI CONTAINERS & INITIALIZATION ---
+    let sizeContainer = document.getElementById('viewSize');
+    if (!sizeContainer) {
+        sizeContainer = document.createElement('div');
+        sizeContainer.id = 'viewSize';
+        document.getElementById('viewCapacity').after(sizeContainer);
     }
-
-   // --- CAPACITY & ADVANCED PRICE LOGIC ---
     const capacityContainer = document.getElementById('viewCapacity');
+    const colorContainer = document.getElementById('viewColors');
     const priceElement = document.getElementById('viewPrice');
-    
-    // --- SMART ARRAYS & LOGIC ---
-    // Kunin ang lahat ng arrays mula sa Google Sheets
-    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
-    const colors = p.Colors ? p.Colors.toString().split(',').map(s => s.trim()) : [];
-    const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
-    const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
-    const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
-    const stockCounts = p.Stock_Count ? p.Stock_Count.toString().split(',').map(s => parseInt(s.trim())) : [];
 
-    // Smart Price/Stock Finder: Dito natin malalaman kung ano ang susundin na index
+    // --- 2. DATA PREPARATION (Arrays from Sheets) ---
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
+    const sizes = p.Size ? p.Size.toString().split(',').map(s => s.trim()) : [];
+    const colorGroups = p.Colors ? p.Colors.toString().split(',').map(s => s.trim()) : [];
+    const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
+    const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
+    const instPrices = p.Installment_Price ? p.Installment_Price.toString().split(',').map(s => s.trim()) : [];
+    const stockCounts = p.Stock_Count ? p.Stock_Count.toString().split(',').map(s => parseInt(s.trim())) : [];
+    
+    const processingFee = parseFloat(p.Processing_Fee) || 0;
+    const sheetMonths = parseInt(p.Plan) || 12;
+    let selectedTerm = sheetMonths;
+    let currentDP = 0;
+
+    // --- 3. SMART DATA RESOLVER ---
     const getActiveData = () => {
         const activeCapBtn = document.querySelector('.capacity-btn.active');
-        const activeColBtn = document.querySelector('.color-btn.active');
-        
-        // Priority 1: Capacity Index | Priority 2: Color Index | Fallback: Index 0
-        let targetIndex = 0;
-        if (capacities.length > 0 && activeCapBtn) {
-            targetIndex = capacities.indexOf(activeCapBtn.innerText);
-        } else if (colors.length > 0 && activeColBtn && regPrices.length > 1) {
-            targetIndex = colors.indexOf(activeColBtn.innerText);
-        }
+        let targetIndex = activeCapBtn ? capacities.indexOf(activeCapBtn.innerText) : 0;
+        if (targetIndex === -1) targetIndex = 0;
 
         return {
-            reg: parseFloat(regPrices[targetIndex]) || parseFloat(regPrices[0]) || 0,
-            cash: parseFloat(cashPrices[targetIndex]) || parseFloat(cashPrices[0]) || 0,
-            inst: parseFloat(instPrices[targetIndex]) || parseFloat(instPrices[0]) || 0,
-            stock: stockCounts[targetIndex] !== undefined ? stockCounts[targetIndex] : (stockCounts[0] || 0)
+            reg: parseFloat(regPrices[targetIndex]) || 0,
+            cash: parseFloat(cashPrices[targetIndex]) || 0,
+            inst: parseFloat(instPrices[targetIndex]) || 0,
+            stock: stockCounts[targetIndex] !== undefined ? stockCounts[targetIndex] : 0,
+            index: targetIndex
         };
     };
-    
-    const interestRate = parseFloat(p.Interest_Rate) || 0;
-    const processingFee = parseFloat(p.Processing_Fee) || 0;
 
-    capacityContainer.innerHTML = p.Capacity ? '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>' : '';
-    
-    capacities.forEach((cap, i) => {
-        const btn = document.createElement('button');
-        btn.innerText = cap;
-        btn.className = "variation-btn capacity-btn";
+    // --- 4. CORE RENDERER (INSTALLMENT & UI UPDATES) ---
+    const renderInstallmentUI = () => {
+        const data = getActiveData();
+        const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
         
-        btn.onclick = () => {
-                document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        const curRegPrice = data.reg * qty;
+        const curCashPrice = data.cash * qty;
+        const monthlyBase = data.inst * qty;
+        const balance = (monthlyBase * selectedTerm); 
+        const monthlyInterestPercent = p.Interest_Rate || "0";
+        const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
-                // 1. SAVE ANG BASE PRICES PARA SA MULTIPLICATION
-                const baseRegPrice = parseFloat(regPrices[i]) || parseFloat(regPrices[0]) || 0;
-                const baseCashPrice = parseFloat(cashPrices[i]) || parseFloat(cashPrices[0]) || 0;
-                const sheetMonths = parseInt(p.Plan) || 12;
+        // Update Stock Label and Buttons
+        const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
+        if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
 
-                let selectedTerm = sheetMonths;
-                let currentDP = 0;
+        const actionContainer = document.querySelector('.action-buttons');
+        if (data.stock <= 0) {
+            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
+        } else {
+            actionContainer.innerHTML = `
+                <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
+                <button id="buyNowBtn" class="btn-easy">Buy Now</button>
+            `;
+            // Re-bind click events for new buttons
+            document.getElementById('addToCartBtn').onclick = () => alert(`Added ${qty} item(s) to cart!`);
+            document.getElementById('buyNowBtn').onclick = () => alert("Proceeding to Buy Now...");
+        }
 
-                const renderInstallmentUI = () => {
-                    const data = getActiveData(); // Kunin ang smart data (price at stock)
-                    const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
-                    
-                    // Gamitin ang data mula sa resolver
-                    const curRegPrice = data.reg * qty;
-                    const curCashPrice = data.cash * qty;
-                    const monthlyBase = data.inst * qty; // Gagamit ng Installment_Price mula sa Sheets
-                    
-                    // I-update ang Stock Display sa UI
-                    const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
-                    if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
-
-                    // I-check kung Sold Out ang specific variant na napili
-                    const actionContainer = document.querySelector('.action-buttons');
-                    if (data.stock <= 0) {
-                        actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
-                        document.getElementById('qtyMainContainer').style.opacity = "0.5";
-                        document.getElementById('qtyMainContainer').style.pointerEvents = "none";
-                    } else {
-                        // Ibalik ang buttons kung may stock
-                        actionContainer.innerHTML = `
-                            <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
-                            <button id="buyNowBtn" class="btn-easy">Buy Now</button>
-                        `;
-                        document.getElementById('qtyMainContainer').style.opacity = "1";
-                        document.getElementById('qtyMainContainer').style.pointerEvents = "auto";
-                    }
-
-                    // ... (Dito na yung dati mong priceElement.innerHTML logic)
+        // Update Price and Plan Display
                 priceElement.innerHTML = `
                     <div style="margin-bottom:12px; text-decoration: none !important;">
                         <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
@@ -381,56 +347,103 @@ function openProductDetails(index) {
                     </div>
                 `;
 
-                // 4. RE-BINDING EVENTS (Importante para gumana ang clicks)
-                    const tableDiv = document.getElementById('scheduleTableContainer');
-                    const toggleBtn = document.getElementById('toggleSchedule');
-                    if(toggleBtn) {
-                        toggleBtn.onclick = () => {
-                            tableDiv.style.display = tableDiv.style.display === "none" ? "block" : "none";
-                        };
-                    }
+               // RE-BIND TABLE TOGGLE
+        const tableDiv = document.getElementById('scheduleTableContainer');
+        document.getElementById('toggleSchedule').onclick = () => {
+            tableDiv.style.display = tableDiv.style.display === "none" ? "block" : "none";
+        };
 
-                    document.querySelectorAll('.term-selector-btn').forEach(tBtn => {
-                        tBtn.onclick = () => {
-                            selectedTerm = parseInt(tBtn.getAttribute('data-months'));
-                            renderInstallmentUI();
-                            document.getElementById('scheduleTableContainer').style.display = "block";
-                        };
-                    });
+        // RE-BIND TERM SELECTORS
+        document.querySelectorAll('.term-selector-btn').forEach(btn => {
+            btn.onclick = () => {
+                selectedTerm = parseInt(btn.getAttribute('data-months'));
+                renderInstallmentUI();
+                document.getElementById('scheduleTableContainer').style.display = "block";
+            };
+        });
+    };
 
-                    const dpInput = document.getElementById('dpInput');
-                    if(dpInput) {
-                        dpInput.oninput = (e) => {
-                            currentDP = parseFloat(e.target.value) || 0;
-                            clearTimeout(window.dpTimer);
-                            window.dpTimer = setTimeout(() => {
-                                renderInstallmentUI();
-                                document.getElementById('scheduleTableContainer').style.display = "block";
-                                document.getElementById('dpInput').focus();
-                            }, 800);
-                        };
-                    }
+    // --- 5. VARIATION RENDERERS (CAPACITY & COLORS) ---
+    function updateColorOptions(capIndex) {
+        colorContainer.innerHTML = '';
+        const availableColors = colorGroups[capIndex] ? colorGroups[capIndex].split('|').map(c => c.trim()) : [];
+
+        if (availableColors.length > 0 && availableColors[0] !== "") {
+            colorContainer.innerHTML = '<p style="font-size:11px; font-weight:bold; color:#888; margin-top:15px; margin-bottom:5px;">SELECT COLOR:</p>';
+            availableColors.forEach(color => {
+                const btn = document.createElement('button');
+                btn.innerText = color;
+                btn.className = "variation-btn color-btn";
+                btn.onclick = () => {
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderInstallmentUI();
                 };
+                colorContainer.appendChild(btn);
+            });
+            colorContainer.querySelector('.color-btn').click();
+        }
+    }
+
+    // Initialize Capacities
+    capacityContainer.innerHTML = '';
+    if (capacities.length > 0 && capacities[0] !== "") {
+        capacityContainer.innerHTML = '<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">SELECT STORAGE:</p>';
+        capacities.forEach((cap, i) => {
+            const btn = document.createElement('button');
+            btn.innerText = cap;
+            btn.className = "variation-btn capacity-btn";
+            btn.onclick = () => {
+                document.querySelectorAll('.capacity-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateColorOptions(i);
                 renderInstallmentUI();
             };
-        capacityContainer.appendChild(btn);
-    });
+            capacityContainer.appendChild(btn);
+        });
+        capacityContainer.querySelector('.capacity-btn').click();
+    } else {
+        updateColorOptions(0);
+        renderInstallmentUI();
+    }
 
-    // --- 3. REVIEW BUTTON ---
-    const reviewDiv = document.createElement('div');
-    reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
-    reviewDiv.innerHTML = `
-        <p style="font-size: 11px; color: #888; margin-bottom: 12px; font-weight: 500;">
-            Purchased this item? Share your experience with us!
-        </p>
-        <button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fas fa-pen-to-square"></i> WRITE A REVIEW
-        </button>
-    `;
-    reviewDiv.querySelector('#btnGoToReview').onclick = () => {
-        window.location.href = `review.html?name=${encodeURIComponent(p.Name)}&brand=${encodeURIComponent(brandName)}&img=${encodeURIComponent(p.Folder_Path + '/1.png')}`;
-    };
-    priceElement.parentElement.appendChild(reviewDiv);
+    // --- 6. QUANTITY & REVIEW BUTTONS ---
+    const oldQty = document.getElementById('qtyMainContainer');
+    if(oldQty) oldQty.remove();
+
+    const qtyContainer = document.createElement('div');
+    qtyContainer.id = "qtyMainContainer";
+    qtyContainer.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px; padding: 0 10px;";
+    qtyContainer.innerHTML = `
+        <span style="font-size:11px; font-weight:bold; color:#888;">QUANTITY:</span>
+        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+            <button id="qtyMinus" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer;">-</button>
+            <input type="number" id="qtyValue" value="1" readonly style="width: 40px; text-align: center; border: none; font-weight: bold;">
+            <button id="qtyPlus" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer;">+</button>
+        </div>
+        <span style="font-size: 11px; color: #999;">(0 available)</span>
+    `;
+    
+    const actionContainer = document.querySelector('.action-buttons');
+    actionContainer.parentNode.insertBefore(qtyContainer, actionContainer);
+
+    document.getElementById('qtyMinus').onclick = () => {
+        let val = parseInt(document.getElementById('qtyValue').value);
+        if(val > 1) { document.getElementById('qtyValue').value = val - 1; renderInstallmentUI(); }
+    };
+    document.getElementById('qtyPlus').onclick = () => {
+        const data = getActiveData();
+        let val = parseInt(document.getElementById('qtyValue').value);
+        if(val < data.stock) { document.getElementById('qtyValue').value = val + 1; renderInstallmentUI(); }
+    };
+
+    const reviewDiv = document.createElement('div');
+    reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
+    reviewDiv.innerHTML = `<button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; cursor: pointer;">WRITE A REVIEW</button>`;
+    reviewDiv.querySelector('#btnGoToReview').onclick = () => {
+        window.location.href = `review.html?name=${encodeURIComponent(p.Name)}&brand=${encodeURIComponent(brandName)}&img=${encodeURIComponent(p.Folder_Path + '/1.png')}`;
+    };
+    priceElement.parentElement.appendChild(reviewDiv);
 
     // --- 4. QUANTITY SELECTOR ---
     // Siguraduhin nating malinis ang container bago mag-add
