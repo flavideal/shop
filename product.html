@@ -230,38 +230,36 @@ function openProductDetails(index) {
         };
     };
 
-   const renderInstallmentUI = () => {
+  const renderInstallmentUI = () => {
     const data = getActiveData(); 
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
-    // 1. BASE PRICES (Dito papasok ang piniling Capacity/Size/Qty)
-    const curRegPrice = data.reg * qty; // Ito ang Installment/Base Price
-    const curCashPrice = data.cash * qty;
+    // 1. BASE PRICES (Sync sa piniling Capacity/Size/Color/Qty)
+    const curRegPrice = data.reg * qty;   // Installment_Price (Principal base)
+    const curCashPrice = data.cash * qty; // Cash Price display
     
-    // 2. DOWNPAYMENT LOGIC
+    // 2. DOWNPAYMENT
     const dpInput = document.getElementById('dpInput');
     currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
 
-    // 3. DYNAMIC COMPUTATION (Principal based on Installment Price)
+    // 3. PRINCIPAL (Base sa Installment Price - Downpayment)
     let principal = curRegPrice - currentDP;
     
-    // Interest Rate: Kinukuha ang 5 imbes na 0.05
-    let monthlyInterestPercent = parseFloat(data.monthlyRate); 
-    let interestRateDecimal = monthlyInterestPercent / 100;
+    // 4. INTEREST LOGIC (Example: 91,990 * 0.05 = 4,599.50 fixed interest)
+    let rate = parseFloat(data.monthlyRate); 
+    let monthlyInterestAmount = principal * rate; 
     
-    // Formula: (Principal / Term) + (Principal * Interest Rate)
-    let computedMonthly = (principal / selectedTerm) + (principal * interestRateDecimal);
+    // 5. MONTHLY DUE ( (Principal / Term) + Fixed Interest )
+    let monthlyPrincipalDiv = principal / selectedTerm;
+    let computedMonthly = monthlyPrincipalDiv + monthlyInterestAmount;
     
-    // Para sa Unang Bayad (Monthly + Proc Fee)
+    // First Month Total (Monthly Due + Processing Fee)
     let firstMonthTotal = computedMonthly + processingFee;
     
-    // Siguraduhin na hindi negative ang result
-    if (computedMonthly < 0) computedMonthly = 0;
+    // Total Balance (Monthly x Months)
+    const totalLoanBalance = computedMonthly * selectedTerm;
 
-    const balance = computedMonthly * selectedTerm;
-    const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
-
-    // Update Stock Display
+    // 6. STOCK UPDATE
     const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
     if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
     
