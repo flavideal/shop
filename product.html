@@ -231,35 +231,40 @@ function openProductDetails(index) {
     };
 
     const renderInstallmentUI = () => {
-        const data = getActiveData();
-        const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
-        
-        const curRegPrice = data.reg * qty;
-        const curCashPrice = data.cash * qty;
-        const monthlyBase = data.inst * qty;
-        const balance = (monthlyBase * selectedTerm);
-        const firstPayTotal = monthlyBase;
-        
-        // --- FIX 1: DEFINE MISSING VARIABLES ---
-        const monthlyInterestPercent = data.monthlyRate; // Galing sa getActiveData
-        const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
+    const data = getActiveData(); // Kukuha ng base price base sa selected Capacity
+    const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
+    
+    // 1. BASE PRICES (Multiplied by Quantity)
+    const curRegPrice = data.reg * qty;
+    const curCashPrice = data.cash * qty;
+    
+    // 2. DOWNPAYMENT LOGIC
+    // Kukunin ang value mula sa input kung meron, kung wala ay 0
+    const dpInput = document.getElementById('dpInput');
+    currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
 
-        // Update Stock Display
-        const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
-        if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
+    // 3. INSTALLMENT COMPUTATION
+    // Logic: (Cash Price - Downpayment) / Selected Term + (Interest kung meron)
+    // Pero kung ang "data.inst" ay fixed monthly mula sa Sheets, gagamitin natin yun as base.
+    
+    let baseAmountToFinance = curCashPrice - currentDP;
+    let interestRate = parseFloat(data.monthlyRate) / 100;
+    
+    // Compute monthly amortization
+    // Formula: (Principal / Term) + (Principal * Interest Rate)
+    let computedMonthly = (baseAmountToFinance / selectedTerm) + (baseAmountToFinance * interestRate);
+    
+    // Kung gusto mong gamitin yung "Installment_Price" column as static reference:
+    // let computedMonthly = (data.inst * qty); // I-uncomment ito kung ayaw mo ng auto-compute
+    
+    const balance = computedMonthly * selectedTerm;
+    const firstPayTotal = computedMonthly;
+    const monthlyInterestPercent = data.monthlyRate;
+    const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
-        // Action Buttons logic
-        const actionContainer = document.querySelector('.action-buttons');
-        if (data.stock <= 0) {
-            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
-        } else {
-            actionContainer.innerHTML = `
-                <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
-                <button id="buyNowBtn" class="btn-easy">Buy Now</button>
-            `;
-            document.getElementById('addToCartBtn').onclick = () => alert("Added to cart!");
-            document.getElementById('buyNowBtn').onclick = () => alert("Proceeding to Buy Now...");
-        }
+    // Update Stock Display
+    const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
+    if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
         
         // --- FIX 2: UPDATE PRICE ELEMENT ---
                 priceElement.innerHTML = `
@@ -348,20 +353,31 @@ function openProductDetails(index) {
                     </div>
                 `;
 
-            // Re-bind events
-        document.getElementById('toggleSchedule').onclick = () => {
-            const table = document.getElementById('scheduleTableContainer');
-            table.style.display = table.style.display === "none" ? "block" : "none";
-        };
-
-        document.querySelectorAll('.term-selector-btn').forEach(btn => {
-            btn.onclick = () => {
-                selectedTerm = parseInt(btn.getAttribute('data-months'));
-                renderInstallmentUI();
-                document.getElementById('scheduleTableContainer').style.display = "block";
-            };
-        });
+           // --- RE-BIND EVENTS ---
+    document.getElementById('toggleSchedule').onclick = () => {
+        const table = document.getElementById('scheduleTableContainer');
+        table.style.display = table.style.display === "none" ? "block" : "none";
     };
+
+    document.querySelectorAll('.term-selector-btn').forEach(btn => {
+        btn.onclick = () => {
+            selectedTerm = parseInt(btn.getAttribute('data-months'));
+            renderInstallmentUI();
+            document.getElementById('scheduleTableContainer').style.display = "block";
+        };
+    });
+
+    // Importante: Ang listener para sa Downpayment input
+    const dpIn = document.getElementById('dpInput');
+    if(dpIn) {
+        dpIn.oninput = () => {
+            // Re-render UI after typing (debounce optional)
+            renderInstallmentUI();
+            document.getElementById('dpInput').focus(); // Maintain focus
+            document.getElementById('scheduleTableContainer').style.display = "block";
+        };
+    }
+};
 
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
