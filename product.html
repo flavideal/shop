@@ -319,9 +319,6 @@ function openProductDetails(index) {
                                 <th style="padding:12px 5px; text-align:right; padding-right:15px;">Monthly Due</th>
                             </tr>
                            ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => `
-                                let isFirst = m === 1;
-                                let amt = isFirst ? firstPayTotal : monthlyBase;
-                                return `
                                 <tr style="border-bottom:1px solid #f9f9f9;">
                                     <td style="padding:12px 5px; font-weight:bold; color:#555; padding-left:15px;">${m}</td>
                                     <td style="padding:12px 5px; text-align:center; color:#999;">${monthlyInterestPercent}%</td>
