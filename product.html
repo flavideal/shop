@@ -230,42 +230,32 @@ function openProductDetails(index) {
         };
     };
 
-   Pasensya na, tama ka. Karaniwan sa mga financing, ang Installment Price (na mas mataas sa Cash Price) ang ginagawang basehan ng loan kung doon kinuha ang SRP. Kung ang gusto mo ay gamitin ang Installment Price at i-apply ang qty, capacity, at size, dapat nating gamitin ang data.reg (na karaniwang installment/SRP price).
-
-Heto ang inayos na logic para maging tama ang principal, gumana ang selection (qty/size), at lumabas ang UI nang maayos:
-
-Fixed Code (Installment-Based & Dynamic)
-JavaScript
-const renderInstallmentUI = () => {
+   const renderInstallmentUI = () => {
     const data = getActiveData(); 
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
-    // 1. BASE PRICES (Dito papasok ang piniling Capacity/Size/Color dahil galing sa getActiveData)
-    // Ginagamit natin ang data.reg bilang Principal/Installment Price
-    const totalInstallmentPrice = data.reg * qty;
+    // 1. BASE PRICES (Dito papasok ang piniling Capacity/Size/Qty)
+    const curRegPrice = data.reg * qty; // Ito ang Installment/Base Price
     const curCashPrice = data.cash * qty;
     
     // 2. DOWNPAYMENT LOGIC
     const dpInput = document.getElementById('dpInput');
     currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
 
-    // 3. CORRECT COMPUTATION BASED ON YOUR LOGIC
-    // Principal = Installment Price - Downpayment
-    let principal = totalInstallmentPrice - currentDP;
+    // 3. DYNAMIC COMPUTATION (Principal based on Installment Price)
+    let principal = curRegPrice - currentDP;
     
-    // Interest Rate (Gawin nating 5 imbes na 0.05 para sa display)
-    let rawInterestRate = parseFloat(data.monthlyRate); 
-    let interestRateDecimal = rawInterestRate / 100;
+    // Interest Rate: Kinukuha ang 5 imbes na 0.05
+    let monthlyInterestPercent = parseFloat(data.monthlyRate); 
+    let interestRateDecimal = monthlyInterestPercent / 100;
     
-    // Formula mo: (Principal * Rate) = Interest + (Principal / Term) = Monthly
-    let monthlyInterestAmount = principal * interestRateDecimal;
-    let monthlyPrincipalDiv = principal / selectedTerm;
-    let computedMonthly = monthlyPrincipalDiv + monthlyInterestAmount;
-
-    // Month 1 Total (Amortization + One-time Processing Fee)
+    // Formula: (Principal / Term) + (Principal * Interest Rate)
+    let computedMonthly = (principal / selectedTerm) + (principal * interestRateDecimal);
+    
+    // Para sa Unang Bayad (Monthly + Proc Fee)
     let firstMonthTotal = computedMonthly + processingFee;
     
-    // Siguraduhin na hindi negative
+    // Siguraduhin na hindi negative ang result
     if (computedMonthly < 0) computedMonthly = 0;
 
     const balance = computedMonthly * selectedTerm;
@@ -274,92 +264,95 @@ const renderInstallmentUI = () => {
     // Update Stock Display
     const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
     if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
-        
-        // --- FIX 2: UPDATE PRICE ELEMENT ---
-                priceElement.innerHTML = `
-                    <div style="margin-bottom:12px; text-decoration: none !important;">
-                        <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> ${saleBadge}
-                        <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-                    </div>
+    
+    // --- FIX 2: UPDATE PRICE ELEMENT ---
+    priceElement.innerHTML = `
+        <div style="margin-bottom:12px; text-decoration: none !important;">
+            <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
+            <div style="font-size:26px; font-weight:800; color:var(--forest-green); letter-spacing:-1px;">₱${curCashPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        </div>
 
-                    <div class="clickable-monthly" id="toggleSchedule" 
-                         style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
-                                display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-                                text-decoration: none !important; outline: none !important;">
-                        <div style="display:flex; flex-direction:column; gap:2px; text-decoration: none !important;">
-                            <div style="font-size:14px; font-weight:700; color:#e67e22; text-decoration: none !important;">
-                                Installment: ₱${computedMonthly.toLocaleString(undefined, {minimumFractionDigits: 2})} / mo.
-                            </div>
-                            <div style="font-size:11px; color:#888; font-weight:500; text-decoration: none !important;">
-                                For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : '(0 Downpayment)'}
-                            </div>
-                        </div>
-                        <div style="text-align:right; text-decoration: none !important;">
-                            <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; text-decoration: none !important;">View Plan</span>
-                            <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
-                        </div>
-                    </div>
+        <div class="clickable-monthly" id="toggleSchedule" 
+             style="cursor:pointer; background:#ffffff; padding:12px; border-radius:10px; border:1px solid #e0e0e0; 
+                    display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+                    text-decoration: none !important; outline: none !important;">
+            <div style="display:flex; flex-direction:column; gap:2px; text-decoration: none !important;">
+                <div style="font-size:14px; font-weight:700; color:#e67e22; text-decoration: none !important;">
+                    Installment: ₱${computedMonthly.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.
+                </div>
+                <div style="font-size:11px; color:#888; font-weight:500; text-decoration: none !important;">
+                    For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : '(0 Downpayment)'}
+                </div>
+            </div>
+            <div style="text-align:right; text-decoration: none !important;">
+                <span style="font-size:10px; color:var(--forest-green); font-weight:700; text-transform:uppercase; display:block; text-decoration: none !important;">View Plan</span>
+                <i class="fas fa-chevron-down" style="font-size:10px; color:var(--forest-green);"></i>
+            </div>
+        </div>
 
-                    <div id="scheduleTableContainer" style="display:none; margin-top:15px; border:1px solid #eee; border-radius:12px; overflow:hidden; background:#f9f9f9;">
-                        <div style="padding:15px; background:white; border-bottom:1px solid #eee;">
-                            <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Select Payment Term:</label>
-                            <div style="display:flex; gap:5px; margin-bottom:15px;">
-                                ${[3, 6, sheetMonths].filter((v, idx, a) => a.indexOf(v) === idx).sort((a,b) => a-b).map(m => `
-                                    <button class="term-selector-btn" data-months="${m}"
-                                            style="flex:1; padding:10px; font-size:11px; font-weight:bold; border-radius:8px; cursor:pointer; 
-                                            border:1px solid ${m === selectedTerm ? 'var(--forest-green)' : '#eee'};
-                                            background:${m === selectedTerm ? 'var(--forest-green)' : '#fff'};
-                                            color:${m === selectedTerm ? 'white' : '#666'}; transition:0.2s;">
-                                        ${m} Months
-                                    </button>
-                                `).join('')}
-                            </div>
+        <div id="scheduleTableContainer" style="display:none; margin-top:15px; border:1px solid #eee; border-radius:12px; overflow:hidden; background:#f9f9f9;">
+            <div style="padding:15px; background:white; border-bottom:1px solid #eee;">
+                <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Select Payment Term:</label>
+                <div style="display:flex; gap:5px; margin-bottom:15px;">
+                    ${[3, 6, sheetMonths].filter((v, idx, a) => a.indexOf(v) === idx).sort((a,b) => a-b).map(m => `
+                        <button class="term-selector-btn" data-months="${m}"
+                                style="flex:1; padding:10px; font-size:11px; font-weight:bold; border-radius:8px; cursor:pointer; 
+                                border:1px solid ${m === selectedTerm ? 'var(--forest-green)' : '#eee'};
+                                background:${m === selectedTerm ? 'var(--forest-green)' : '#fff'};
+                                color:${m === selectedTerm ? 'white' : '#666'}; transition:0.2s;">
+                            ${m} Months
+                        </button>
+                    `).join('')}
+                </div>
 
-                            <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Custom Downpayment (Optional):</label>
-                            <div style="position:relative;">
-                                <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:bold; color:#444;">₱</span>
-                                <input type="number" id="dpInput" value="${currentDP || ''}" placeholder="0.00" 
-                                       style="width:100%; padding:12px 12px 12px 25px; border-radius:8px; border:1px solid #ddd; font-weight:700; font-size:14px; outline:none; box-sizing:border-box;">
-                            </div>
-                        </div>
+                <label style="font-size:10px; font-weight:800; color:#888; display:block; margin-bottom:8px; text-transform:uppercase;">Custom Downpayment (Optional):</label>
+                <div style="position:relative;">
+                    <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:bold; color:#444;">₱</span>
+                    <input type="number" id="dpInput" value="${currentDP || ''}" placeholder="0.00" 
+                           style="width:100%; padding:12px 12px 12px 25px; border-radius:8px; border:1px solid #ddd; font-weight:700; font-size:14px; outline:none; box-sizing:border-box;">
+                </div>
+            </div>
 
-                        <div style="background:#1B4D2E; color:white; padding:10px; font-size:10px; font-weight:bold; text-align:center; text-transform:uppercase;">
-                            FLAVI DEAL INSTALLMENT PLAN
-                        </div>
-                        <table style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
-                            <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
-                                <th style="padding:12px 5px; text-align:left; width:15%; padding-left:15px;">Month</th>
-                                <th style="padding:12px 5px; text-align:center; white-space:nowrap;">Monthly Interest Rate</th>
-                                <th style="padding:12px 5px; text-align:right; padding-right:15px;">Monthly Due</th>
-                            </tr>
-                          ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => `
-    <tr style="border-bottom:1px solid #f9f9f9;">
-        <td style="padding:12px 5px; font-weight:bold; color:#555; padding-left:15px;">${m}</td>
-        <td style="padding:12px 5px; text-align:center; color:#999;">${monthlyInterestPercent}%</td>
-        <td style="padding:12px 5px; text-align:right; font-weight:700; color:#333; padding-right:15px;">
-            ₱${computedMonthly.toLocaleString(undefined, {minimumFractionDigits: 2})}
-            ${m === 1 ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString()} One-time Processing Fee</div>` : ''}
-        </td>
-    </tr>
-`).join('')}
-                        </table>
-                        
-                        <div style="padding:15px; background:#fffcf5; border-top:1px solid #eee;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:11px; font-weight:700; border-bottom:1px dashed #ddd; padding-bottom:8px;">
-                                <span>Total Loan Balance:</span>
-                                <span>₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                            </div>
-                            <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
-                                * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString()}</b> will be added on the first due date.
-                            </p>
-                            <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
-                                POWERED BY ERRIHO PERSONAL FINANCE
-                            </div>
-                        </div>
-                    </div>
-                `;
+            <div style="background:#1B4D2E; color:white; padding:10px; font-size:10px; font-weight:bold; text-align:center; text-transform:uppercase;">
+                FLAVI DEAL INSTALLMENT PLAN
+            </div>
+            <table style="width:100%; border-collapse:collapse; font-size:10px; background:white;">
+                <tr style="background:#f4f4f4; border-bottom:1px solid #ddd;">
+                    <th style="padding:12px 5px; text-align:left; width:15%; padding-left:15px;">Month</th>
+                    <th style="padding:12px 5px; text-align:center; white-space:nowrap;">Monthly Interest Rate</th>
+                    <th style="padding:12px 5px; text-align:right; padding-right:15px;">Monthly Due</th>
+                </tr>
+                ${Array.from({length: selectedTerm}, (_, i) => i + 1).map(m => {
+                    const isFirst = m === 1;
+                    const rowAmount = isFirst ? firstMonthTotal : computedMonthly;
+                    return `
+                    <tr style="border-bottom:1px solid #f9f9f9;">
+                        <td style="padding:12px 5px; font-weight:bold; color:#555; padding-left:15px;">${m}</td>
+                        <td style="padding:12px 5px; text-align:center; color:#999;">${monthlyInterestPercent.toFixed(0)}%</td>
+                        <td style="padding:12px 5px; text-align:right; font-weight:700; color:#333; padding-right:15px;">
+                            ₱${rowAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString()} One-time Processing Fee</div>` : ''}
+                        </td>
+                    </tr>`;
+                }).join('')}
+            </table>
+            
+            <div style="padding:15px; background:#fffcf5; border-top:1px solid #eee;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:11px; font-weight:700; border-bottom:1px dashed #ddd; padding-bottom:8px;">
+                    <span>Total Loan Balance:</span>
+                    <span>₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+                <p style="font-size:9px; color:#9e7e4a; margin:0; line-height:1.4;">
+                    * Terms and conditions applied. A one-time processing bill of <b>₱${processingFee.toLocaleString()}</b> is added on the first due date.
+                </p>
+                <div style="margin-top:8px; font-size:9px; font-weight:bold; color:#1B4D2E; text-align:center; opacity:0.6;">
+                    POWERED BY ERRIHO PERSONAL FINANCE
+                </div>
+            </div>
+        </div>
+    `;
 
-   // --- RE-BIND EVENTS --- (Napaka-importante nito para gumana ang click)
+    // --- RE-BIND EVENTS ---
     document.getElementById('toggleSchedule').onclick = () => {
         const table = document.getElementById('scheduleTableContainer');
         table.style.display = table.style.display === "none" ? "block" : "none";
@@ -378,9 +371,9 @@ const renderInstallmentUI = () => {
         dpIn.oninput = () => {
             const val = dpIn.value;
             renderInstallmentUI();
-            const newDpIn = document.getElementById('dpInput');
-            newDpIn.focus();
-            newDpIn.value = val;
+            const input = document.getElementById('dpInput');
+            input.focus();
+            input.value = val; 
             document.getElementById('scheduleTableContainer').style.display = "block";
         };
     }
