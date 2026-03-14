@@ -230,37 +230,45 @@ function openProductDetails(index) {
         };
     };
 
-   const renderInstallmentUI = () => {
+   Pasensya na, tama ka. Karaniwan sa mga financing, ang Installment Price (na mas mataas sa Cash Price) ang ginagawang basehan ng loan kung doon kinuha ang SRP. Kung ang gusto mo ay gamitin ang Installment Price at i-apply ang qty, capacity, at size, dapat nating gamitin ang data.reg (na karaniwang installment/SRP price).
+
+Heto ang inayos na logic para maging tama ang principal, gumana ang selection (qty/size), at lumabas ang UI nang maayos:
+
+Fixed Code (Installment-Based & Dynamic)
+JavaScript
+const renderInstallmentUI = () => {
     const data = getActiveData(); 
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
-    // 1. BASE PRICES
-    const curRegPrice = data.reg * qty;
+    // 1. BASE PRICES (Dito papasok ang piniling Capacity/Size/Color dahil galing sa getActiveData)
+    // Ginagamit natin ang data.reg bilang Principal/Installment Price
+    const totalInstallmentPrice = data.reg * qty;
     const curCashPrice = data.cash * qty;
     
-    // 2. DOWNPAYMENT LOGIC (Auto-bawas sa principal)
+    // 2. DOWNPAYMENT LOGIC
     const dpInput = document.getElementById('dpInput');
     currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
 
-    // 3. COMPUTATION LOGIC
-    let principal = curCashPrice - currentDP;
-    // Interest Rate conversion (e.g., kung 5 ang nasa sheet, gagawin itong 0.05)
-    let interestRateDecimal = parseFloat(data.monthlyRate) / 100;
+    // 3. CORRECT COMPUTATION BASED ON YOUR LOGIC
+    // Principal = Installment Price - Downpayment
+    let principal = totalInstallmentPrice - currentDP;
     
-    // Formula: (Principal / Term) + (Principal * Rate)
-    let monthlyPrincipal = principal / selectedTerm;
-    let monthlyInterestValue = principal * interestRateDecimal;
-    let computedMonthly = monthlyPrincipal + monthlyInterestValue;
+    // Interest Rate (Gawin nating 5 imbes na 0.05 para sa display)
+    let rawInterestRate = parseFloat(data.monthlyRate); 
+    let interestRateDecimal = rawInterestRate / 100;
     
-    // Month 1 specific total (Amortization + Proc Fee)
+    // Formula mo: (Principal * Rate) = Interest + (Principal / Term) = Monthly
+    let monthlyInterestAmount = principal * interestRateDecimal;
+    let monthlyPrincipalDiv = principal / selectedTerm;
+    let computedMonthly = monthlyPrincipalDiv + monthlyInterestAmount;
+
+    // Month 1 Total (Amortization + One-time Processing Fee)
     let firstMonthTotal = computedMonthly + processingFee;
-
-    // Para sa display ng balance (lahat ng monthly dues)
-    const totalLoanBalance = computedMonthly * selectedTerm;
     
-    // Display setting para sa Interest Rate (5% imbes na 0.05%)
-    const displayInterestRate = parseFloat(data.monthlyRate).toFixed(0); 
+    // Siguraduhin na hindi negative
+    if (computedMonthly < 0) computedMonthly = 0;
 
+    const balance = computedMonthly * selectedTerm;
     const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
     // Update Stock Display
@@ -351,7 +359,7 @@ function openProductDetails(index) {
                     </div>
                 `;
 
-    // --- RE-BIND EVENTS ---
+   // --- RE-BIND EVENTS --- (Napaka-importante nito para gumana ang click)
     document.getElementById('toggleSchedule').onclick = () => {
         const table = document.getElementById('scheduleTableContainer');
         table.style.display = table.style.display === "none" ? "block" : "none";
@@ -368,12 +376,11 @@ function openProductDetails(index) {
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
         dpIn.oninput = () => {
+            const val = dpIn.value;
             renderInstallmentUI();
-            const input = document.getElementById('dpInput');
-            input.focus();
-            const val = input.value;
-            input.value = '';
-            input.value = val;
+            const newDpIn = document.getElementById('dpInput');
+            newDpIn.focus();
+            newDpIn.value = val;
             document.getElementById('scheduleTableContainer').style.display = "block";
         };
     }
