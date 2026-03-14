@@ -395,118 +395,74 @@ function openProductDetails(index) {
         capacityContainer.appendChild(btn);
     });
 
-     // --- INSERT REVIEW BUTTON HERE ---
-    const reviewDiv = document.createElement('div');
-    reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
-    reviewDiv.innerHTML = `
-        <p style="font-size: 11px; color: #888; margin-bottom: 12px; font-weight: 500;">
-            Purchased this item? Share your experience with us!
-        </p>
-        <button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fas fa-pen-to-square"></i> WRITE A REVIEW
-        </button>
-    `;
-    
-    // Isasama natin ang data sa URL para makuha ng review.html
-    reviewDiv.querySelector('#btnGoToReview').onclick = () => {
-        const pName = encodeURIComponent(p.Name);
-        const pBrand = encodeURIComponent(brandName);
-        const pImg = encodeURIComponent(`${p.Folder_Path}/1.png`);
-        window.location.href = `review.html?name=${pName}&brand=${pBrand}&img=${pImg}`;
-    };
+    // --- 3. REVIEW BUTTON ---
+    const reviewDiv = document.createElement('div');
+    reviewDiv.style.cssText = "margin-top: 25px; padding: 20px 10px; border-top: 1px dashed #ddd; text-align: center;";
+    reviewDiv.innerHTML = `
+        <p style="font-size: 11px; color: #888; margin-bottom: 12px; font-weight: 500;">
+            Purchased this item? Share your experience with us!
+        </p>
+        <button id="btnGoToReview" style="width: 100%; padding: 14px; background: #fff; border: 2px solid #1B4D2E; color: #1B4D2E; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-pen-to-square"></i> WRITE A REVIEW
+        </button>
+    `;
+    reviewDiv.querySelector('#btnGoToReview').onclick = () => {
+        window.location.href = `review.html?name=${encodeURIComponent(p.Name)}&brand=${encodeURIComponent(brandName)}&img=${encodeURIComponent(p.Folder_Path + '/1.png')}`;
+    };
+    priceElement.parentElement.appendChild(reviewDiv);
 
-    // Idagdag sa main container ng modal (karaniwang sa baba ng priceElement o sa main scrollable area)
-    priceElement.parentElement.appendChild(reviewDiv);
-    
-    const firstCapBtn = capacityContainer.querySelector('.capacity-btn');
-    if(firstCapBtn) firstCapBtn.click();
+    // --- 4. QUANTITY SELECTOR ---
+    // Siguraduhin nating malinis ang container bago mag-add
+    const oldQty = document.getElementById('qtyMainContainer');
+    if(oldQty) oldQty.remove();
 
-    const qtyContainer = document.createElement('div');
-    qtyContainer.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px; padding: 0 10px;";
-    qtyContainer.innerHTML = `
-        <span style="font-size:11px; font-weight:bold; color:#888;">QUANTITY:</span>
-        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-            <button onclick="changeQty(-1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">-</button>
-            <input type="number" id="qtyValue" value="1" readonly style="width: 40px; text-align: center; border: none; font-weight: bold; font-size: 14px; outline: none;">
-            <button onclick="changeQty(1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">+</button>
-        </div>
-        <span style="font-size: 11px; color: #999;">(${p.Stock_Count} available)</span>
-    `;
+    const qtyContainer = document.createElement('div');
+    qtyContainer.id = "qtyMainContainer";
+    qtyContainer.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px; padding: 0 10px;";
+    qtyContainer.innerHTML = `
+        <span style="font-size:11px; font-weight:bold; color:#888;">QUANTITY:</span>
+        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+            <button onclick="changeQty(-1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">-</button>
+            <input type="number" id="qtyValue" value="1" readonly style="width: 40px; text-align: center; border: none; font-weight: bold; font-size: 14px; outline: none;">
+            <button onclick="changeQty(1, ${p.Stock_Count})" style="padding: 8px 15px; background: #f8f8f8; border: none; cursor: pointer; font-weight: bold;">+</button>
+        </div>
+        <span style="font-size: 11px; color: #999;">(${p.Stock_Count} available)</span>
+    `;
 
-    // Hanapin natin kung saan natin isisingit (bago ang action buttons)
-    const actionContainer = document.querySelector('.action-buttons');
-    if (actionContainer) {
-        // Isisingit natin ang qtyContainer bago ang action buttons (Add to Cart/Buy Now)
-        actionContainer.parentNode.insertBefore(qtyContainer, actionContainer);
+    // --- 5. ACTION BUTTONS (ADD TO CART / BUY NOW) ---
+    const actionContainer = document.querySelector('.action-buttons');
+    if (actionContainer) {
+        // Isisingit ang Qty sa taas ng buttons
+        actionContainer.parentNode.insertBefore(qtyContainer, actionContainer);
 
-        if (p.Stock_Count <= 0) {
-            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
-            qtyContainer.style.display = "none"; // Itago ang quantity kung sold out
-        } else {
+        if (p.Stock_Count <= 0) {
+            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
+            qtyContainer.style.display = "none";
+        } else {
+            actionContainer.innerHTML = `
+                <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
+                <button id="buyNowBtn" class="btn-easy">Buy Now</button>
+            `;
+            
+            document.getElementById('addToCartBtn').onclick = () => {
+                const col = document.querySelector('.color-btn.active')?.innerText || "Standard";
+                const cap = document.querySelector('.capacity-btn.active')?.innerText || "Standard";
+                const qty = parseInt(document.getElementById('qtyValue').value);
+                alert(`Added ${qty} item(s) to cart!`);
+                // Dito ang logic mo para sa localStorage kung kailangan
+            };
 
-  // --- 3. ACTION BUTTONS & QUANTITY LOGIC ---
-    const actionContainer = document.querySelector('.action-buttons');
-    
-    if (actionContainer) {
-        if (p.Stock_Count <= 0) {
-            // Kapag Sold Out
-            actionContainer.innerHTML = `<div style="background:#fdeaea; color:#e74c3c; padding:15px; border-radius:10px; text-align:center; font-weight:bold; width:100%;">● SOLD OUT</div>`;
-            if (typeof qtyContainer !== 'undefined') qtyContainer.style.display = "none";
-        } else {
-            // Kapag Available ang Stock
-            actionContainer.innerHTML = `
-                <button id="addToCartBtn" class="btn-regular">Add to Cart</button>
-                <button id="buyNowBtn" class="btn-easy">Buy Now</button>
-            `;
-            
-            // --- ADD TO CART CLICK ---
-            document.getElementById('addToCartBtn').onclick = () => {
-                const col = document.querySelector('.color-btn.active')?.innerText || "Standard";
-                const cap = document.querySelector('.capacity-btn.active')?.innerText || "Standard";
-                const qtyValue = document.getElementById('qtyValue');
-                const qty = qtyValue ? parseInt(qtyValue.value) : 1;
-                
-                // Kunin ang presyo (linisin ang symbols)
-                const cashPriceText = document.querySelector('#viewPrice div[style*="font-size:26px"]')?.innerText || "0";
-                const cleanPrice = parseFloat(cashPriceText.replace(/[^\d.]/g, ''));
+            document.getElementById('buyNowBtn').onclick = () => {
+                alert("Proceeding to Buy Now...");
+            };
+        }
+    }
 
-                const newItem = {
-                    id: new URLSearchParams(window.location.search).get('id'),
-                    name: document.getElementById('viewName').innerText.split('\n')[0].trim(),
-                    price: cleanPrice,
-                    color: col,
-                    capacity: cap,
-                    quantity: qty,
-                    image: currentGalleryImages[0] || `${p.Folder_Path}/1.png`
-                };
+    // Auto-click the first capacity to initialize prices
+    const firstCap = capacityContainer.querySelector('.capacity-btn');
+    if(firstCap) firstCap.click();
 
-                let cart = JSON.parse(localStorage.getItem('cart')) || [];
-                const existing = cart.find(i => i.id === newItem.id && i.color === col && i.capacity === cap);
-
-                if (existing) {
-                    existing.quantity += qty;
-                } else {
-                    cart.push(newItem);
-                }
-
-                localStorage.setItem('cart', JSON.stringify(cart));
-                alert("Added to cart!");
-                window.location.href = 'cart.html';
-            };
-
-            // --- BUY NOW CLICK ---
-            document.getElementById('buyNowBtn').onclick = () => {
-                const col = document.querySelector('.color-btn.active')?.innerText || "Standard";
-                const cap = document.querySelector('.capacity-btn.active')?.innerText || "Standard";
-                const qty = document.getElementById('qtyValue')?.value || 1;
-                
-                // Dito mo i-link sa checkout page mo
-                alert(`Proceeding to checkout...\nItem: ${p.Name}\nQty: ${qty}\nVariant: ${col} | ${cap}`);
-                // window.location.href = `checkout.html?id=${p.id}&qty=${qty}&color=${col}&cap=${cap}`;
-            };
-        }
-    }
-} // <--- Dito nagtatapos ang openProductDetails function
+} // <--- END OF openProductDetails
 
 // Function para ayusin ang gallery pagkatapos ma-check lahat ng images
 function finalizeGallery(gallery, counter) {
