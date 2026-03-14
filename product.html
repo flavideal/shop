@@ -239,6 +239,10 @@ function openProductDetails(index) {
         const monthlyBase = data.inst * qty;
         const balance = (monthlyBase * selectedTerm);
         const firstPayTotal = monthlyBase;
+        
+        // --- FIX 1: DEFINE MISSING VARIABLES ---
+        const monthlyInterestPercent = data.monthlyRate; // Galing sa getActiveData
+        const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
         // Update Stock Display
         const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
@@ -256,7 +260,8 @@ function openProductDetails(index) {
             document.getElementById('addToCartBtn').onclick = () => alert("Added to cart!");
             document.getElementById('buyNowBtn').onclick = () => alert("Proceeding to Buy Now...");
         }
-        // Update Price and Plan Display
+        
+        // --- FIX 2: UPDATE PRICE ELEMENT ---
                 priceElement.innerHTML = `
                     <div style="margin-bottom:12px; text-decoration: none !important;">
                         <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
@@ -343,7 +348,8 @@ function openProductDetails(index) {
                     </div>
                 `;
 
-              document.getElementById('toggleSchedule').onclick = () => {
+            // Re-bind events
+        document.getElementById('toggleSchedule').onclick = () => {
             const table = document.getElementById('scheduleTableContainer');
             table.style.display = table.style.display === "none" ? "block" : "none";
         };
