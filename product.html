@@ -230,42 +230,56 @@ function openProductDetails(index) {
         };
     };
 
-  const renderInstallmentUI = () => {
+  cconst renderInstallmentUI = () => {
     const data = getActiveData(); 
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
-    // 1. BASE PRICES (Sync sa piniling Capacity/Size/Color/Qty)
-    const curRegPrice = data.reg * qty;   // Installment_Price (Principal base)
-    const curCashPrice = data.cash * qty; // Cash Price display
+    // 1. BASE PRICES (Ito ang main price display at reference para sa Checkout)
+    const curRegPrice = data.reg * qty;   
+    const curCashPrice = data.cash * qty; 
     
-    // 2. DOWNPAYMENT
+    // 2. DOWNPAYMENT (Para sa computation sa table reference)
     const dpInput = document.getElementById('dpInput');
     currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
 
-    // 3. PRINCIPAL (Base sa Installment Price - Downpayment)
+    // 3. COMPUTATION PARA SA REFERENCE TABLE
     let principal = curRegPrice - currentDP;
-    
-    // 4. INTEREST LOGIC (Base sa math mo: Principal * Rate)
     let rate = parseFloat(data.monthlyRate); 
     let monthlyInterestAmount = principal * rate; 
-    let monthlyInterestPercent = rate * 100; // Para sa display sa table
-    
-    // 5. MONTHLY DUE ( (Principal / Term) + Fixed Interest )
+    let monthlyInterestPercent = rate * 100;
     let monthlyPrincipalDiv = principal / selectedTerm;
     let computedMonthly = monthlyPrincipalDiv + monthlyInterestAmount;
-    
-    // First Month Total (Monthly Due + Processing Fee)
     let firstMonthTotal = computedMonthly + processingFee;
-    
-    // Total Balance
     const balance = computedMonthly * selectedTerm;
 
-    // Sale Badge check (kung defined si isFlashSale)
     const saleBadge = typeof isFlashSale !== 'undefined' && isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
-    // 6. STOCK UPDATE
+    // 4. STOCK UPDATE DISPLAY
     const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
-    if(stockLabel) stockLabel.innerText = `(${data.stock} available)`;
+    if(stockLabel) {
+        stockLabel.innerText = `(${data.stock} available)`;
+        stockLabel.style.color = data.stock <= 0 ? "red" : "#999"; // Magiging pula pag zero
+    }
+    
+    // 5. SOLD OUT LOGIC (Buttons)
+    const buyBtn = document.querySelector('.buy-now-btn');
+    const applyBtn = document.querySelector('.apply-loan-btn');
+
+    if (data.stock <= 0) {
+        if(buyBtn) {
+            buyBtn.innerHTML = "SOLD OUT";
+            buyBtn.style.background = "#ccc";
+            buyBtn.style.pointerEvents = "none";
+        }
+        if(applyBtn) applyBtn.style.display = "none";
+    } else {
+        if(buyBtn) {
+            buyBtn.innerHTML = "BUY NOW";
+            buyBtn.style.background = "var(--forest-green)";
+            buyBtn.style.pointerEvents = "auto";
+        }
+        if(applyBtn) applyBtn.style.display = "block";
+    }
     
     // --- UPDATE PRICE ELEMENT ---
     priceElement.innerHTML = `
@@ -380,7 +394,7 @@ function openProductDetails(index) {
         };
     }
 };
-
+    
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
         const availableColors = colorGroups[capIndex] ? colorGroups[capIndex].split('|').map(c => c.trim()) : [];
