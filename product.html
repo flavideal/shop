@@ -389,7 +389,7 @@ function openProductDetails(index) {
         </div>
     `;
      
-   // --- 6. RE-BIND EVENTS (DITO DAPAT NAKALAGAY SA PINAKABABA) ---
+   // --- RE-BIND EVENTS ---
     document.getElementById('toggleSchedule').onclick = () => {
         const table = document.getElementById('scheduleTableContainer');
         table.style.display = table.style.display === "none" ? "block" : "none";
@@ -403,7 +403,7 @@ function openProductDetails(index) {
         };
     });
 
-   // ITO ANG FIX PARA SA DOWNPAYMENT INPUT
+    // ITO ANG FIX PARA SA DOWNPAYMENT INPUT
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
         dpIn.oninput = () => {
