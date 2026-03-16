@@ -710,6 +710,15 @@ function changeQty(amt) {
     if (activeBtn) activeBtn.click();
 }
 
+function btnStyle(btn, text, bg) {
+    if (!btn) return;
+    btn.innerHTML = text;
+    btn.style.background = bg;
+    btn.style.pointerEvents = "auto";
+    btn.style.cursor = "pointer";
+    btn.style.opacity = "1"; // Siguraduhing hindi malabo
+}
+
 </script>
 </body>
 </html>
