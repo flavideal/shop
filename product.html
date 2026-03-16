@@ -390,78 +390,50 @@ function openProductDetails(index) {
     `;
      
    // --- 6. RE-BIND EVENTS ---
-
     const schedToggle = document.getElementById('toggleSchedule');
-
     if(schedToggle) {
-
         schedToggle.onclick = () => {
-
             const table = document.getElementById('scheduleTableContainer');
-
             if(table) table.style.display = table.style.display === "none" ? "block" : "none";
-
         };
-
     }
-
 
 
     document.querySelectorAll('.term-selector-btn').forEach(btn => {
-
         btn.onclick = () => {
-
             selectedTerm = parseInt(btn.getAttribute('data-months'));
-
             renderInstallmentUI();
-
             const table = document.getElementById('scheduleTableContainer');
-
             if(table) table.style.display = "block";
-
         };
-
     });
 
-
-
+   // --- PALITAN MO LANG ITONG DP INPUT BLOCK NA ITO ---
     const dpIn = document.getElementById('dpInput');
-
     if(dpIn) {
-
         dpIn.oninput = function() {
+            const val = this.value; 
+            const cursorStart = this.selectionStart; // I-save ang pwesto ng cursor
+            const cursorEnd = this.selectionEnd;
 
-            const val = this.value; // I-save ang text value
-
-            currentDP = parseFloat(val) || 0; // I-update ang global number
-
+            currentDP = parseFloat(val) || 0; 
             
+            renderInstallmentUI(); // Re-render ang buong UI
 
-            renderInstallmentUI(); // Re-render
-
-            
-
+            // BALIK FOCUS AGAD
             const newInput = document.getElementById('dpInput');
-
             if(newInput) {
-
+                newInput.value = val;
                 newInput.focus();
-
-                newInput.value = val; // Ibalik ang tinype para hindi maputol
-
+                // Ibalik ang cursor sa tamang pwesto para hindi tumalon sa dulo
+                newInput.setSelectionRange(cursorStart, cursorEnd); 
                 
-
+                // Panatilihing nakabukas ang table
                 const table = document.getElementById('scheduleTableContainer');
-
                 if(table) table.style.display = "block";
-
             }
-
         };
-
     }
-
-}; // Eto yung sumasara sa renderInstallmentUI
     
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
