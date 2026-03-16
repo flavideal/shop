@@ -261,22 +261,37 @@ function openProductDetails(index) {
         stockLabel.style.color = data.stock <= 0 ? "red" : "#999"; // Magiging pula pag zero
     }
     
-    // 5. SOLD OUT LOGIC (Buttons)
-    const buyBtn = document.querySelector('.buy-now-btn');
+    // 5. BUTTON LOGIC (Add to Cart & Buy Now)
+    const buyBtn = document.querySelector('.buy-now-btn'); // Ito ang magiging "Buy Now"
+    const cartBtn = document.querySelector('.add-to-cart-btn'); // Siguraduhin na may class na ganito sa HTML mo
     const applyBtn = document.querySelector('.apply-loan-btn');
 
     if (data.stock <= 0) {
-        if(buyBtn) {
-            buyBtn.innerHTML = "SOLD OUT";
-            buyBtn.style.background = "#ccc";
-            buyBtn.style.pointerEvents = "none";
-        }
+        // Kapag 0 Stock
+        [buyBtn, cartBtn].forEach(btn => {
+            if(btn) {
+                btn.innerHTML = "SOLD OUT";
+                btn.style.background = "#ccc";
+                btn.style.pointerEvents = "none"; // Hindi na maki-click
+                btn.disabled = true;
+            }
+        });
         if(applyBtn) applyBtn.style.display = "none";
     } else {
+        // Kapag may Stock
         if(buyBtn) {
             buyBtn.innerHTML = "BUY NOW";
             buyBtn.style.background = "var(--forest-green)";
             buyBtn.style.pointerEvents = "auto";
+            buyBtn.disabled = false;
+            buyBtn.onclick = () => { window.location.href = "checkout.html"; };
+        }
+        if(cartBtn) {
+            cartBtn.innerHTML = "ADD TO CART";
+            cartBtn.style.background = "#27ae60"; 
+            cartBtn.style.pointerEvents = "auto";
+            cartBtn.disabled = false;
+            cartBtn.onclick = () => { addToCartLogic(); }; // Tawagin ang function sa baba
         }
         if(applyBtn) applyBtn.style.display = "block";
     }
@@ -467,6 +482,14 @@ function openProductDetails(index) {
     };
 
 } // END OF FUNCTION
+
+function addToCartLogic() {
+    // Dito mo ilalagay ang code para i-save sa localStorage ang item (optional)
+    // Halimbawa: saveToLocalStorage();
+    
+    alert("Item added to cart!");
+    window.location.href = "cart.html";
+}
 
 // Function para ayusin ang gallery pagkatapos ma-check lahat ng images
 function finalizeGallery(gallery, counter) {
