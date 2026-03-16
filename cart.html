@@ -31,8 +31,9 @@
 <body>
 
 <div class="cart-wrapper">
-    <a href="index.html" style="text-decoration:none; color:var(--forest-green); font-size:14px;"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
-    <h2>Shopping Cart</h2>
+    <a href="javascript:void(0);" onclick="history.back();" style="text-decoration:none; color:var(--forest-green); font-size:14px;">
+    <i class="fas fa-arrow-left"></i> Continue Shopping
+</a>
     
     <div id="cartItemsList">
         </div>
@@ -47,7 +48,7 @@
 // --- KONFIGURASYON ---
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
 
-// 1. RENDER UI - Ito ang magpapakita ng items sa screen
+// 1. RENDER UI - Updated para sa Variations (Color, Capacity, Size)
 function renderCartUI(cart) {
     const container = document.getElementById('cartItemsList');
     const summary = document.getElementById('cartSummary');
@@ -63,16 +64,25 @@ function renderCartUI(cart) {
     
     container.innerHTML = cart.map((item, index) => {
         total += item.price * item.quantity;
+
+        // Gumawa ng label para sa variations para hindi pangit tignan kung "N/A" ang iba
+        let variationLabel = [];
+        if (item.color && item.color !== "N/A") variationLabel.push(item.color);
+        if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
+        if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
+
         return `
             <div class="cart-item">
-                <img src="${item.image}" alt="">
+                <img src="${item.image}" alt="${item.name}">
                 <div class="item-info">
                     <h4>${item.name}</h4>
-                    <div class="item-meta">Variation: ${item.color} | ${item.capacity}</div>
+                    <div class="item-meta">
+                        ${variationLabel.join(' | ')}
+                    </div>
                     <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                     <div class="qty-controls">
                         <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
-                        <span>${item.quantity}</span>
+                        <span style="font-weight:bold; width: 30px; text-align: center; display: inline-block;">${item.quantity}</span>
                         <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
                     </div>
                     <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
