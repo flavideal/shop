@@ -252,9 +252,24 @@ function openProductDetails(index) {
     const curCashPrice = data.cash * qty; 
     
     // 2. DOWNPAYMENT
-    const dpInput = document.getElementById('dpInput');
-    // I-persist ang DP value para hindi mawala kapag nag-render uli
-    currentDP = dpInput ? parseFloat(dpInput.value) || 0 : currentDP;
+    c// HANAPIN ITO SA DULO NG renderInstallmentUI()
+const dpIn = document.getElementById('dpInput');
+if(dpIn) {
+    dpIn.oninput = () => {
+        const val = dpIn.value; // 1. I-save ang tinype mong value
+        currentDP = parseFloat(val) || 0; // 2. I-update ang global variable
+        
+        renderInstallmentUI(); // 3. Re-render ang UI
+        
+        // 4. IBALIK ANG FOCUS AT CURSOR POSITION
+        const newInput = document.getElementById('dpInput');
+        newInput.focus(); 
+        newInput.value = val; // Ibalik ang value para hindi mag-reset sa 0
+        
+        // Panatilihing nakabukas ang schedule table
+        document.getElementById('scheduleTableContainer').style.display = "block";
+    };
+}
 
     // 3. COMPUTATION
     let principal = curRegPrice - currentDP;
