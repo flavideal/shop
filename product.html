@@ -389,39 +389,49 @@ function openProductDetails(index) {
         </div>
     `;
      
-   // --- RE-BIND EVENTS ---
-    document.getElementById('toggleSchedule').onclick = () => {
-        const table = document.getElementById('scheduleTableContainer');
-        table.style.display = table.style.display === "none" ? "block" : "none";
-    };
+   // --- 6. RE-BIND EVENTS (DITO DAPAT NAKALAGAY SA PINAKABABA) ---
+    const schedToggle = document.getElementById('toggleSchedule');
+    if(schedToggle) {
+        schedToggle.onclick = () => {
+            const table = document.getElementById('scheduleTableContainer');
+            table.style.display = table.style.display === "none" ? "block" : "none";
+        };
+    }
 
     document.querySelectorAll('.term-selector-btn').forEach(btn => {
         btn.onclick = () => {
             selectedTerm = parseInt(btn.getAttribute('data-months'));
             renderInstallmentUI();
-            document.getElementById('scheduleTableContainer').style.display = "block";
+            const table = document.getElementById('scheduleTableContainer');
+            if(table) table.style.display = "block";
         };
     });
 
-    // ITO ANG FIX PARA SA DOWNPAYMENT INPUT
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
-        dpIn.oninput = () => {
-            const val = dpIn.value; // I-save ang tinype
-            currentDP = parseFloat(val) || 0; // Update ang logic
+        dpIn.addEventListener('input', function() {
+            // 1. I-save ang posisyon ng cursor (optional pero safe)
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
             
-            renderInstallmentUI(); // Re-render ang buong UI
+            // 2. I-update ang global value
+            currentDP = parseFloat(this.value) || 0;
             
-            // Hanapin ang bagong gawang input pagkatapos ng render
+            // 3. I-render ang UI
+            renderInstallmentUI();
+            
+            // 4. Hanapin ang bagong input at ibalik ang focus
             const newInput = document.getElementById('dpInput');
-            newInput.focus(); // Ibalik ang focus ng keyboard
-            
-            // I-set ang value at ilagay ang cursor sa dulo
-            newInput.value = val; 
-            
-            // Siguraduhing manatiling nakabukas ang table
-            document.getElementById('scheduleTableContainer').style.display = "block";
-        };
+            if(newInput) {
+                newInput.focus();
+                // 5. I-restore ang cursor position para hindi tumalon sa unahan
+                newInput.setSelectionRange(start, end);
+                
+                // Siguraduhing manatiling bukas ang table
+                const table = document.getElementById('scheduleTableContainer');
+                if(table) table.style.display = "block";
+            }
+        });
     }
     
     function updateColorOptions(capIndex) {
