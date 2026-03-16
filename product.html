@@ -303,6 +303,7 @@ function openProductDetails(index) {
     }
     
     // --- UPDATE PRICE ELEMENT ---
+    // --- UPDATE PRICE ELEMENT ---
     priceElement.innerHTML = `
         <div style="margin-bottom:12px; text-decoration: none !important;">
             <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
@@ -388,7 +389,7 @@ function openProductDetails(index) {
             </div>
         </div>
     `;
-
+     
    // --- 6. RE-BIND EVENTS (DITO DAPAT NAKALAGAY SA PINAKABABA) ---
     document.getElementById('toggleSchedule').onclick = () => {
         const table = document.getElementById('scheduleTableContainer');
