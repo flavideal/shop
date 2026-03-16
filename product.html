@@ -407,25 +407,60 @@ function openProductDetails(index) {
         };
     });
 
+   // --- TAMANG PARAAN PARA HINDI MAWALA ANG KEYBOARD ---
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
         dpIn.oninput = function() {
-            const val = this.value; // I-save ang text value
-            currentDP = parseFloat(val) || 0; // I-update ang global number
-            
-            renderInstallmentUI(); // Re-render
-            
-            const newInput = document.getElementById('dpInput');
-            if(newInput) {
-                newInput.focus();
-                newInput.value = val; // Ibalik ang tinype para hindi maputol
-                
-                const table = document.getElementById('scheduleTableContainer');
-                if(table) table.style.display = "block";
+            const val = this.value; 
+            currentDP = parseFloat(val) || 0; 
+
+            // 1. Kuhanin ang data para sa calculation
+            const data = getActiveData(); 
+            const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
+            const curRegPrice = data.reg * qty;
+            const processingFee = parseFloat(currentProductData.Processing_Fee) || 0;
+
+            // 2. Re-compute (Same formula sa taas)
+            let principal = curRegPrice - currentDP;
+            let rate = parseFloat(data.monthlyRate); 
+            let monthlyInterestAmount = principal * rate; 
+            let monthlyPrincipalDiv = principal / selectedTerm;
+            let computedMonthly = monthlyPrincipalDiv + monthlyInterestAmount;
+            let balance = computedMonthly * selectedTerm;
+
+            // 3. I-UPDATE LANG ANG MGA TEXT (HINDI BUONG HTML)
+            // Ito ang sikreto para hindi mawala ang focus sa keyboard
+            const monthlyLabel = document.querySelector('#toggleSchedule div div:first-child');
+            const termDetailLabel = document.querySelector('#toggleSchedule div div:last-child');
+            const totalLoanLabel = document.querySelector('#scheduleTableContainer div div span:last-child');
+
+            if(monthlyLabel) {
+                monthlyLabel.innerText = `Installment: ₱${computedMonthly.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.`;
             }
+            if(termDetailLabel) {
+                termDetailLabel.innerText = `For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : '(0 Downpayment)'}`;
+            }
+            if(totalLoanLabel) {
+                totalLoanLabel.innerText = `₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+
+            // 4. Update ang Table Rows para sumunod ang presyo sa table
+            const rows = document.querySelectorAll('#scheduleTableContainer table tr:not(:first-child)');
+            rows.forEach((row, index) => {
+                const isFirst = (index === 0);
+                const rowAmount = isFirst ? (computedMonthly + processingFee) : computedMonthly;
+                const cell = row.querySelector('td:last-child');
+                if(cell) {
+                    cell.innerHTML = `₱${rowAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} 
+                    ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString()} One-time Processing Fee</div>` : ''}`;
+                }
+            });
+
+            // Siguraduhin na nakabukas ang table
+            const table = document.getElementById('scheduleTableContainer');
+            if(table) table.style.display = "block";
         };
     }
-}; // Eto yung sumasara sa renderInstallmentUI
     
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
