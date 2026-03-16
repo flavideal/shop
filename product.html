@@ -82,13 +82,10 @@
 
             <div class="qty-wrapper" id="qtyMainContainer">
     <span style="font-size:11px; font-weight:bold; color:#888;">QTY:</span>
-    <button id="qMin">-</button>
+    <button id="qMin" onclick="changeQty(-1)">-</button>
     <input type="number" id="qtyValue" value="1" readonly>
-    <button id="qPlus">+</button>
-    <span style="font-size:11px; color:#999; margin-left:10px;"></span> </div>
-    <div class="action-buttons" style="display: flex; gap: 10px; margin-top: 20px;">
-    <button id="addToCartBtn" style="flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer;">ADD TO CART</button>
-    <button id="buyNowBtn" style="flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer;">BUY NOW</button>
+    <button id="qPlus" onclick="changeQty(1)">+</button>
+    <span style="font-size:11px; color:#999; margin-left:10px;"></span> 
 </div>
 
     <div id="fullscreenView" class="fullscreen-view" onclick="toggleControls()">
@@ -239,17 +236,24 @@ function openProductDetails(index) {
 
   const renderInstallmentUI = () => {
     const data = getActiveData(); 
+    const p = currentProductData; // Hugutin ang global data
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
-    // 1. BASE PRICES (Ito ang main price display at reference para sa Checkout)
+    // Kunin ang mga kailangan mula sa global product data (p)
+    const processingFee = parseFloat(p.Processing_Fee) || 0;
+    const sheetMonths = parseInt(p.Plan) || 12;
+    const isFlashSale = p.Flash_Sale === "Yes" || p.Flash_Sale === "YES";
+
+    // 1. BASE PRICES
     const curRegPrice = data.reg * qty;   
     const curCashPrice = data.cash * qty; 
     
-    // 2. DOWNPAYMENT (Para sa computation sa table reference)
+    // 2. DOWNPAYMENT
     const dpInput = document.getElementById('dpInput');
-    currentDP = dpInput ? parseFloat(dpInput.value) || 0 : 0;
+    // I-persist ang DP value para hindi mawala kapag nag-render uli
+    currentDP = dpInput ? parseFloat(dpInput.value) || 0 : currentDP;
 
-    // 3. COMPUTATION PARA SA REFERENCE TABLE
+    // 3. COMPUTATION
     let principal = curRegPrice - currentDP;
     let rate = parseFloat(data.monthlyRate); 
     let monthlyInterestAmount = principal * rate; 
@@ -259,13 +263,13 @@ function openProductDetails(index) {
     let firstMonthTotal = computedMonthly + processingFee;
     const balance = computedMonthly * selectedTerm;
 
-    const saleBadge = typeof isFlashSale !== 'undefined' && isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
+    const saleBadge = isFlashSale ? `<span style="background:#e67e22; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">SALE</span>` : '';
 
-    // 4. STOCK UPDATE DISPLAY
+    // 4. STOCK UPDATE
     const stockLabel = document.querySelector('#qtyMainContainer span:last-child');
     if(stockLabel) {
         stockLabel.innerText = `(${data.stock} available)`;
-        stockLabel.style.color = data.stock <= 0 ? "red" : "#999"; // Magiging pula pag zero
+        stockLabel.style.color = data.stock <= 0 ? "red" : "#999";
     }
     
    // --- 5. BUTTON LOGIC (Fixed) ---
