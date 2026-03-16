@@ -237,12 +237,11 @@ function openProductDetails(index) {
         };
     };
 
-  const renderInstallmentUI = () => {
+ const renderInstallmentUI = () => {
     const data = getActiveData(); 
-    const p = currentProductData; // Hugutin ang global data
+    const p = currentProductData; 
     const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
     
-    // Kunin ang mga kailangan mula sa global product data (p)
     const processingFee = parseFloat(p.Processing_Fee) || 0;
     const sheetMonths = parseInt(p.Plan) || 12;
     const isFlashSale = p.Flash_Sale === "Yes" || p.Flash_Sale === "YES";
@@ -251,26 +250,7 @@ function openProductDetails(index) {
     const curRegPrice = data.reg * qty;   
     const curCashPrice = data.cash * qty; 
     
-    // 2. DOWNPAYMENT
-const dpIn = document.getElementById('dpInput');
-if(dpIn) {
-    dpIn.oninput = () => {
-        const val = dpIn.value; // 1. I-save ang tinype mong value
-        currentDP = parseFloat(val) || 0; // 2. I-update ang global variable
-        
-        renderInstallmentUI(); // 3. Re-render ang UI
-        
-        // 4. IBALIK ANG FOCUS AT CURSOR POSITION
-        const newInput = document.getElementById('dpInput');
-        newInput.focus(); 
-        newInput.value = val; // Ibalik ang value para hindi mag-reset sa 0
-        
-        // Panatilihing nakabukas ang schedule table
-        document.getElementById('scheduleTableContainer').style.display = "block";
-    };
-}
-
-    // 3. COMPUTATION
+    // 2. COMPUTATION
     let principal = curRegPrice - currentDP;
     let rate = parseFloat(data.monthlyRate); 
     let monthlyInterestAmount = principal * rate; 
@@ -289,7 +269,7 @@ if(dpIn) {
         stockLabel.style.color = data.stock <= 0 ? "red" : "#999";
     }
     
-   // --- 5. BUTTON LOGIC (Fixed) ---
+    // --- 5. BUTTON LOGIC ---
     const buyBtn = document.getElementById('buyNowBtn'); 
     const cartBtn = document.getElementById('addToCartBtn');
     const applyBtn = document.querySelector('.apply-loan-btn');
@@ -303,7 +283,7 @@ if(dpIn) {
                 btn.style.background = "#ccc";
                 btn.style.pointerEvents = "none";
                 btn.style.cursor = "not-allowed";
-                btn.onclick = null; // Siguraduhin na walang gagawin pag pinindot
+                btn.onclick = null;
             }
         });
     } else {
@@ -409,7 +389,7 @@ if(dpIn) {
         </div>
     `;
 
-    // --- RE-BIND EVENTS ---
+   // --- 6. RE-BIND EVENTS (DITO DAPAT NAKALAGAY SA PINAKABABA) ---
     document.getElementById('toggleSchedule').onclick = () => {
         const table = document.getElementById('scheduleTableContainer');
         table.style.display = table.style.display === "none" ? "block" : "none";
@@ -423,14 +403,18 @@ if(dpIn) {
         };
     });
 
+    // ITO ANG FIX: Nilipat sa dulo para mahabol ang focus
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
         dpIn.oninput = () => {
-            const val = dpIn.value;
-            renderInstallmentUI();
-            const input = document.getElementById('dpInput');
-            input.focus();
-            input.value = val; 
+            currentDP = parseFloat(dpIn.value) || 0;
+            const savedValue = dpIn.value; // I-save ang tinype
+            
+            renderInstallmentUI(); // Re-render ang UI
+            
+            const newInput = document.getElementById('dpInput');
+            newInput.focus(); // Ibalik ang focus sa keyboard
+            newInput.value = savedValue; // Ibalik ang value
             document.getElementById('scheduleTableContainer').style.display = "block";
         };
     }
