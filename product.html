@@ -389,12 +389,12 @@ function openProductDetails(index) {
         </div>
     `;
      
-   // --- 6. RE-BIND EVENTS (DITO DAPAT NAKALAGAY SA PINAKABABA) ---
+   // --- 6. RE-BIND EVENTS ---
     const schedToggle = document.getElementById('toggleSchedule');
     if(schedToggle) {
         schedToggle.onclick = () => {
             const table = document.getElementById('scheduleTableContainer');
-            table.style.display = table.style.display === "none" ? "block" : "none";
+            if(table) table.style.display = table.style.display === "none" ? "block" : "none";
         };
     }
 
@@ -409,30 +409,23 @@ function openProductDetails(index) {
 
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
-        dpIn.addEventListener('input', function() {
-            // 1. I-save ang posisyon ng cursor (optional pero safe)
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
+        dpIn.oninput = function() {
+            const val = this.value; // I-save ang text value
+            currentDP = parseFloat(val) || 0; // I-update ang global number
             
-            // 2. I-update ang global value
-            currentDP = parseFloat(this.value) || 0;
+            renderInstallmentUI(); // Re-render
             
-            // 3. I-render ang UI
-            renderInstallmentUI();
-            
-            // 4. Hanapin ang bagong input at ibalik ang focus
             const newInput = document.getElementById('dpInput');
             if(newInput) {
                 newInput.focus();
-                // 5. I-restore ang cursor position para hindi tumalon sa unahan
-                newInput.setSelectionRange(start, end);
+                newInput.value = val; // Ibalik ang tinype para hindi maputol
                 
-                // Siguraduhing manatiling bukas ang table
                 const table = document.getElementById('scheduleTableContainer');
                 if(table) table.style.display = "block";
             }
-        });
+        };
     }
+}; // Eto yung sumasara sa renderInstallmentUI
     
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
