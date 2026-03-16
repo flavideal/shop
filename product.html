@@ -80,13 +80,12 @@
             <div id="viewColors"></div>
             <div id="viewCapacity"></div>
 
-            <div class="qty-wrapper">
+            <div class="qty-wrapper" id="qtyMainContainer">
     <span style="font-size:11px; font-weight:bold; color:#888;">QTY:</span>
-    <button id="qMin" style="padding: 8px 15px; border: none; background: none; cursor: pointer;">-</button>
-    <input type="number" id="qtyValue" value="1" readonly style="width: 30px; text-align: center; border: none; font-weight: bold; background:transparent;">
-    <button id="qPlus" style="padding: 8px 15px; border: none; background: none; cursor: pointer;">+</button>
-</div>
-
+    <button id="qMin">-</button>
+    <input type="number" id="qtyValue" value="1" readonly>
+    <button id="qPlus">+</button>
+    <span style="font-size:11px; color:#999; margin-left:10px;"></span> </div>
     <div class="action-buttons" style="display: flex; gap: 10px; margin-top: 20px;">
     <button id="addToCartBtn" style="flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer;">ADD TO CART</button>
     <button id="buyNowBtn" style="flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer;">BUY NOW</button>
@@ -125,9 +124,12 @@ async function fetchProducts() {
     }
 }
 
+let currentProductData = {};
+
 function openProductDetails(index) {
     const p = window.currentProducts[index];
     if (!p) return;
+    currentProductData = p; // I-save ang buong product object dito
 
     const gallery = document.getElementById('photoGallery');
     const counter = document.getElementById('image-counter');
@@ -485,6 +487,27 @@ function openProductDetails(index) {
 
 } // <--- DITO NAGTATAPOS ANG openProductDetails
 
+// Ilagay ito sa labas/ilalim ng openProductDetails
+function getActiveData() {
+    const p = currentProductData;
+    const capacities = p.Capacity ? p.Capacity.toString().split(',').map(s => s.trim()) : [];
+    const activeCapBtn = document.querySelector('.capacity-btn.active');
+    
+    let idx = activeCapBtn ? capacities.indexOf(activeCapBtn.innerText) : 0;
+    if (idx === -1) idx = 0;
+
+    const regPrices = p.Regular_Price ? p.Regular_Price.toString().split(',').map(s => s.trim()) : [];
+    const cashPrices = p.Cash_Price ? p.Cash_Price.toString().split(',').map(s => s.trim()) : [];
+    const stockCounts = p.Stock_Count ? p.Stock_Count.toString().split(',').map(s => parseInt(s.trim())) : [];
+
+    return {
+        reg: parseFloat(regPrices[idx]) || 0,
+        cash: parseFloat(cashPrices[idx]) || 0,
+        stock: stockCounts[idx] !== undefined ? stockCounts[idx] : 0,
+        monthlyRate: p.Interest_Rate || "0"
+    };
+}
+
 function addToCartLogic() {
     // 1. Kunin ang active data mula sa function na ginagamit din ng UI
     const activeData = getActiveData(); 
@@ -685,15 +708,6 @@ function changeQty(amt) {
     // Refresh the UI
     const activeBtn = document.querySelector('.capacity-btn.active') || document.querySelector('.color-btn.active');
     if (activeBtn) activeBtn.click();
-}
-
-function btnStyle(btn, text, bg) {
-    if (!btn) return;
-    btn.innerHTML = text;
-    btn.style.background = bg;
-    btn.style.pointerEvents = "auto";
-    btn.style.cursor = "pointer";
-    btn.style.opacity = "1"; // Siguraduhing hindi malabo
 }
 
 </script>
