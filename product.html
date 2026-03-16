@@ -261,39 +261,40 @@ function openProductDetails(index) {
         stockLabel.style.color = data.stock <= 0 ? "red" : "#999"; // Magiging pula pag zero
     }
     
-    // 5. BUTTON LOGIC (Add to Cart & Buy Now)
-    const buyBtn = document.querySelector('.buy-now-btn'); // Ito ang magiging "Buy Now"
-    const cartBtn = document.querySelector('.add-to-cart-btn'); // Siguraduhin na may class na ganito sa HTML mo
+   // --- 5. BUTTON LOGIC (CLEAN VERSION) ---
+    const buyBtn = document.querySelector('.buy-now-btn'); 
+    const cartBtn = document.querySelector('.add-to-cart-btn');
     const applyBtn = document.querySelector('.apply-loan-btn');
+
+    // Itago agad ang applyBtn sa simula pa lang
+    if (applyBtn) applyBtn.style.display = "none";
 
     if (data.stock <= 0) {
         // Kapag 0 Stock
-        [buyBtn, cartBtn].forEach(btn => {
-            if(btn) {
-                btn.innerHTML = "SOLD OUT";
-                btn.style.background = "#ccc";
-                btn.style.pointerEvents = "none"; // Hindi na maki-click
-                btn.disabled = true;
-            }
-        });
-        if(applyBtn) applyBtn.style.display = "none";
+        if(buyBtn) {
+            buyBtn.innerHTML = "SOLD OUT";
+            buyBtn.style.background = "#ccc";
+            buyBtn.style.pointerEvents = "none";
+        }
+        if(cartBtn) {
+            cartBtn.innerHTML = "SOLD OUT";
+            cartBtn.style.background = "#ccc";
+            cartBtn.style.pointerEvents = "none";
+        }
     } else {
-        // Kapag may Stock
+        // Kapag MAY Stock
         if(buyBtn) {
             buyBtn.innerHTML = "BUY NOW";
-            buyBtn.style.background = "var(--forest-green)";
+            buyBtn.style.background = "#1B4D2E"; // Forest Green
             buyBtn.style.pointerEvents = "auto";
-            buyBtn.disabled = false;
             buyBtn.onclick = () => { window.location.href = "checkout.html"; };
         }
         if(cartBtn) {
             cartBtn.innerHTML = "ADD TO CART";
-            cartBtn.style.background = "#27ae60"; 
+            cartBtn.style.background = "#27ae60"; // Lighter Green
             cartBtn.style.pointerEvents = "auto";
-            cartBtn.disabled = false;
-            cartBtn.onclick = () => { addToCartLogic(); }; // Tawagin ang function sa baba
+            cartBtn.onclick = () => { window.location.href = "cart.html"; };
         }
-        if(applyBtn) applyBtn.style.display = "block";
     }
     
     // --- UPDATE PRICE ELEMENT ---
