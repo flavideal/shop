@@ -488,38 +488,41 @@ function openProductDetails(index) {
 
 } // <--- DITO NAGTATAPOS ANG openProductDetails
 
+// Ilagay ito sa product.html (ang nagpapasa ng data sa cart)
 function addToCartLogic() {
-    // 1. Kunin ang current active data
+    // 1. Kunin ang tamang data (Dapat tinatawag ang getActiveData para sa updated price)
     const data = getActiveData(); 
     
-    // 2. Kunin ang mga piniling variations (Color, Capacity, Size)
+    // 2. Kunin ang text mula sa mga ACTIVE buttons
     const selectedColor = document.querySelector('.color-btn.active')?.innerText || "N/A";
     const selectedCap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
     const selectedSize = document.querySelector('.size-btn.active')?.innerText || "N/A";
     const qty = parseInt(document.getElementById('qtyValue').value) || 1;
+    
+    // Kunin ang pangalan ng product (siguraduhin na hindi kasama ang price sa text)
     const productName = document.getElementById('viewName').innerText.split('\n')[0];
-    const productImage = currentGalleryImages[0]; // Kunin ang unang image
 
-    // 3. I-prepare ang item object
+    // 3. I-prepare ang Cart Item Object
     const cartItem = {
         id: new URLSearchParams(window.location.search).get('id'),
         name: productName,
-        price: data.cash, // O data.reg depende sa gusto mong presyo
+        price: parseFloat(data.cash), // <--- SIGURADUHIN NA HINDI 0 ANG data.cash
         color: selectedColor,
         capacity: selectedCap,
         size: selectedSize,
         quantity: qty,
-        image: productImage
+        image: currentGalleryImages[0] // Ang unang image sa gallery
     };
 
-    // 4. I-save sa LocalStorage
+    // 4. Save sa LocalStorage
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     
-    // Check kung existing na para dagdag QTY na lang
+    // Check kung pareho ang ID at Variations para hindi doble sa listahan
     const existingIndex = cart.findIndex(item => 
         item.id === cartItem.id && 
         item.color === cartItem.color && 
-        item.capacity === cartItem.capacity
+        item.capacity === cartItem.capacity &&
+        item.size === cartItem.size
     );
 
     if (existingIndex > -1) {
@@ -530,7 +533,7 @@ function addToCartLogic() {
 
     localStorage.setItem('cart', JSON.stringify(cart));
     
-    // 5. Pumunta sa Cart Page
+    // 5. Redirect sa cart.html
     window.location.href = "cart.html";
 }
 
