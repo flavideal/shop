@@ -108,7 +108,7 @@ async function loadCart() {
             if (serverCart && serverCart.length > 0) {
                 // I-merge: idagdag ang wala sa local mula sa server
                 serverCart.forEach(sItem => {
-                    const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color && lItem.capacity === sItem.capacity);
+                    const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color && lItem.capacity === sItem.capacity) && lItem.size === sItem.size;
                     if (!exists) cart.push(sItem);
                 });
                 localStorage.setItem('cart', JSON.stringify(cart));
