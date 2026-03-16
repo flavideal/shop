@@ -87,9 +87,9 @@
     <button id="qPlus" style="padding: 8px 15px; border: none; background: none; cursor: pointer;">+</button>
 </div>
 
-           <div class="action-buttons">
-    <button id="addToCartBtn">ADD TO CART</button>
-    <button id="buyNowBtn">BUY NOW</button>
+    <div class="action-buttons" style="display: flex; gap: 10px; margin-top: 20px;">
+    <button id="addToCartBtn" style="flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer;">ADD TO CART</button>
+    <button id="buyNowBtn" style="flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer;">BUY NOW</button>
 </div>
 
     <div id="fullscreenView" class="fullscreen-view" onclick="toggleControls()">
@@ -266,7 +266,7 @@ function openProductDetails(index) {
         stockLabel.style.color = data.stock <= 0 ? "red" : "#999"; // Magiging pula pag zero
     }
     
-   // --- 5. BUTTON LOGIC (Fixed for Cart & Price) ---
+   // --- 5. BUTTON LOGIC (Fixed) ---
     const buyBtn = document.getElementById('buyNowBtn'); 
     const cartBtn = document.getElementById('addToCartBtn');
     const applyBtn = document.querySelector('.apply-loan-btn');
@@ -280,20 +280,21 @@ function openProductDetails(index) {
                 btn.style.background = "#ccc";
                 btn.style.pointerEvents = "none";
                 btn.style.cursor = "not-allowed";
+                btn.onclick = null; // Siguraduhin na walang gagawin pag pinindot
             }
         });
     } else {
         if(buyBtn) {
             btnStyle(buyBtn, "BUY NOW", "var(--forest-green)");
             buyBtn.onclick = () => { 
-                addToCartLogic(); // I-save muna bago lumipat
+                addToCartLogic(); 
                 window.location.href = "checkout.html"; 
             };
         }
         if(cartBtn) {
             btnStyle(cartBtn, "ADD TO CART", "var(--golden-yellow)");
             cartBtn.onclick = () => { 
-                addToCartLogic(); // Ito ang magpapasa ng variation at price sa cart.html
+                addToCartLogic(); 
             };
         }
     }
@@ -684,6 +685,15 @@ function changeQty(amt) {
     // Refresh the UI
     const activeBtn = document.querySelector('.capacity-btn.active') || document.querySelector('.color-btn.active');
     if (activeBtn) activeBtn.click();
+}
+
+function btnStyle(btn, text, bg) {
+    if (!btn) return;
+    btn.innerHTML = text;
+    btn.style.background = bg;
+    btn.style.pointerEvents = "auto";
+    btn.style.cursor = "pointer";
+    btn.style.opacity = "1"; // Siguraduhing hindi malabo
 }
 
 </script>
