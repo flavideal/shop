@@ -489,10 +489,48 @@ function openProductDetails(index) {
 } // <--- DITO NAGTATAPOS ANG openProductDetails
 
 function addToCartLogic() {
-    // Dito mo ilalagay ang code para i-save sa localStorage ang item (optional)
-    // Halimbawa: saveToLocalStorage();
+    // 1. Kunin ang current active data
+    const data = getActiveData(); 
     
-    alert("Item added to cart!");
+    // 2. Kunin ang mga piniling variations (Color, Capacity, Size)
+    const selectedColor = document.querySelector('.color-btn.active')?.innerText || "N/A";
+    const selectedCap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
+    const selectedSize = document.querySelector('.size-btn.active')?.innerText || "N/A";
+    const qty = parseInt(document.getElementById('qtyValue').value) || 1;
+    const productName = document.getElementById('viewName').innerText.split('\n')[0];
+    const productImage = currentGalleryImages[0]; // Kunin ang unang image
+
+    // 3. I-prepare ang item object
+    const cartItem = {
+        id: new URLSearchParams(window.location.search).get('id'),
+        name: productName,
+        price: data.cash, // O data.reg depende sa gusto mong presyo
+        color: selectedColor,
+        capacity: selectedCap,
+        size: selectedSize,
+        quantity: qty,
+        image: productImage
+    };
+
+    // 4. I-save sa LocalStorage
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Check kung existing na para dagdag QTY na lang
+    const existingIndex = cart.findIndex(item => 
+        item.id === cartItem.id && 
+        item.color === cartItem.color && 
+        item.capacity === cartItem.capacity
+    );
+
+    if (existingIndex > -1) {
+        cart[existingIndex].quantity += qty;
+    } else {
+        cart.push(cartItem);
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // 5. Pumunta sa Cart Page
     window.location.href = "cart.html";
 }
 
