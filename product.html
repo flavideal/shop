@@ -303,7 +303,6 @@ function openProductDetails(index) {
     }
     
     // --- UPDATE PRICE ELEMENT ---
-    // --- UPDATE PRICE ELEMENT ---
     priceElement.innerHTML = `
         <div style="margin-bottom:12px; text-decoration: none !important;">
             <span style="text-decoration:line-through; color:#999; font-size:13px;">₱${curRegPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> ${saleBadge}
@@ -404,22 +403,26 @@ function openProductDetails(index) {
         };
     });
 
-    // ITO ANG FIX: Nilipat sa dulo para mahabol ang focus
+   // ITO ANG FIX PARA SA DOWNPAYMENT INPUT
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
         dpIn.oninput = () => {
-            currentDP = parseFloat(dpIn.value) || 0;
-            const savedValue = dpIn.value; // I-save ang tinype
+            const val = dpIn.value; // I-save ang tinype
+            currentDP = parseFloat(val) || 0; // Update ang logic
             
-            renderInstallmentUI(); // Re-render ang UI
+            renderInstallmentUI(); // Re-render ang buong UI
             
+            // Hanapin ang bagong gawang input pagkatapos ng render
             const newInput = document.getElementById('dpInput');
-            newInput.focus(); // Ibalik ang focus sa keyboard
-            newInput.value = savedValue; // Ibalik ang value
+            newInput.focus(); // Ibalik ang focus ng keyboard
+            
+            // I-set ang value at ilagay ang cursor sa dulo
+            newInput.value = val; 
+            
+            // Siguraduhing manatiling nakabukas ang table
             document.getElementById('scheduleTableContainer').style.display = "block";
         };
     }
-};
     
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
