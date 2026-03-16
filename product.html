@@ -80,9 +80,9 @@
             <div id="viewColors"></div>
             <div id="viewCapacity"></div>
 
-            <div class="action-buttons">
-    <button class="add-to-cart-btn">ADD TO CART</button>
-    <button class="buy-now-btn">BUY NOW</button>
+           <div class="action-buttons">
+    <button id="addToCartBtn">ADD TO CART</button>
+    <button id="buyNowBtn">BUY NOW</button>
 </div>
 
     <div id="fullscreenView" class="fullscreen-view" onclick="toggleControls()">
@@ -259,38 +259,38 @@ function openProductDetails(index) {
         stockLabel.style.color = data.stock <= 0 ? "red" : "#999"; // Magiging pula pag zero
     }
     
-   // --- 5. BUTTON LOGIC (CLEAN VERSION) ---
-    const buyBtn = document.querySelector('.buy-now-btn'); 
-    const cartBtn = document.querySelector('.add-to-cart-btn');
+   // --- 5. BUTTON LOGIC (Original Style + Direct Links) ---
+    const buyBtn = document.getElementById('buyNowBtn'); 
+    const cartBtn = document.getElementById('addToCartBtn');
     const applyBtn = document.querySelector('.apply-loan-btn');
 
-    // Itago agad ang applyBtn sa simula pa lang
+    // Siguraduhin na laging tago ang apply button kung meron man
     if (applyBtn) applyBtn.style.display = "none";
 
     if (data.stock <= 0) {
         // Kapag 0 Stock
-        if(buyBtn) {
-            buyBtn.innerHTML = "SOLD OUT";
-            buyBtn.style.background = "#ccc";
-            buyBtn.style.pointerEvents = "none";
-        }
-        if(cartBtn) {
-            cartBtn.innerHTML = "SOLD OUT";
-            cartBtn.style.background = "#ccc";
-            cartBtn.style.pointerEvents = "none";
-        }
+        [buyBtn, cartBtn].forEach(btn => {
+            if(btn) {
+                btn.innerHTML = "SOLD OUT";
+                btn.style.background = "#ccc"; // Gray pag sold out
+                btn.style.pointerEvents = "none";
+                btn.style.cursor = "not-allowed";
+            }
+        });
     } else {
-        // Kapag MAY Stock
+        // Kapag may Stock (Ibabalik ang original colors mo)
         if(buyBtn) {
             buyBtn.innerHTML = "BUY NOW";
-            buyBtn.style.background = "#1B4D2E"; // Forest Green
+            buyBtn.style.background = "var(--forest-green)"; // Balik Forest Green
             buyBtn.style.pointerEvents = "auto";
+            buyBtn.style.cursor = "pointer";
             buyBtn.onclick = () => { window.location.href = "checkout.html"; };
         }
         if(cartBtn) {
             cartBtn.innerHTML = "ADD TO CART";
-            cartBtn.style.background = "#27ae60"; // Lighter Green
+            cartBtn.style.background = "var(--golden-yellow)"; // Balik Golden Yellow
             cartBtn.style.pointerEvents = "auto";
+            cartBtn.style.cursor = "pointer";
             cartBtn.onclick = () => { window.location.href = "cart.html"; };
         }
     }
@@ -451,36 +451,35 @@ function openProductDetails(index) {
         renderInstallmentUI();
     }
 
-    // --- 7. QUANTITY CONTROLS ---
-    const existingQty = document.getElementById('qtyMainContainer');
-    if(existingQty) existingQty.remove();
+    // --- 7. QUANTITY CONTROLS (Clean Version) ---
+    const qtyValue = document.getElementById('qtyValue');
+    const qMin = document.getElementById('qMin');
+    const qPlus = document.getElementById('qPlus');
 
-    const qtyDiv = document.createElement('div');
-    qtyDiv.id = "qtyMainContainer";
-    qtyDiv.style.cssText = "margin: 20px 0; display: flex; align-items: center; gap: 15px;";
-    qtyDiv.innerHTML = `
-        <span style="font-size:11px; font-weight:bold; color:#888;">QTY:</span>
-        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px;">
-            <button id="qMin" style="padding: 8px 15px; border: none; background: none; cursor: pointer;">-</button>
-            <input type="number" id="qtyValue" value="1" readonly style="width: 30px; text-align: center; border: none; font-weight: bold;">
-            <button id="qPlus" style="padding: 8px 15px; border: none; background: none; cursor: pointer;">+</button>
-        </div>
-        <span style="font-size: 11px; color: #999;">(0 available)</span>
-    `;
-    const actContainer = document.querySelector('.action-buttons');
-    actContainer.parentNode.insertBefore(qtyDiv, actContainer);
+    if (qMin && qPlus && qtyValue) {
+        qMin.onclick = (e) => {
+            e.preventDefault();
+            let v = parseInt(qtyValue.value);
+            if (v > 1) { 
+                qtyValue.value = v - 1; 
+                renderInstallmentUI(); 
+            }
+        };
 
-    document.getElementById('qMin').onclick = () => {
-        let v = parseInt(document.getElementById('qtyValue').value);
-        if(v > 1) { document.getElementById('qtyValue').value = v - 1; renderInstallmentUI(); }
-    };
-    document.getElementById('qPlus').onclick = () => {
-        let v = parseInt(document.getElementById('qtyValue').value);
-        const data = getActiveData();
-        if(v < data.stock) { document.getElementById('qtyValue').value = v + 1; renderInstallmentUI(); }
-    };
+        qPlus.onclick = (e) => {
+            e.preventDefault();
+            let v = parseInt(qtyValue.value);
+            const data = getActiveData();
+            if (v < data.stock) { 
+                qtyValue.value = v + 1; 
+                renderInstallmentUI(); 
+            } else {
+                alert("Maximum stock reached");
+            }
+        };
+    }
 
-} // END OF FUNCTION
+} // <--- DITO NAGTATAPOS ANG openProductDetails
 
 function addToCartLogic() {
     // Dito mo ilalagay ang code para i-save sa localStorage ang item (optional)
