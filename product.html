@@ -266,39 +266,35 @@ function openProductDetails(index) {
         stockLabel.style.color = data.stock <= 0 ? "red" : "#999"; // Magiging pula pag zero
     }
     
-   // --- 5. BUTTON LOGIC (Original Style + Direct Links) ---
+   // --- 5. BUTTON LOGIC (Fixed for Cart & Price) ---
     const buyBtn = document.getElementById('buyNowBtn'); 
     const cartBtn = document.getElementById('addToCartBtn');
     const applyBtn = document.querySelector('.apply-loan-btn');
 
-    // Siguraduhin na laging tago ang apply button kung meron man
     if (applyBtn) applyBtn.style.display = "none";
 
     if (data.stock <= 0) {
-        // Kapag 0 Stock
         [buyBtn, cartBtn].forEach(btn => {
             if(btn) {
                 btn.innerHTML = "SOLD OUT";
-                btn.style.background = "#ccc"; // Gray pag sold out
+                btn.style.background = "#ccc";
                 btn.style.pointerEvents = "none";
                 btn.style.cursor = "not-allowed";
             }
         });
     } else {
-        // Kapag may Stock (Ibabalik ang original colors mo)
         if(buyBtn) {
-            buyBtn.innerHTML = "BUY NOW";
-            buyBtn.style.background = "var(--forest-green)"; // Balik Forest Green
-            buyBtn.style.pointerEvents = "auto";
-            buyBtn.style.cursor = "pointer";
-            buyBtn.onclick = () => { window.location.href = "checkout.html"; };
+            btnStyle(buyBtn, "BUY NOW", "var(--forest-green)");
+            buyBtn.onclick = () => { 
+                addToCartLogic(); // I-save muna bago lumipat
+                window.location.href = "checkout.html"; 
+            };
         }
         if(cartBtn) {
-            cartBtn.innerHTML = "ADD TO CART";
-            cartBtn.style.background = "var(--golden-yellow)"; // Balik Golden Yellow
-            cartBtn.style.pointerEvents = "auto";
-            cartBtn.style.cursor = "pointer";
-            cartBtn.onclick = () => { window.location.href = "cart.html"; };
+            btnStyle(cartBtn, "ADD TO CART", "var(--golden-yellow)");
+            cartBtn.onclick = () => { 
+                addToCartLogic(); // Ito ang magpapasa ng variation at price sa cart.html
+            };
         }
     }
     
@@ -488,36 +484,39 @@ function openProductDetails(index) {
 
 } // <--- DITO NAGTATAPOS ANG openProductDetails
 
-// Ilagay ito sa product.html (ang nagpapasa ng data sa cart)
 function addToCartLogic() {
-    // 1. Kunin ang tamang data (Dapat tinatawag ang getActiveData para sa updated price)
-    const data = getActiveData(); 
+    // 1. Kunin ang active data mula sa function na ginagamit din ng UI
+    const activeData = getActiveData(); 
     
-    // 2. Kunin ang text mula sa mga ACTIVE buttons
+    // 2. Kunin ang TEXT ng mga pindutan na may class na 'active'
     const selectedColor = document.querySelector('.color-btn.active')?.innerText || "N/A";
     const selectedCap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
     const selectedSize = document.querySelector('.size-btn.active')?.innerText || "N/A";
     const qty = parseInt(document.getElementById('qtyValue').value) || 1;
     
-    // Kunin ang pangalan ng product (siguraduhin na hindi kasama ang price sa text)
-    const productName = document.getElementById('viewName').innerText.split('\n')[0];
+    // 3. Kunin ang product name (linisin ang extra spaces)
+    const rawName = document.getElementById('viewName').innerText;
+    const productName = rawName.split('\n')[0].trim();
 
-    // 3. I-prepare ang Cart Item Object
+    // 4. I-prepare ang object (Dito galing ang data na babasahin ng cart.html)
     const cartItem = {
         id: new URLSearchParams(window.location.search).get('id'),
         name: productName,
-        price: parseFloat(data.cash), // <--- SIGURADUHIN NA HINDI 0 ANG data.cash
+        price: activeData.cash, // Ito ang Cash Price ng napiling storage/color
         color: selectedColor,
         capacity: selectedCap,
         size: selectedSize,
         quantity: qty,
-        image: currentGalleryImages[0] // Ang unang image sa gallery
+        image: currentGalleryImages[0] || "" // Unang pic sa gallery
     };
 
-    // 4. Save sa LocalStorage
+    // Konsol log para sa debugging (Makikita mo sa F12 kung tama ang data)
+    console.log("Adding to cart:", cartItem);
+
+    // 5. LocalStorage Logic
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     
-    // Check kung pareho ang ID at Variations para hindi doble sa listahan
+    // Check if exactly same item exists (para qty na lang ang dagdagan)
     const existingIndex = cart.findIndex(item => 
         item.id === cartItem.id && 
         item.color === cartItem.color && 
@@ -533,7 +532,7 @@ function addToCartLogic() {
 
     localStorage.setItem('cart', JSON.stringify(cart));
     
-    // 5. Redirect sa cart.html
+    // 6. Pumunta sa Cart Page
     window.location.href = "cart.html";
 }
 
