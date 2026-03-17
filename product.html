@@ -408,32 +408,65 @@ function openProductDetails(index) {
         };
     });
 
-   // --- PALITAN MO LANG ITONG DP INPUT BLOCK NA ITO ---
-    const dpIn = document.getElementById('dpInput');
-    if(dpIn) {
-        dpIn.oninput = function() {
-            const val = this.value; 
-            const cursorStart = this.selectionStart; // I-save ang pwesto ng cursor
-            const cursorEnd = this.selectionEnd;
+   // --- HANAPIN AT PALITAN ANG DP INPUT BLOCK NA ITO ---
+const dpIn = document.getElementById('dpInput');
+if(dpIn) {
+    dpIn.oninput = function() {
+        const val = this.value; 
+        currentDP = parseFloat(val) || 0; 
+        
+        // 1. KUNIN ANG DATA (Presyo, interest, etc.)
+        const data = getActiveData(); 
+        const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
+        const curRegPrice = data.reg * qty;
+        
+        // 2. RE-CALCULATE (Logic mo kanina)
+        let principal = curRegPrice - currentDP;
+        let rate = parseFloat(data.monthlyRate); 
+        let monthlyInterestAmount = principal * rate; 
+        let monthlyPrincipalDiv = principal / selectedTerm;
+        let computedMonthly = monthlyPrincipalDiv + monthlyInterestAmount;
+        let balance = computedMonthly * selectedTerm;
 
-            currentDP = parseFloat(val) || 0; 
-            
-            renderInstallmentUI(); // Re-render ang buong UI
+        // 3. I-UPDATE LANG ANG MGA TEXT (HUWAG i-render ang buong innerHTML)
+        // Update Monthly display sa toggle area
+        const monthlyText = document.querySelector('#toggleSchedule div div:first-child');
+        if(monthlyText) {
+            monthlyText.innerText = `Installment: ₱${computedMonthly.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.`;
+        }
+        
+        // Update Sub-text (Term & DP)
+        const subText = document.querySelector('#toggleSchedule div div:last-child');
+        if(subText) {
+            subText.innerText = `For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : '(0 Downpayment)'}`;
+        }
 
-            // BALIK FOCUS AGAD
-            const newInput = document.getElementById('dpInput');
-            if(newInput) {
-                newInput.value = val;
-                newInput.focus();
-                // Ibalik ang cursor sa tamang pwesto para hindi tumalon sa dulo
-                newInput.setSelectionRange(cursorStart, cursorEnd); 
-                
-                // Panatilihing nakabukas ang table
-                const table = document.getElementById('scheduleTableContainer');
-                if(table) table.style.display = "block";
+        // Update Total Balance sa baba ng table
+        const balDisplay = document.querySelector('#scheduleTableContainer div:last-child span:last-child');
+        if(balDisplay) {
+            balDisplay.innerText = `₱${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // 4. I-UPDATE ANG TABLE ROWS (Para magbago ang numbers sa listahan)
+        const rows = document.querySelectorAll('#scheduleTableContainer table tr:not(:first-child)');
+        const processingFee = parseFloat(currentProductData.Processing_Fee) || 0;
+        
+        rows.forEach((row, idx) => {
+            const isFirst = (idx === 0);
+            const rowAmount = isFirst ? (computedMonthly + processingFee) : computedMonthly;
+            const amountCell = row.querySelector('td:last-child');
+            if(amountCell) {
+                amountCell.innerHTML = `
+                    ₱${rowAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    ${isFirst ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${processingFee.toLocaleString()} One-time Processing Fee</div>` : ''}
+                `;
             }
-        };
-    }
+        });
+
+        // HINDI NA NATIN TATAWAGIN ANG renderInstallmentUI() DITO.
+        // Dahil dito, mananatili ang focus sa keyboard mo at hindi tatalon ang cursor.
+    };
+}
     
     function updateColorOptions(capIndex) {
         colorContainer.innerHTML = '';
@@ -504,7 +537,6 @@ function openProductDetails(index) {
             }
         };
     }
-
 } // <--- DITO NAGTATAPOS ANG openProductDetails
 
 // Ilagay ito sa labas/ilalim ng openProductDetails
