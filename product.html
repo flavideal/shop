@@ -388,8 +388,8 @@ function openProductDetails(index) {
             </div>
         </div>
     `;
-     
-   // --- 6. RE-BIND EVENTS ---
+
+    // --- 6. RE-BIND EVENTS ---
     const schedToggle = document.getElementById('toggleSchedule');
     if(schedToggle) {
         schedToggle.onclick = () => {
@@ -407,42 +407,43 @@ function openProductDetails(index) {
         };
     });
 
-    // --- DP INPUT FIX (NO HTML CHANGES) ---
+    // --- DP INPUT REAL-TIME UPDATE ---
     const dpIn = document.getElementById('dpInput');
     if(dpIn) {
         dpIn.oninput = function() {
             currentDP = parseFloat(this.value) || 0; 
-            const data = getActiveData(); 
-            const qty = parseInt(document.getElementById('qtyValue')?.value || 1);
+            const d = getActiveData(); 
+            const q = parseInt(document.getElementById('qtyValue')?.value || 1);
             
-            let principal = (data.reg * qty) - currentDP;
-            let rate = parseFloat(data.monthlyRate); 
-            let compMonthly = (principal / selectedTerm) + (principal * rate);
-            let bal = compMonthly * selectedTerm;
-
-            // 1. Target Monthly Text (Gamit ang structure mo)
-            const monthlyText = document.querySelector('#toggleSchedule div div:first-child');
-            if(monthlyText) monthlyText.innerText = `Installment: ₱${compMonthly.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.`;
-
-            // 2. Target Term/DP Text
-            const subText = document.querySelector('#toggleSchedule div div:last-child');
-            if(subText) subText.innerText = `For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : '(0 Downpayment)'}`;
-
-            // 3. Target Balance Text (Footer)
-            const balDisplay = document.querySelector('#scheduleTableContainer div:last-child div span:last-child');
-            if(balDisplay) balDisplay.innerText = `₱${bal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-
-            // 4. Update Table Rows
-            const rows = document.querySelectorAll('#scheduleTableContainer table tr:not(:first-child)');
+            // Re-compute using your logic
+            let princ = (d.reg * q) - currentDP;
+            let mRate = parseFloat(d.monthlyRate); 
+            let cMonthly = (princ / selectedTerm) + (princ * mRate);
+            let tBal = cMonthly * selectedTerm;
             const pFee = parseFloat(currentProductData.Processing_Fee) || 0;
-            rows.forEach((row, idx) => {
-                const isF = (idx === 0);
-                const amt = isF ? (compMonthly + pFee) : compMonthly;
+
+            // 1. Update Monthly (Gamit ang mas specific na path para hindi mag-fail ang load)
+            const mText = document.querySelector('#toggleSchedule div:nth-of-type(1) div:nth-of-type(1)');
+            if(mText) mText.innerText = `Installment: ₱${cMonthly.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} / mo.`;
+
+            // 2. Update Term/DP Text
+            const sText = document.querySelector('#toggleSchedule div:nth-of-type(1) div:nth-of-type(2)');
+            if(sText) sText.innerText = `For ${selectedTerm} months term ${currentDP > 0 ? `(₱${currentDP.toLocaleString()} DP)` : '(0 Downpayment)'}`;
+
+            // 3. Update Table Rows
+            const tableRows = document.querySelectorAll('#scheduleTableContainer table tr:not(:first-child)');
+            tableRows.forEach((row, idx) => {
+                const isFirstRow = (idx === 0);
+                const finalAmt = isFirstRow ? (cMonthly + pFee) : cMonthly;
                 const cell = row.querySelector('td:last-child');
                 if(cell) {
-                    cell.innerHTML = `₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${isF ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${pFee.toLocaleString()} One-time Processing Fee</div>` : ''}`;
+                    cell.innerHTML = `₱${finalAmt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${isFirstRow ? `<div style="color:#e67e22; font-size:8px; font-weight:bold;">+ ₱${pFee.toLocaleString()} One-time Processing Fee</div>` : ''}`;
                 }
             });
+
+            // 4. Update Total Balance (Sa pinaka-baba)
+            const bDisp = document.querySelector('#scheduleTableContainer div:last-child span:nth-of-type(2)');
+            if(bDisp) bDisp.innerText = `₱${tBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         };
     }
 }
