@@ -26,6 +26,36 @@
         .checkout-btn { background: var(--forest-green); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px; }
         
         .empty-cart { text-align: center; padding: 40px; color: #888; }
+
+        /* Variation Modal Styles */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; top: 0; width: 100%; height: 100%; 
+    background-color: rgba(0,0,0,0.5); 
+}
+.modal-content {
+    background-color: white;
+    margin: 20% auto;
+    padding: 20px;
+    border-radius: 15px;
+    width: 80%;
+    max-width: 400px;
+}
+.variant-option {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font-weight: bold;
+}
+.variant-option:hover { background: #f0f0f0; border-color: var(--forest-green); }
+.variant-option.active { background: var(--forest-green); color: white; }
     </style>
 </head>
 <body>
@@ -41,6 +71,15 @@
     <div id="cartSummary" class="cart-summary" style="display:none;">
         <div>Total Amount: <span class="total-price" id="grandTotal">₱0.00</span></div>
         <button class="checkout-btn" onclick="processCheckout()">CHECKOUT NOW</button>
+    </div>
+</div>
+
+<div id="variationModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="color:var(--forest-green); margin-top:0;">Select Variation</h3>
+        <div id="optionsContainer">
+            </div>
+        <button onclick="closeModal()" style="margin-top:15px; width:100%; padding:10px; border:none; border-radius:8px; background:#eee; cursor:pointer;">Cancel</button>
     </div>
 </div>
 
@@ -169,42 +208,67 @@ function processCheckout() {
     }
 }
 
-async function editVariation(index) {
+let currentEditingIndex = -1;
+
+function editVariation(index) {
+    currentEditingIndex = index;
+    const cart = JSON.parse(localStorage.getItem('cart'));
+    const item = cart[index];
+    const container = document.getElementById('optionsContainer');
+    
+    // TANDAAN: Dapat ay may access ka sa product list mo para malaman ang options.
+    // Dito, i-assume natin na ang item ay may "availableOptions" property 
+    // o kaya ay kukunin natin sa global product list.
+    
+    // Halimbawa ng dummy data kung wala pang listahan:
+    const sampleColors = ["Black", "White", "Sierra Blue", "Graphite"]; 
+    
+    container.innerHTML = `<p style="font-size:12px; color:#888;">Choose a new Color:</p>`;
+    
+    sampleColors.forEach(color => {
+        const isActive = item.color === color ? 'active' : '';
+        container.innerHTML += `
+            <button class="variant-option ${isActive}" onclick="updateItemVariation('${color}')">
+                ${color}
+            </button>
+        `;
+    });
+
+    document.getElementById('variationModal').style.display = "block";
+}
+
+async function updateItemVariation(newVal) {
     let cart = JSON.parse(localStorage.getItem('cart'));
-    let item = cart[index];
+    
+    // I-update ang color (pwede mo itong i-expand para sa Size/Capacity)
+    cart[currentEditingIndex].color = newVal;
 
-    // Magtanong ng bagong values (Simple prompt muna para sa logic)
-    // Sa actual, mas maganda kung kukunin mo ang list ng variations sa database/productData
-    const newColor = prompt("Enter new Color:", item.color || "");
-    const newCapacity = prompt("Enter new Capacity:", item.capacity || "");
-    const newSize = prompt("Enter new Size:", item.size || "");
-
-    if (newColor !== null && newCapacity !== null && newSize !== null) {
-        // I-update ang item
-        cart[index].color = newColor || "N/A";
-        cart[index].capacity = newCapacity || "N/A";
-        cart[index].size = newSize || "N/A";
-
-        // CHECK: Kung pagkatapos i-edit ay naging kapareho siya ng ibang item sa cart,
-        // i-merge natin sila (optional pero recommended)
-        for (let i = 0; i < cart.length; i++) {
-            if (i !== index && 
-                cart[i].id === cart[index].id && 
-                cart[i].color === cart[index].color && 
-                cart[i].capacity === cart[index].capacity && 
-                cart[i].size === cart[index].size) {
-                
-                cart[i].quantity += cart[index].quantity; // I-add ang qty
-                cart.splice(index, 1); // Burahin ang duplicate
-                break;
-            }
+    // Check para sa Duplicates (Merge items if they become identical)
+    for (let i = 0; i < cart.length; i++) {
+        if (i !== currentEditingIndex && 
+            cart[i].id === cart[currentEditingIndex].id && 
+            cart[i].color === cart[currentEditingIndex].color) {
+            
+            cart[i].quantity += cart[currentEditingIndex].quantity;
+            cart.splice(currentEditingIndex, 1);
+            break;
         }
-
-        localStorage.setItem('cart', JSON.stringify(cart));
-        renderCartUI(cart);
-        await syncCartToCloud();
-        alert("Variation updated!");
     }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    closeModal();
+    renderCartUI(cart);
+    await syncCartToCloud();
+}
+
+function closeModal() {
+    document.getElementById('variationModal').style.display = "none";
+}
+
+// Isara ang modal pag click sa labas
+window.onclick = function(event) {
+    const modal = document.getElementById('variationModal');
+    if (event.target == modal) closeModal();
 }
 
 window.onload = loadCart;
