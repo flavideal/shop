@@ -83,11 +83,12 @@
     </div>
 </div>
 
-<script>
 // --- KONFIGURASYON ---
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
 
-// 1. RENDER UI - Updated para sa Variations (Color, Capacity, Size)
+let currentEditingIndex = -1; // Isang beses lang dapat ito
+
+// 1. RENDER UI
 function renderCartUI(cart) {
     const container = document.getElementById('cartItemsList');
     const summary = document.getElementById('cartSummary');
@@ -102,221 +103,134 @@ function renderCartUI(cart) {
     let total = 0;
     
     container.innerHTML = cart.map((item, index) => {
-    total += item.price * item.quantity;
+        total += item.price * item.quantity;
+        let variationLabel = [];
+        if (item.color && item.color !== "N/A") variationLabel.push(item.color);
+        if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
+        if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
 
-    let variationLabel = [];
-    if (item.color && item.color !== "N/A") variationLabel.push(item.color);
-    if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
-    if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
+        const productLink = `product.html?id=${item.id}`;
 
-    // Link papunta sa product page gamit ang ID
-    const productLink = `product.html?id=${item.id}`;
-
-    return `
-        <div class="cart-item">
-            <a href="${productLink}">
-                <img src="${item.image}" alt="${item.name}" style="cursor:pointer;">
-            </a>
-            
-            <div class="item-info">
-                <a href="${productLink}" style="text-decoration:none; color:inherit;">
-                    <h4 style="cursor:pointer; margin:0;">${item.name}</h4>
-                </a>
-
-                <div class="item-meta">
-                    ${variationLabel.join(' | ')} 
-                    <span onclick="editVariation(${index})" style="margin-left:10px; color:var(--forest-green); cursor:pointer; font-weight:bold; text-decoration:underline;">
-                        Change
-                    </span>
+        return `
+            <div class="cart-item">
+                <a href="${productLink}"><img src="${item.image}" alt="${item.name}"></a>
+                <div class="item-info">
+                    <a href="${productLink}" style="text-decoration:none; color:inherit;"><h4>${item.name}</h4></a>
+                    <div class="item-meta">
+                        ${variationLabel.join(' | ')} 
+                        <span onclick="editVariation(${index})" style="margin-left:10px; color:var(--forest-green); cursor:pointer; font-weight:bold; text-decoration:underline;">Change</span>
+                    </div>
+                    <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                        <span style="font-weight:bold; width: 30px; text-align: center; display: inline-block;">${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                    </div>
+                    <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
                 </div>
-
-                <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-                
-                <div class="qty-controls">
-                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
-                    <span style="font-weight:bold; width: 30px; text-align: center; display: inline-block;">${item.quantity}</span>
-                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
-                </div>
-                <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
-            </div>
-        </div>
-    `;
-}).join('');
+            </div>`;
+    }).join('');
 
     document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 }
 
-// 2. LOAD CART - Kinukuha ang data sa LocalStorage + Cloud Sync
+// 2. LOAD CART
 async function loadCart() {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     const user = JSON.parse(localStorage.getItem('currentUser'));
-
     if (user && user.email) {
         try {
-            // Kunin ang cart mula sa Google Sheets
             const response = await fetch(`${webAppUrl}?action=getCart&email=${encodeURIComponent(user.email)}`);
             const serverCart = await response.json();
-            
             if (serverCart && serverCart.length > 0) {
-                // I-merge: idagdag ang wala sa local mula sa server
                 serverCart.forEach(sItem => {
-                    const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color && lItem.capacity === sItem.capacity) && lItem.size === sItem.size;
+                    const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color && lItem.capacity === sItem.capacity && lItem.size === sItem.size);
                     if (!exists) cart.push(sItem);
                 });
                 localStorage.setItem('cart', JSON.stringify(cart));
             }
-        } catch (e) {
-            console.log("Using offline cart data.");
-        }
+        } catch (e) { console.log("Offline mode."); }
     }
     renderCartUI(cart);
 }
 
-// 3. SYNC TO CLOUD - Sine-save ang cart sa Google Sheets
-async function syncCartToCloud() {
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    const cart = localStorage.getItem('cart');
-    
-    if (user && user.email && cart) {
-        try {
-            await fetch(`${webAppUrl}?action=syncCart&email=${encodeURIComponent(user.email)}&cartData=${encodeURIComponent(cart)}`);
-            console.log("Cloud synced.");
-        } catch (err) {
-            console.error("Sync error:", err);
-        }
-    }
-}
-
-// 4. UPDATE QUANTITY
-async function updateQty(index, change) {
-    let cart = JSON.parse(localStorage.getItem('cart'));
-    cart[index].quantity += change;
-    
-    if (cart[index].quantity < 1) cart[index].quantity = 1;
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    renderCartUI(cart);
-    await syncCartToCloud(); // I-save sa cloud pagkatapos palitan
-}
-
-// 5. REMOVE ITEM
-async function removeItem(index) {
-    if(!confirm("Remove this item?")) return;
-    let cart = JSON.parse(localStorage.getItem('cart'));
-    cart.splice(index, 1);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    renderCartUI(cart);
-    await syncCartToCloud(); // I-save sa cloud pagkatapos burahin
-}
-
-// 6. CHECKOUT
-function processCheckout() {
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user) {
-        alert("Please login first to proceed.");
-        window.location.href = 'account.html'; 
-    } else {
-        alert("Thank you! Processing your order...");
-        // Dito mo ilalagay ang sunod na step para sa payment/order form
-    }
-}
-
-let currentEditingIndex = -1;
-
-function editVariation(index) {
-    currentEditingIndex = index;
-    const cart = JSON.parse(localStorage.getItem('cart'));
-    const item = cart[index];
-    const container = document.getElementById('optionsContainer');
-    
-    // TANDAAN: Dapat ay may access ka sa product list mo para malaman ang options.
-    // Dito, i-assume natin na ang item ay may "availableOptions" property 
-    // o kaya ay kukunin natin sa global product list.
-    
-    // Halimbawa ng dummy data kung wala pang listahan:
-    const sampleColors = ["Black", "White", "Sierra Blue", "Graphite"]; 
-    
-    container.innerHTML = `<p style="font-size:12px; color:#888;">Choose a new Color:</p>`;
-    
-    sampleColors.forEach(color => {
-        const isActive = item.color === color ? 'active' : '';
-        container.innerHTML += `
-            <button class="variant-option ${isActive}" onclick="updateItemVariation('${color}')">
-                ${color}
-            </button>
-        `;
-    });
-
-    document.getElementById('variationModal').style.display = "block";
-}
-
-let currentEditingIndex = -1;
-
+// 3. EDIT VARIATION (The Dynamic One)
 async function editVariation(index) {
     currentEditingIndex = index;
     const cart = JSON.parse(localStorage.getItem('cart'));
     const item = cart[index];
     const container = document.getElementById('optionsContainer');
     
-    container.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading options...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
     document.getElementById('variationModal').style.display = "block";
     document.getElementById('modalTitle').innerText = `Change ${item.name}`;
 
     try {
-        // 1. I-fetch ang latest product details mula sa Google Sheets API mo
-        // Ginagamit ang ID para makuha ang specific variations ng product na ito
         const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
         const productDetails = await response.json(); 
 
-        // 2. I-clear ang loading
         container.innerHTML = "";
-
-        // 3. I-render ang Color Options (kung available sa Sheets)
         if (productDetails.colors && productDetails.colors.length > 0) {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">AVAILABLE COLORS:</p>`;
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888;">COLORS:</p>`;
             productDetails.colors.forEach(c => {
                 const active = item.color === c ? 'active' : '';
-                container.innerHTML += `
-                    <button class="variant-option ${active}" onclick="updateItemField('color', '${c}')">
-                        ${c}
-                    </button>
-                `;
+                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('color', '${c}')">${c}</button>`;
             });
         }
-
-        // 4. I-render ang Capacity/Size Options (kung available sa Sheets)
         if (productDetails.capacities && productDetails.capacities.length > 0) {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:15px; margin-bottom:5px;">AVAILABLE CAPACITY:</p>`;
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px;">CAPACITY:</p>`;
             productDetails.capacities.forEach(cap => {
                 const active = item.capacity === cap ? 'active' : '';
-                container.innerHTML += `
-                    <button class="variant-option ${active}" onclick="updateItemField('capacity', '${cap}')">
-                        ${cap}
-                    </button>
-                `;
+                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('capacity', '${cap}')">${cap}</button>`;
             });
         }
-
     } catch (err) {
-        container.innerHTML = `<p style="color:red; font-size:12px;">Failed to load options. Please try again.</p>`;
+        container.innerHTML = `<p style="color:red;">Error loading options.</p>`;
     }
 }
 
-// Function para i-update ang specific field (color man o capacity)
+// 4. UPDATE FIELD
 async function updateItemField(field, newVal) {
     let cart = JSON.parse(localStorage.getItem('cart'));
-    
-    // Update the specific field
     cart[currentEditingIndex][field] = newVal;
-
-    // Optional: Kung may special price ang bagong variant, 
-    // pwede mo ring i-update ang cart[currentEditingIndex].price dito.
-
     localStorage.setItem('cart', JSON.stringify(cart));
     renderCartUI(cart);
-    closeModal(); // Isara agad pagkapili
+    closeModal();
     await syncCartToCloud();
 }
+
+// 5. HELPER FUNCTIONS
+function closeModal() {
+    document.getElementById('variationModal').style.display = "none";
+}
+
+async function updateQty(index, change) {
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    cart[index].quantity += change;
+    if (cart[index].quantity < 1) cart[index].quantity = 1;
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCartUI(cart);
+    await syncCartToCloud();
+}
+
+async function removeItem(index) {
+    if(!confirm("Remove?")) return;
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCartUI(cart);
+    await syncCartToCloud();
+}
+
+async function syncCartToCloud() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const cart = localStorage.getItem('cart');
+    if (user && user.email && cart) {
+        await fetch(`${webAppUrl}?action=syncCart&email=${encodeURIComponent(user.email)}&cartData=${encodeURIComponent(cart)}`);
+    }
+}
+
+window.onload = loadCart;
 </script>
 </body>
 </html>
