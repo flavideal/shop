@@ -115,8 +115,11 @@ function renderCartUI(cart) {
                 <img src="${item.image}" alt="${item.name}">
                 <div class="item-info">
                     <h4>${item.name}</h4>
-                   <div class="item-meta" onclick="editVariation(${index})" style="cursor:pointer; color:var(--forest-green); text-decoration:underline;">
-    ${variationLabel.length > 0 ? variationLabel.join(' | ') : 'Edit Variation'}
+                   <div class="item-meta">
+    ${variationLabel.join(' | ')} 
+    <span onclick="editVariation(${index})" style="margin-left:10px; color:var(--forest-green); cursor:pointer; font-weight:bold; text-decoration:underline;">
+        Change
+    </span>
 </div>
                     <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                     <div class="qty-controls">
@@ -237,41 +240,73 @@ function editVariation(index) {
     document.getElementById('variationModal').style.display = "block";
 }
 
-async function updateItemVariation(newVal) {
+let currentEditingIndex = -1;
+
+async function editVariation(index) {
+    currentEditingIndex = index;
+    const cart = JSON.parse(localStorage.getItem('cart'));
+    const item = cart[index];
+    const container = document.getElementById('optionsContainer');
+    
+    container.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading options...</div>`;
+    document.getElementById('variationModal').style.display = "block";
+    document.getElementById('modalTitle').innerText = `Change ${item.name}`;
+
+    try {
+        // 1. I-fetch ang latest product details mula sa Google Sheets API mo
+        // Ginagamit ang ID para makuha ang specific variations ng product na ito
+        const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
+        const productDetails = await response.json(); 
+
+        // 2. I-clear ang loading
+        container.innerHTML = "";
+
+        // 3. I-render ang Color Options (kung available sa Sheets)
+        if (productDetails.colors && productDetails.colors.length > 0) {
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">AVAILABLE COLORS:</p>`;
+            productDetails.colors.forEach(c => {
+                const active = item.color === c ? 'active' : '';
+                container.innerHTML += `
+                    <button class="variant-option ${active}" onclick="updateItemField('color', '${c}')">
+                        ${c}
+                    </button>
+                `;
+            });
+        }
+
+        // 4. I-render ang Capacity/Size Options (kung available sa Sheets)
+        if (productDetails.capacities && productDetails.capacities.length > 0) {
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:15px; margin-bottom:5px;">AVAILABLE CAPACITY:</p>`;
+            productDetails.capacities.forEach(cap => {
+                const active = item.capacity === cap ? 'active' : '';
+                container.innerHTML += `
+                    <button class="variant-option ${active}" onclick="updateItemField('capacity', '${cap}')">
+                        ${cap}
+                    </button>
+                `;
+            });
+        }
+
+    } catch (err) {
+        container.innerHTML = `<p style="color:red; font-size:12px;">Failed to load options. Please try again.</p>`;
+    }
+}
+
+// Function para i-update ang specific field (color man o capacity)
+async function updateItemField(field, newVal) {
     let cart = JSON.parse(localStorage.getItem('cart'));
     
-    // I-update ang color (pwede mo itong i-expand para sa Size/Capacity)
-    cart[currentEditingIndex].color = newVal;
+    // Update the specific field
+    cart[currentEditingIndex][field] = newVal;
 
-    // Check para sa Duplicates (Merge items if they become identical)
-    for (let i = 0; i < cart.length; i++) {
-        if (i !== currentEditingIndex && 
-            cart[i].id === cart[currentEditingIndex].id && 
-            cart[i].color === cart[currentEditingIndex].color) {
-            
-            cart[i].quantity += cart[currentEditingIndex].quantity;
-            cart.splice(currentEditingIndex, 1);
-            break;
-        }
-    }
+    // Optional: Kung may special price ang bagong variant, 
+    // pwede mo ring i-update ang cart[currentEditingIndex].price dito.
 
     localStorage.setItem('cart', JSON.stringify(cart));
-    closeModal();
     renderCartUI(cart);
+    closeModal(); // Isara agad pagkapili
     await syncCartToCloud();
 }
-
-function closeModal() {
-    document.getElementById('variationModal').style.display = "none";
-}
-
-// Isara ang modal pag click sa labas
-window.onclick = function(event) {
-    const modal = document.getElementById('variationModal');
-    if (event.target == modal) closeModal();
-}
-
-window.onload = loadCart;
 </script>
 </body>
 </html>
