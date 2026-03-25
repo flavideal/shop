@@ -102,36 +102,46 @@ function renderCartUI(cart) {
     let total = 0;
     
     container.innerHTML = cart.map((item, index) => {
-        total += item.price * item.quantity;
+    total += item.price * item.quantity;
 
-        // Gumawa ng label para sa variations para hindi pangit tignan kung "N/A" ang iba
-        let variationLabel = [];
-        if (item.color && item.color !== "N/A") variationLabel.push(item.color);
-        if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
-        if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
+    let variationLabel = [];
+    if (item.color && item.color !== "N/A") variationLabel.push(item.color);
+    if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
+    if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
 
-        return `
-            <div class="cart-item">
-                <img src="${item.image}" alt="${item.name}">
-                <div class="item-info">
-                    <h4>${item.name}</h4>
-                   <div class="item-meta">
-    ${variationLabel.join(' | ')} 
-    <span onclick="editVariation(${index})" style="margin-left:10px; color:var(--forest-green); cursor:pointer; font-weight:bold; text-decoration:underline;">
-        Change
-    </span>
-</div>
-                    <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
-                        <span style="font-weight:bold; width: 30px; text-align: center; display: inline-block;">${item.quantity}</span>
-                        <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
-                    </div>
-                    <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
+    // Link papunta sa product page gamit ang ID
+    const productLink = `product.html?id=${item.id}`;
+
+    return `
+        <div class="cart-item">
+            <a href="${productLink}">
+                <img src="${item.image}" alt="${item.name}" style="cursor:pointer;">
+            </a>
+            
+            <div class="item-info">
+                <a href="${productLink}" style="text-decoration:none; color:inherit;">
+                    <h4 style="cursor:pointer; margin:0;">${item.name}</h4>
+                </a>
+
+                <div class="item-meta">
+                    ${variationLabel.join(' | ')} 
+                    <span onclick="editVariation(${index})" style="margin-left:10px; color:var(--forest-green); cursor:pointer; font-weight:bold; text-decoration:underline;">
+                        Change
+                    </span>
                 </div>
+
+                <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                
+                <div class="qty-controls">
+                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                    <span style="font-weight:bold; width: 30px; text-align: center; display: inline-block;">${item.quantity}</span>
+                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                </div>
+                <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
             </div>
-        `;
-    }).join('');
+        </div>
+    `;
+}).join('');
 
     document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 }
