@@ -87,10 +87,7 @@
 // --- KONFIGURASYON ---
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
 
-let currentEditingIndex = -1; 
-let globalProductDetails = {}; 
-
-// 1. RENDER UI
+// 1. RENDER UI (Simple version)
 function renderCartUI(cart) {
     const container = document.getElementById('cartItemsList');
     const summary = document.getElementById('cartSummary');
@@ -106,10 +103,12 @@ function renderCartUI(cart) {
     
     container.innerHTML = cart.map((item, index) => {
         total += item.price * item.quantity;
+        
+        // I-display lang kung ano ang nakuha mula sa Product Page
         let variationLabel = [];
-        if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
-        if (item.color && item.color !== "N/A") variationLabel.push(item.color);
-        if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
+        if (item.capacity && item.capacity !== "N/A" && item.capacity !== "") variationLabel.push(item.capacity);
+        if (item.color && item.color !== "N/A" && item.color !== "") variationLabel.push(item.color);
+        if (item.size && item.size !== "N/A" && item.size !== "") variationLabel.push(`Size: ${item.size}`);
 
         const productLink = `product.html?id=${item.id}`;
 
@@ -120,8 +119,7 @@ function renderCartUI(cart) {
                     <a href="${productLink}" style="text-decoration:none; color:inherit;"><h4>${item.name}</h4></a>
                     <div class="item-meta">
                         ${variationLabel.join(' | ')} 
-                        <span onclick="editVariation(${index})" style="margin-left:10px; color:var(--forest-green); cursor:pointer; font-weight:bold; text-decoration:underline;">Change</span>
-                    </div>
+                        </div>
                     <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                     <div class="qty-controls">
                         <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
@@ -139,113 +137,23 @@ function renderCartUI(cart) {
 // 2. LOAD CART
 async function loadCart() {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    // Optional: Fetch updated cart from cloud if user is logged in
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.email) {
+        try {
+            const response = await fetch(`${webAppUrl}?action=getCart&email=${encodeURIComponent(user.email)}`);
+            const serverCart = await response.json();
+            if (serverCart && serverCart.length > 0) {
+                // Simpleng sync: Gamitin ang server cart kung meron
+                cart = serverCart;
+                localStorage.setItem('cart', JSON.stringify(cart));
+            }
+        } catch (e) { console.log("Offline or sync error."); }
+    }
     renderCartUI(cart);
 }
 
-// 3. EDIT VARIATION
-async function editVariation(index) {
-    currentEditingIndex = index;
-    const cart = JSON.parse(localStorage.getItem('cart'));
-    const item = cart[index];
-    const container = document.getElementById('optionsContainer');
-    
-    container.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Fetching variations...</div>`;
-    document.getElementById('variationModal').style.display = "block";
-    document.getElementById('modalTitle').innerText = `Change ${item.name}`;
-
-    try {
-        const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
-        const result = await response.json(); 
-        globalProductDetails = result; 
-
-        container.innerHTML = "";
-        
-        const validCapacities = (result.capacities || []).filter(cap => cap && cap.trim() !== "");
-        if (validCapacities.length > 0) {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">STORAGE:</p>
-                                    <div id="storageBtns" style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;"></div>`;
-            const sBtns = document.getElementById('storageBtns');
-            validCapacities.forEach((cap, i) => {
-                const active = item.capacity === cap ? 'active' : '';
-                const btn = document.createElement('button');
-                btn.className = `variant-option cap-btn ${active}`;
-                btn.innerText = cap;
-                btn.onclick = () => selectStorage(i, cap);
-                sBtns.appendChild(btn);
-            });
-            
-            const currentIdx = result.capacities.indexOf(item.capacity);
-            renderColorOptions(currentIdx > -1 ? currentIdx : 0, item.color);
-        }
-
-        const validSizes = (result.sizes || []).filter(s => s && s.trim() !== "" && s.toLowerCase() !== "n/a");
-        if (validSizes.length > 0) {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">SIZE:</p>
-                                    <div style="display:flex; flex-wrap:wrap; gap:5px;">`;
-            validSizes.forEach(s => {
-                const active = item.size === s ? 'active' : '';
-                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('size', '${s}')">${s}</button>`;
-            });
-            container.innerHTML += `</div>`;
-        }
-
-    } catch (err) {
-        console.error("Fetch Error:", err);
-        container.innerHTML = `<p style="color:red; font-size:12px;">Error loading variations.</p>`;
-    }
-} // <--- Eto yung kulang mo kanina!
-
-// 4. STORAGE SELECTION
-function selectStorage(idx, val) {
-    document.querySelectorAll('.cap-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-    let cart = JSON.parse(localStorage.getItem('cart'));
-    cart[currentEditingIndex].capacity = val;
-    localStorage.setItem('cart', JSON.stringify(cart));
-    renderColorOptions(idx);
-}
-
-// 5. COLOR RENDERING
-function renderColorOptions(storageIdx, currentColor = "") {
-    let colorContainer = document.getElementById('cartColorContainer');
-    if (!colorContainer) {
-        colorContainer = document.createElement('div');
-        colorContainer.id = 'cartColorContainer';
-        document.getElementById('optionsContainer').appendChild(colorContainer);
-    }
-
-    const groupString = globalProductDetails.colorGroups[storageIdx] || "";
-    const availableColors = groupString.split('|').map(c => c.trim()).filter(c => c !== "");
-
-    colorContainer.innerHTML = "";
-    if (availableColors.length > 0) {
-        colorContainer.innerHTML = `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">COLOR:</p>`;
-        availableColors.forEach(color => {
-            const active = currentColor === color ? 'active' : '';
-            const btn = document.createElement('button');
-            btn.className = `variant-option color-btn ${active}`;
-            btn.innerText = color;
-            btn.onclick = () => {
-                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                updateItemField('color', color);
-            };
-            colorContainer.appendChild(btn);
-        });
-    }
-}
-
-// 6. UPDATE FIELD & SYNC
-async function updateItemField(field, newVal) {
-    let cart = JSON.parse(localStorage.getItem('cart'));
-    cart[currentEditingIndex][field] = newVal;
-    localStorage.setItem('cart', JSON.stringify(cart));
-    renderCartUI(cart);
-    closeModal();
-    await syncCartToCloud();
-}
-
-function closeModal() { document.getElementById('variationModal').style.display = "none"; }
-
+// 3. QUANTITY & REMOVE LOGIC
 async function updateQty(index, change) {
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart[index].quantity += change;
@@ -256,7 +164,7 @@ async function updateQty(index, change) {
 }
 
 async function removeItem(index) {
-    if(!confirm("Remove?")) return;
+    if(!confirm("Remove this item?")) return;
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart.splice(index, 1);
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -264,13 +172,14 @@ async function removeItem(index) {
     await syncCartToCloud();
 }
 
+// 4. SYNC TO GOOGLE SHEETS
 async function syncCartToCloud() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     const cart = localStorage.getItem('cart');
     if (user && user.email && cart) {
         try {
             await fetch(`${webAppUrl}?action=syncCart&email=${encodeURIComponent(user.email)}&cartData=${encodeURIComponent(cart)}`);
-        } catch(e) {}
+        } catch(e) { console.error("Cloud sync failed."); }
     }
 }
 
