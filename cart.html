@@ -76,9 +76,9 @@ function renderCartUI(cart) {
                 <img src="${item.image}" alt="${item.name}">
                 <div class="item-info">
                     <h4>${item.name}</h4>
-                    <div class="item-meta">
-                        ${variationLabel.join(' | ')}
-                    </div>
+                   <div class="item-meta" onclick="editVariation(${index})" style="cursor:pointer; color:var(--forest-green); text-decoration:underline;">
+    ${variationLabel.length > 0 ? variationLabel.join(' | ') : 'Edit Variation'}
+</div>
                     <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                     <div class="qty-controls">
                         <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
@@ -166,6 +166,44 @@ function processCheckout() {
     } else {
         alert("Thank you! Processing your order...");
         // Dito mo ilalagay ang sunod na step para sa payment/order form
+    }
+}
+
+async function editVariation(index) {
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    let item = cart[index];
+
+    // Magtanong ng bagong values (Simple prompt muna para sa logic)
+    // Sa actual, mas maganda kung kukunin mo ang list ng variations sa database/productData
+    const newColor = prompt("Enter new Color:", item.color || "");
+    const newCapacity = prompt("Enter new Capacity:", item.capacity || "");
+    const newSize = prompt("Enter new Size:", item.size || "");
+
+    if (newColor !== null && newCapacity !== null && newSize !== null) {
+        // I-update ang item
+        cart[index].color = newColor || "N/A";
+        cart[index].capacity = newCapacity || "N/A";
+        cart[index].size = newSize || "N/A";
+
+        // CHECK: Kung pagkatapos i-edit ay naging kapareho siya ng ibang item sa cart,
+        // i-merge natin sila (optional pero recommended)
+        for (let i = 0; i < cart.length; i++) {
+            if (i !== index && 
+                cart[i].id === cart[index].id && 
+                cart[i].color === cart[index].color && 
+                cart[i].capacity === cart[index].capacity && 
+                cart[i].size === cart[index].size) {
+                
+                cart[i].quantity += cart[index].quantity; // I-add ang qty
+                cart.splice(index, 1); // Burahin ang duplicate
+                break;
+            }
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCartUI(cart);
+        await syncCartToCloud();
+        alert("Variation updated!");
     }
 }
 
