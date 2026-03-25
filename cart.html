@@ -154,41 +154,46 @@ async function editVariation(index) {
     document.getElementById('modalTitle').innerText = `Change ${item.name}`;
 
     try {
-        const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
-        globalProductDetails = await response.json(); 
+    const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
+    const result = await response.json(); 
+    globalProductDetails = result; 
 
-        container.innerHTML = "";
+    container.innerHTML = "";
+    
+    // --- CHECK KUNG MAY STORAGE (CAPACITY) ---
+    // .filter(cap => cap !== "") ay para siguradong walang blangkong button
+    const validCapacities = (result.capacities || []).filter(cap => cap && cap.trim() !== "");
+
+    if (validCapacities.length > 0) {
+        container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">STORAGE:</p>
+                                <div id="storageBtns" style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;"></div>`;
+        const sBtns = document.getElementById('storageBtns');
+        validCapacities.forEach((cap, i) => {
+            const active = item.capacity === cap ? 'active' : '';
+            sBtns.innerHTML += `<button class="variant-option cap-btn ${active}" onclick="selectStorage(${i}, '${cap}')">${cap}</button>`;
+        });
         
-        // --- A. RENDER STORAGE (CAPACITY) ---
-        if (globalProductDetails.capacities && globalProductDetails.capacities.length > 0) {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">STORAGE:</p>
-                                    <div id="storageBtns"></div>`;
-            const sBtns = document.getElementById('storageBtns');
-            globalProductDetails.capacities.forEach((cap, i) => {
-                const active = item.capacity === cap ? 'active' : '';
-                const btn = document.createElement('button');
-                btn.className = `variant-option cap-btn ${active}`;
-                btn.innerText = cap;
-                btn.onclick = () => selectStorage(i, cap);
-                sBtns.appendChild(btn);
-            });
-            
-            // Auto-load colors based on currently selected storage
-            const currentCapIdx = globalProductDetails.capacities.indexOf(item.capacity);
-            renderColorOptions(currentCapIdx > -1 ? currentCapIdx : 0, item.color);
-        }
-
-        // --- B. RENDER SIZE (Optional) ---
-        if (globalProductDetails.sizes && globalProductDetails.sizes.length > 0 && globalProductDetails.sizes[0] !== "") {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">SIZE:</p>`;
-            globalProductDetails.sizes.forEach(s => {
-                const active = item.size === s ? 'active' : '';
-                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('size', '${s}')">${s}</button>`;
-            });
-        }
-    } catch (err) {
-        container.innerHTML = `<p style="color:red;">Error loading options.</p>`;
+        const currentIdx = result.capacities.indexOf(item.capacity);
+        renderColorOptions(currentIdx > -1 ? currentIdx : 0, item.color);
     }
+
+    // --- CHECK KUNG MAY SIZE (Dito mawawala ang blangko) ---
+    const validSizes = (result.sizes || []).filter(s => s && s.trim() !== "" && s.toLowerCase() !== "n/a");
+
+    if (validSizes.length > 0) {
+        container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">SIZE:</p>
+                                <div style="display:flex; flex-wrap:wrap; gap:5px;">`;
+        validSizes.forEach(s => {
+            const active = item.size === s ? 'active' : '';
+            container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('size', '${s}')">${s}</button>`;
+        });
+        container.innerHTML += `</div>`;
+    }
+
+} catch (err) {
+    console.error("Fetch Error:", err);
+    container.innerHTML = `<p style="color:red; font-size:12px;">Error loading variations.</p>`;
+}
 }
 
 // 4. STORAGE SELECTION LOGIC
