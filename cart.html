@@ -88,9 +88,9 @@
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
 
 let currentEditingIndex = -1; 
-let globalProductDetails = {}; // I-save ang fetched variants dito
+let globalProductDetails = {}; 
 
-// 1. RENDER UI (Walang bago dito, pero siguraduhing nandoon lahat)
+// 1. RENDER UI
 function renderCartUI(cart) {
     const container = document.getElementById('cartItemsList');
     const summary = document.getElementById('cartSummary');
@@ -136,13 +136,13 @@ function renderCartUI(cart) {
     document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 }
 
-// 2. LOAD CART (Maintain current logic)
+// 2. LOAD CART
 async function loadCart() {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     renderCartUI(cart);
 }
 
-// 3. EDIT VARIATION (Logic Updated to match Product Details)
+// 3. EDIT VARIATION
 async function editVariation(index) {
     currentEditingIndex = index;
     const cart = JSON.parse(localStorage.getItem('cart'));
@@ -154,62 +154,57 @@ async function editVariation(index) {
     document.getElementById('modalTitle').innerText = `Change ${item.name}`;
 
     try {
-    const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
-    const result = await response.json(); 
-    globalProductDetails = result; 
+        const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
+        const result = await response.json(); 
+        globalProductDetails = result; 
 
-    container.innerHTML = "";
-    
-    // --- CHECK KUNG MAY STORAGE (CAPACITY) ---
-    // .filter(cap => cap !== "") ay para siguradong walang blangkong button
-    const validCapacities = (result.capacities || []).filter(cap => cap && cap.trim() !== "");
-
-    if (validCapacities.length > 0) {
-        container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">STORAGE:</p>
-                                <div id="storageBtns" style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;"></div>`;
-        const sBtns = document.getElementById('storageBtns');
-        validCapacities.forEach((cap, i) => {
-            const active = item.capacity === cap ? 'active' : '';
-            sBtns.innerHTML += `<button class="variant-option cap-btn ${active}" onclick="selectStorage(${i}, '${cap}')">${cap}</button>`;
-        });
+        container.innerHTML = "";
         
-        const currentIdx = result.capacities.indexOf(item.capacity);
-        renderColorOptions(currentIdx > -1 ? currentIdx : 0, item.color);
+        const validCapacities = (result.capacities || []).filter(cap => cap && cap.trim() !== "");
+        if (validCapacities.length > 0) {
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">STORAGE:</p>
+                                    <div id="storageBtns" style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;"></div>`;
+            const sBtns = document.getElementById('storageBtns');
+            validCapacities.forEach((cap, i) => {
+                const active = item.capacity === cap ? 'active' : '';
+                const btn = document.createElement('button');
+                btn.className = `variant-option cap-btn ${active}`;
+                btn.innerText = cap;
+                btn.onclick = () => selectStorage(i, cap);
+                sBtns.appendChild(btn);
+            });
+            
+            const currentIdx = result.capacities.indexOf(item.capacity);
+            renderColorOptions(currentIdx > -1 ? currentIdx : 0, item.color);
+        }
+
+        const validSizes = (result.sizes || []).filter(s => s && s.trim() !== "" && s.toLowerCase() !== "n/a");
+        if (validSizes.length > 0) {
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">SIZE:</p>
+                                    <div style="display:flex; flex-wrap:wrap; gap:5px;">`;
+            validSizes.forEach(s => {
+                const active = item.size === s ? 'active' : '';
+                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('size', '${s}')">${s}</button>`;
+            });
+            container.innerHTML += `</div>`;
+        }
+
+    } catch (err) {
+        console.error("Fetch Error:", err);
+        container.innerHTML = `<p style="color:red; font-size:12px;">Error loading variations.</p>`;
     }
+} // <--- Eto yung kulang mo kanina!
 
-    // --- CHECK KUNG MAY SIZE (Dito mawawala ang blangko) ---
-    const validSizes = (result.sizes || []).filter(s => s && s.trim() !== "" && s.toLowerCase() !== "n/a");
-
-    if (validSizes.length > 0) {
-        container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">SIZE:</p>
-                                <div style="display:flex; flex-wrap:wrap; gap:5px;">`;
-        validSizes.forEach(s => {
-            const active = item.size === s ? 'active' : '';
-            container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('size', '${s}')">${s}</button>`;
-        });
-        container.innerHTML += `</div>`;
-    }
-
-} catch (err) {
-    console.error("Fetch Error:", err);
-    container.innerHTML = `<p style="color:red; font-size:12px;">Error loading variations.</p>`;
-}
-
-
-// 4. STORAGE SELECTION LOGIC
+// 4. STORAGE SELECTION
 function selectStorage(idx, val) {
     document.querySelectorAll('.cap-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-    
-    // Save locally
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart[currentEditingIndex].capacity = val;
     localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // Show corresponding colors
     renderColorOptions(idx);
 }
 
-// 5. COLOR RENDERING LOGIC (Matches p.Colors.split('|'))
+// 5. COLOR RENDERING
 function renderColorOptions(storageIdx, currentColor = "") {
     let colorContainer = document.getElementById('cartColorContainer');
     if (!colorContainer) {
@@ -239,7 +234,7 @@ function renderColorOptions(storageIdx, currentColor = "") {
     }
 }
 
-// 6. UPDATE FIELD & CLOSE
+// 6. UPDATE FIELD & SYNC
 async function updateItemField(field, newVal) {
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart[currentEditingIndex][field] = newVal;
@@ -249,8 +244,8 @@ async function updateItemField(field, newVal) {
     await syncCartToCloud();
 }
 
-// --- REST OF HELPER FUNCTIONS (No changes needed) ---
 function closeModal() { document.getElementById('variationModal').style.display = "none"; }
+
 async function updateQty(index, change) {
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart[index].quantity += change;
@@ -259,6 +254,7 @@ async function updateQty(index, change) {
     renderCartUI(cart);
     await syncCartToCloud();
 }
+
 async function removeItem(index) {
     if(!confirm("Remove?")) return;
     let cart = JSON.parse(localStorage.getItem('cart'));
@@ -267,6 +263,7 @@ async function removeItem(index) {
     renderCartUI(cart);
     await syncCartToCloud();
 }
+
 async function syncCartToCloud() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     const cart = localStorage.getItem('cart');
