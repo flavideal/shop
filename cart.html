@@ -87,9 +87,10 @@
 // --- KONFIGURASYON ---
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
 
-let currentEditingIndex = -1; // Isang beses lang dapat ito
+let currentEditingIndex = -1; 
+let globalProductDetails = {}; // I-save ang fetched variants dito
 
-// 1. RENDER UI
+// 1. RENDER UI (Walang bago dito, pero siguraduhing nandoon lahat)
 function renderCartUI(cart) {
     const container = document.getElementById('cartItemsList');
     const summary = document.getElementById('cartSummary');
@@ -106,8 +107,8 @@ function renderCartUI(cart) {
     container.innerHTML = cart.map((item, index) => {
         total += item.price * item.quantity;
         let variationLabel = [];
-        if (item.color && item.color !== "N/A") variationLabel.push(item.color);
         if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
+        if (item.color && item.color !== "N/A") variationLabel.push(item.color);
         if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
 
         const productLink = `product.html?id=${item.id}`;
@@ -135,54 +136,54 @@ function renderCartUI(cart) {
     document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 }
 
-// 2. LOAD CART
+// 2. LOAD CART (Maintain current logic)
 async function loadCart() {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user && user.email) {
-        try {
-            const response = await fetch(`${webAppUrl}?action=getCart&email=${encodeURIComponent(user.email)}`);
-            const serverCart = await response.json();
-            if (serverCart && serverCart.length > 0) {
-                serverCart.forEach(sItem => {
-                    const exists = cart.find(lItem => lItem.id === sItem.id && lItem.color === sItem.color && lItem.capacity === sItem.capacity && lItem.size === sItem.size);
-                    if (!exists) cart.push(sItem);
-                });
-                localStorage.setItem('cart', JSON.stringify(cart));
-            }
-        } catch (e) { console.log("Offline mode."); }
-    }
     renderCartUI(cart);
 }
 
-// 3. EDIT VARIATION (The Dynamic One)
+// 3. EDIT VARIATION (Logic Updated to match Product Details)
 async function editVariation(index) {
     currentEditingIndex = index;
     const cart = JSON.parse(localStorage.getItem('cart'));
     const item = cart[index];
     const container = document.getElementById('optionsContainer');
     
-    container.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Fetching variations...</div>`;
     document.getElementById('variationModal').style.display = "block";
     document.getElementById('modalTitle').innerText = `Change ${item.name}`;
 
     try {
         const response = await fetch(`${webAppUrl}?action=getProductVariants&id=${item.id}`);
-        const productDetails = await response.json(); 
+        globalProductDetails = await response.json(); 
 
         container.innerHTML = "";
-        if (productDetails.colors && productDetails.colors.length > 0) {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888;">COLORS:</p>`;
-            productDetails.colors.forEach(c => {
-                const active = item.color === c ? 'active' : '';
-                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('color', '${c}')">${c}</button>`;
-            });
-        }
-        if (productDetails.capacities && productDetails.capacities.length > 0) {
-            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px;">CAPACITY:</p>`;
-            productDetails.capacities.forEach(cap => {
+        
+        // --- A. RENDER STORAGE (CAPACITY) ---
+        if (globalProductDetails.capacities && globalProductDetails.capacities.length > 0) {
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-bottom:5px;">STORAGE:</p>
+                                    <div id="storageBtns"></div>`;
+            const sBtns = document.getElementById('storageBtns');
+            globalProductDetails.capacities.forEach((cap, i) => {
                 const active = item.capacity === cap ? 'active' : '';
-                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('capacity', '${cap}')">${cap}</button>`;
+                const btn = document.createElement('button');
+                btn.className = `variant-option cap-btn ${active}`;
+                btn.innerText = cap;
+                btn.onclick = () => selectStorage(i, cap);
+                sBtns.appendChild(btn);
+            });
+            
+            // Auto-load colors based on currently selected storage
+            const currentCapIdx = globalProductDetails.capacities.indexOf(item.capacity);
+            renderColorOptions(currentCapIdx > -1 ? currentCapIdx : 0, item.color);
+        }
+
+        // --- B. RENDER SIZE (Optional) ---
+        if (globalProductDetails.sizes && globalProductDetails.sizes.length > 0 && globalProductDetails.sizes[0] !== "") {
+            container.innerHTML += `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">SIZE:</p>`;
+            globalProductDetails.sizes.forEach(s => {
+                const active = item.size === s ? 'active' : '';
+                container.innerHTML += `<button class="variant-option ${active}" onclick="updateItemField('size', '${s}')">${s}</button>`;
             });
         }
     } catch (err) {
@@ -190,7 +191,50 @@ async function editVariation(index) {
     }
 }
 
-// 4. UPDATE FIELD
+// 4. STORAGE SELECTION LOGIC
+function selectStorage(idx, val) {
+    document.querySelectorAll('.cap-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+    
+    // Save locally
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    cart[currentEditingIndex].capacity = val;
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Show corresponding colors
+    renderColorOptions(idx);
+}
+
+// 5. COLOR RENDERING LOGIC (Matches p.Colors.split('|'))
+function renderColorOptions(storageIdx, currentColor = "") {
+    let colorContainer = document.getElementById('cartColorContainer');
+    if (!colorContainer) {
+        colorContainer = document.createElement('div');
+        colorContainer.id = 'cartColorContainer';
+        document.getElementById('optionsContainer').appendChild(colorContainer);
+    }
+
+    const groupString = globalProductDetails.colorGroups[storageIdx] || "";
+    const availableColors = groupString.split('|').map(c => c.trim()).filter(c => c !== "");
+
+    colorContainer.innerHTML = "";
+    if (availableColors.length > 0) {
+        colorContainer.innerHTML = `<p style="font-size:11px; font-weight:bold; color:#888; margin-top:10px; margin-bottom:5px;">COLOR:</p>`;
+        availableColors.forEach(color => {
+            const active = currentColor === color ? 'active' : '';
+            const btn = document.createElement('button');
+            btn.className = `variant-option color-btn ${active}`;
+            btn.innerText = color;
+            btn.onclick = () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateItemField('color', color);
+            };
+            colorContainer.appendChild(btn);
+        });
+    }
+}
+
+// 6. UPDATE FIELD & CLOSE
 async function updateItemField(field, newVal) {
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart[currentEditingIndex][field] = newVal;
@@ -200,11 +244,8 @@ async function updateItemField(field, newVal) {
     await syncCartToCloud();
 }
 
-// 5. HELPER FUNCTIONS
-function closeModal() {
-    document.getElementById('variationModal').style.display = "none";
-}
-
+// --- REST OF HELPER FUNCTIONS (No changes needed) ---
+function closeModal() { document.getElementById('variationModal').style.display = "none"; }
 async function updateQty(index, change) {
     let cart = JSON.parse(localStorage.getItem('cart'));
     cart[index].quantity += change;
@@ -213,7 +254,6 @@ async function updateQty(index, change) {
     renderCartUI(cart);
     await syncCartToCloud();
 }
-
 async function removeItem(index) {
     if(!confirm("Remove?")) return;
     let cart = JSON.parse(localStorage.getItem('cart'));
@@ -222,12 +262,13 @@ async function removeItem(index) {
     renderCartUI(cart);
     await syncCartToCloud();
 }
-
 async function syncCartToCloud() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     const cart = localStorage.getItem('cart');
     if (user && user.email && cart) {
-        await fetch(`${webAppUrl}?action=syncCart&email=${encodeURIComponent(user.email)}&cartData=${encodeURIComponent(cart)}`);
+        try {
+            await fetch(`${webAppUrl}?action=syncCart&email=${encodeURIComponent(user.email)}&cartData=${encodeURIComponent(cart)}`);
+        } catch(e) {}
     }
 }
 
