@@ -195,103 +195,81 @@ nav {
     // 1. URL ng Google Apps Script mo
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec"; 
 
-// --- PINAG-ISANG WINDOW ONLOAD ---
 window.onload = function() {
-    // 1. Check if user is already logged in
     const savedUser = localStorage.getItem("flavi_user");
     if (savedUser) {
         try {
             const userData = JSON.parse(savedUser);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('redirect')) {
+                window.location.href = urlParams.get('redirect');
+                return;
+            }
             showDashboard(userData);
         } catch(e) {
-            console.error("Error parsing user data", e);
+            localStorage.removeItem("flavi_user");
             showLogin();
         }
     } else {
         showLogin();
     }
-    
-    // 2. Load products (kung kailangan sa page na ito)
-    if (typeof fetchProducts === "function") {
-        fetchProducts();
-    }
 };
-
-function showDashboard(data) {
-    // Itago ang lahat ng login/register/otp fields
-    document.getElementById('loginFields').style.display = "none";
-    document.getElementById('registerFields').style.display = "none";
-    document.getElementById('otpFields').style.display = "none";
-    
-    // Ipakita ang Dashboard
-    document.getElementById('dashboardFields').style.display = "block";
-    document.getElementById('modalTitle').innerText = "My Account";
-    
-    // I-display ang data base sa keys mula sa JSON (Handle both 'name' or 'firstName')
-    const displayName = data.name || data.firstName || "User";
-    document.getElementById('dashName').innerText = displayName; 
-    document.getElementById('editName').value = displayName;
-    document.getElementById('editEmail').value = data.email || "No Email Found";
-    
-    // I-save/Update ang session sa localStorage para consistent
-    localStorage.setItem("flavi_user", JSON.stringify(data));
-}
-
-function handleLogout() {
-    if(confirm("Are you sure you want to logout?")) {
-        localStorage.removeItem("flavi_user");
-        window.location.href = "index.html"; // Balik sa home pag logout
-    }
-}
-
-// --- LOGIN & REGISTER FUNCTIONS ---
-
-function showRegister() {
-    document.getElementById('modalTitle').innerText = "Create Account";
-    document.getElementById('loginFields').style.display = "none";
-    document.getElementById('registerFields').style.display = "block";
-}
-
-function showLogin() {
-    document.getElementById('modalTitle').innerText = "Customer Login";
-    document.getElementById('loginFields').style.display = "block";
-    document.getElementById('registerFields').style.display = "none";
-    document.getElementById('dashboardFields').style.display = "none";
-    document.getElementById('otpFields').style.display = "none";
-}
 
 async function handleLogin() {
     const user = document.getElementById('username').value;
     const pin = document.getElementById('pin').value;
-
     if (!user || !pin) return alert("Please enter username and PIN.");
 
     try {
-        // 1. Tawag sa Google Apps Script
         const loginUrl = `${webAppUrl}?action=login&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`;
         const response = await fetch(loginUrl);
         const result = await response.json();
 
         if (result.status === "Success") {
-            // 2. I-save ang data sa browser para hindi na mag-login ulit pag-refresh
             localStorage.setItem("flavi_user", JSON.stringify(result));
-
-            // 3. I-check kung may 'redirect' na hinihingi (e.g. galing sa Checkout)
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('redirect')) {
                 window.location.href = urlParams.get('redirect');
             } else {
-                // 4. Kung wala, ipakita lang ang Dashboard
                 showDashboard(result);
             }
         } else {
             alert("Invalid Username, PIN, or Account Not Verified.");
         }
     } catch (error) {
-        console.error("Login Error:", error);
-        alert("Login failed. Check your internet connection.");
+        alert("Login failed. Check your connection.");
     }
 }
+
+function showDashboard(data) {
+    document.getElementById('loginFields').style.display = "none";
+    document.getElementById('registerFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "none";
+    document.getElementById('dashboardFields').style.display = "block";
+    document.getElementById('modalTitle').innerText = "My Account";
+
+    const displayName = data.name || data.firstName || "User";
+    document.getElementById('dashName').innerText = displayName; 
+    document.getElementById('editName').value = displayName;
+    document.getElementById('editEmail').value = data.email || "No Email Found";
+}
+
+function switchDash(event, tab) {
+    document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('dash-' + tab).style.display = 'block';
+    event.currentTarget.classList.add('active');
+}
+
+function handleLogout() {
+    if(confirm("Are you sure?")) {
+        localStorage.removeItem("flavi_user");
+        location.reload();
+    }
+}
+
+// Global flag for OTP context
+window.isUpdatingProfile = false;
         
 // ... (Dito mo ituloy yung verifyOTP at handleRegister mo na dating gamit)
 function showOTPBox() {
