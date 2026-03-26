@@ -192,18 +192,22 @@ nav {
     </div>
     
     <script>
-    // 1. URL ng Google Apps Script mo
+    // 1. URL ng Google Apps Script
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec"; 
 
+// Isang window.onload lang dapat
 window.onload = function() {
     const savedUser = localStorage.getItem("flavi_user");
+    
     if (savedUser) {
         try {
             const userData = JSON.parse(savedUser);
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // REDIRECT LOGIC: Kung galing sa checkout, ibalik agad doon
             if (urlParams.has('redirect')) {
                 window.location.href = urlParams.get('redirect');
-                return;
+                return; 
             }
             showDashboard(userData);
         } catch(e) {
@@ -215,10 +219,16 @@ window.onload = function() {
     }
 };
 
+// Simplified Login Handler
 async function handleLogin() {
     const user = document.getElementById('username').value;
     const pin = document.getElementById('pin').value;
+    const loginBtn = document.querySelector('#loginFields .login-btn');
+
     if (!user || !pin) return alert("Please enter username and PIN.");
+
+    loginBtn.disabled = true;
+    loginBtn.innerText = "Logging in...";
 
     try {
         const loginUrl = `${webAppUrl}?action=login&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`;
@@ -226,7 +236,9 @@ async function handleLogin() {
         const result = await response.json();
 
         if (result.status === "Success") {
+            // I-save ang buong result para kompleto ang data (email, name, mobile)
             localStorage.setItem("flavi_user", JSON.stringify(result));
+            
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('redirect')) {
                 window.location.href = urlParams.get('redirect');
@@ -238,6 +250,9 @@ async function handleLogin() {
         }
     } catch (error) {
         alert("Login failed. Check your connection.");
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerText = "Login";
     }
 }
 
@@ -248,17 +263,44 @@ function showDashboard(data) {
     document.getElementById('dashboardFields').style.display = "block";
     document.getElementById('modalTitle').innerText = "My Account";
 
+    // Siguraduhin na tama ang pag-display ng pangalan
     const displayName = data.name || data.firstName || "User";
     document.getElementById('dashName').innerText = displayName; 
     document.getElementById('editName').value = displayName;
-    document.getElementById('editEmail').value = data.email || "No Email Found";
+    document.getElementById('editEmail').value = data.email || "";
+    if(data.mobile) document.getElementById('editMobile').value = data.mobile;
 }
 
-function switchDash(event, tab) {
+function showLogin() {
+    document.getElementById('loginFields').style.display = "block";
+    document.getElementById('dashboardFields').style.display = "none";
+    document.getElementById('registerFields').style.display = "none";
+}
+
+function showRegister() {
+    document.getElementById('loginFields').style.display = "none";
+    document.getElementById('registerFields').style.display = "block";
+}
+
+function handleLogout() {
+    if(confirm("Are you sure you want to logout?")) {
+        localStorage.removeItem("flavi_user");
+        location.reload();
+    }
+}
+
+// Function para sa Dashboard Tabs
+function switchDash(tab) {
     document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('dash-' + tab).style.display = 'block';
-    event.currentTarget.classList.add('active');
+    
+    const targetSection = document.getElementById('dash-' + tab);
+    if(targetSection) targetSection.style.display = 'block';
+    
+    // Hanapin ang tab element na na-click (via event)
+    if(event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
 }
 
 function handleLogout() {
