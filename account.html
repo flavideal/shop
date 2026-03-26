@@ -193,19 +193,60 @@ nav {
     
     <script>
     // 1. URL ng Google Apps Script mo
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec"; 
+const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec"; 
 
-    // 2. Window Onload - Ito ang taga-check kung logged in na ang user
-    window.onload = function() {
-        const savedUser = localStorage.getItem("flavi_user");
-        if (savedUser) {
-            showDashboard(JSON.parse(savedUser));
-        } else {
+// --- PINAG-ISANG WINDOW ONLOAD ---
+window.onload = function() {
+    // 1. Check if user is already logged in
+    const savedUser = localStorage.getItem("flavi_user");
+    if (savedUser) {
+        try {
+            const userData = JSON.parse(savedUser);
+            showDashboard(userData);
+        } catch(e) {
+            console.error("Error parsing user data", e);
             showLogin();
         }
-    };
+    } else {
+        showLogin();
+    }
+    
+    // 2. Load products (kung kailangan sa page na ito)
+    if (typeof fetchProducts === "function") {
+        fetchProducts();
+    }
+};
 
-    function showRegister() {
+function showDashboard(data) {
+    // Itago ang lahat ng login/register/otp fields
+    document.getElementById('loginFields').style.display = "none";
+    document.getElementById('registerFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "none";
+    
+    // Ipakita ang Dashboard
+    document.getElementById('dashboardFields').style.display = "block";
+    document.getElementById('modalTitle').innerText = "My Account";
+    
+    // I-display ang data base sa keys mula sa JSON (Handle both 'name' or 'firstName')
+    const displayName = data.name || data.firstName || "User";
+    document.getElementById('dashName').innerText = displayName; 
+    document.getElementById('editName').value = displayName;
+    document.getElementById('editEmail').value = data.email || "No Email Found";
+    
+    // I-save/Update ang session sa localStorage para consistent
+    localStorage.setItem("flavi_user", JSON.stringify(data));
+}
+
+function handleLogout() {
+    if(confirm("Are you sure you want to logout?")) {
+        localStorage.removeItem("flavi_user");
+        window.location.href = "index.html"; // Balik sa home pag logout
+    }
+}
+
+// --- LOGIN & REGISTER FUNCTIONS ---
+
+function showRegister() {
     document.getElementById('modalTitle').innerText = "Create Account";
     document.getElementById('loginFields').style.display = "none";
     document.getElementById('registerFields').style.display = "block";
@@ -215,42 +256,40 @@ function showLogin() {
     document.getElementById('modalTitle').innerText = "Customer Login";
     document.getElementById('loginFields').style.display = "block";
     document.getElementById('registerFields').style.display = "none";
+    document.getElementById('dashboardFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "none";
 }
 
-async function handleRegister() {
-    const regBtn = document.getElementById('regBtn');
-    
-    const name = document.getElementById('regName').value;
-    const user = document.getElementById('regUser').value;
-    const email = document.getElementById('regEmail').value;
-    const mobile = document.getElementById('regMobile').value;
-    const pin = document.getElementById('regPin').value;
-    const subscribe = document.getElementById('regSubscribe').checked;
+async function handleLogin() {
+    const user = document.getElementById('username').value;
+    const pin = document.getElementById('pin').value;
 
-    if (!name || !user || !email || !mobile || !pin) {
-        return alert("Please fill up all fields.");
-    }
-
-    regBtn.disabled = true;
-    regBtn.innerText = "Sending OTP... Please wait";
-
-    const url = `${webAppUrl}?action=register&name=${encodeURIComponent(name)}&user=${encodeURIComponent(user)}&email=${encodeURIComponent(email)}&mobile=${encodeURIComponent(mobile)}&pin=${encodeURIComponent(pin)}&subscribe=${subscribe}`;
+    if (!user || !pin) return alert("Please enter username and PIN.");
 
     try {
-        const response = await fetch(url);
-        const result = await response.text();
+        const loginUrl = `${webAppUrl}?action=login&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`;
+        const response = await fetch(loginUrl);
+        const result = await response.json();
 
-        alert("OTP request sent! Check your email.");
-        showOTPBox(); 
+        if (result.status === "Success") {
+            // I-save ang buong result object
+            localStorage.setItem("flavi_user", JSON.stringify(result));
+            showDashboard(result);
+            
+            // Redirect logic: Kung galing sa checkout, ibalik siya doon
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('redirect')) {
+                window.location.href = urlParams.get('redirect');
+            }
+        } else {
+            alert("Invalid Username, PIN, or Account Not Verified.");
+        }
     } catch (error) {
-        alert("Check your email for the OTP.");
-        showOTPBox();
-    } finally {
-        regBtn.disabled = false;
-        regBtn.innerText = "Send OTP to Email";
+        alert("Login failed. Check your connection.");
     }
 }
 
+// ... (Dito mo ituloy yung verifyOTP at handleRegister mo na dating gamit)
 function showOTPBox() {
     document.getElementById('modalTitle').innerText = "Verify Email OTP";
     document.getElementById('registerFields').style.display = "none";
