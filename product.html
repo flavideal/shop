@@ -288,19 +288,23 @@ function openProductDetails(index) {
         });
     } else {
         if(buyBtn) {
-            btnStyle(buyBtn, "BUY NOW", "var(--forest-green)");
-            buyBtn.onclick = () => { 
-                // 1. Check muna kung naka-login bago mag checkout
-                const user = localStorage.getItem("flavi_user");
-                if (!user) {
-                    alert("Please login first to proceed.");
-                    window.location.href = "account.html?redirect=" + encodeURIComponent(window.location.href);
-                    return;
-                }
-                // 2. I-save ang item at tumuloy sa checkout
-                addToCartLogic(false); // false means 'wag muna lumipat ng page sa loob ng func
-                window.location.href = "checkout.html"; 
-            };
+    btnStyle(buyBtn, "BUY NOW", "var(--forest-green)");
+    buyBtn.onclick = () => { 
+        const user = localStorage.getItem("flavi_user");
+        
+        // 1. I-save muna ang current selection para hindi mawala pag-login
+        addToCartLogic(false); 
+
+        if (!user) {
+            // Kung hindi naka-login, dalhin sa account.html at sabihin kung saan babalik (redirect)
+            const currentUrl = window.location.href;
+            window.location.href = "account.html?redirect=" + encodeURIComponent(currentUrl);
+            return;
+        }
+        
+        // 2. Kung naka-login na, diretso na sa checkout
+        window.location.href = "checkout.html"; 
+    };
         }
         if(cartBtn) {
             btnStyle(cartBtn, "ADD TO CART", "var(--golden-yellow)");
@@ -664,22 +668,23 @@ window.onpopstate = function(event) {
 };
 
 window.onload = async function() {
-    // --- DAGDAG: Check Login Status ---
     const savedUser = localStorage.getItem("flavi_user");
-    if (savedUser) {
-        console.log("Logged in as:", JSON.parse(savedUser).name);
-        // Opsyonal: Kung may element ka para sa name, i-update dito
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    // 1. Auto-Redirect Logic: Kung galing sa login at may "buy now" intent
+    if (savedUser && urlParams.has('checkout_now')) {
+        window.location.href = "checkout.html";
+        return;
     }
 
     const products = await fetchProducts(); 
     
     if (products && products.length > 0) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
-        
         if (productId !== null) {
             openProductDetails(parseInt(productId));
             
+            // Loader handling
             setTimeout(() => {
                 const loader = document.getElementById('page-loader');
                 if(loader) {
@@ -688,7 +693,8 @@ window.onload = async function() {
                 }
             }, 800);
         } else {
-            document.getElementById('viewName').innerText = "Product not found.";
+            const viewName = document.getElementById('viewName');
+            if(viewName) viewName.innerText = "Product not found.";
         }
     }
 };
