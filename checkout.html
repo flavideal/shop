@@ -122,18 +122,27 @@
 
 // 1. Check Login & Load Data
 window.onload = function() {
-    const user = JSON.parse(localStorage.getItem('currentUser'));
+    // PALITAN MO ITO: Mula 'currentUser' gawin mong 'flavi_user'
+    const user = JSON.parse(localStorage.getItem('flavi_user')); 
+    
     if (!user) {
         alert("Please login first to proceed to checkout.");
-        location.href = "account.html?redirect=checkout.html";
+        // Siguraduhin na 'account.html' ang file name ng login page mo
+        location.href = "account.html?redirect=checkout.html"; 
         return;
     }
     
-    // Auto-fill existing user data
+    // Auto-fill existing user data (I-match natin sa keys ng data mo)
     document.getElementById('email').value = user.email || "";
-    document.getElementById('fname').value = user.firstName || "";
-    document.getElementById('lname').value = user.lastName || "";
-    document.getElementById('mobile').value = user.phone || "";
+    
+    // Kung 'name' lang ang nasa data mo, hatiin natin sa First at Last Name
+    if (user.name) {
+        const nameParts = user.name.split(' ');
+        document.getElementById('fname').value = nameParts[0] || "";
+        document.getElementById('lname').value = nameParts.slice(1).join(' ') || "";
+    }
+    
+    document.getElementById('mobile').value = user.mobile || ""; // 'mobile' ang gamit natin sa account.html
     
     loadCheckoutItems();
 };
