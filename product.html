@@ -290,14 +290,22 @@ function openProductDetails(index) {
         if(buyBtn) {
             btnStyle(buyBtn, "BUY NOW", "var(--forest-green)");
             buyBtn.onclick = () => { 
-                addToCartLogic(); 
+                // 1. Check muna kung naka-login bago mag checkout
+                const user = localStorage.getItem("flavi_user");
+                if (!user) {
+                    alert("Please login first to proceed.");
+                    window.location.href = "account.html?redirect=" + encodeURIComponent(window.location.href);
+                    return;
+                }
+                // 2. I-save ang item at tumuloy sa checkout
+                addToCartLogic(false); // false means 'wag muna lumipat ng page sa loob ng func
                 window.location.href = "checkout.html"; 
             };
         }
         if(cartBtn) {
             btnStyle(cartBtn, "ADD TO CART", "var(--golden-yellow)");
             cartBtn.onclick = () => { 
-                addToCartLogic(); 
+                addToCartLogic(true); // true means mag-stay o lumipat sa cart page
             };
         }
     }
@@ -540,44 +548,29 @@ function getActiveData() {
     };
 }
 
-function addToCartLogic() {
-    // 1. Kunin ang active data mula sa function na ginagamit din ng UI
+function addToCartLogic(shouldRedirect = true) {
     const activeData = getActiveData(); 
-    
-    // 2. Kunin ang TEXT ng mga pindutan na may class na 'active'
     const selectedColor = document.querySelector('.color-btn.active')?.innerText || "N/A";
     const selectedCap = document.querySelector('.capacity-btn.active')?.innerText || "N/A";
-    const selectedSize = document.querySelector('.size-btn.active')?.innerText || "N/A";
     const qty = parseInt(document.getElementById('qtyValue').value) || 1;
-    
-    // 3. Kunin ang product name (linisin ang extra spaces)
     const rawName = document.getElementById('viewName').innerText;
     const productName = rawName.split('\n')[0].trim();
 
-    // 4. I-prepare ang object (Dito galing ang data na babasahin ng cart.html)
     const cartItem = {
         id: new URLSearchParams(window.location.search).get('id'),
         name: productName,
-        price: activeData.cash, // Ito ang Cash Price ng napiling storage/color
+        price: activeData.cash, 
         color: selectedColor,
         capacity: selectedCap,
-        size: selectedSize,
         quantity: qty,
-        image: currentGalleryImages[0] || "" // Unang pic sa gallery
+        image: currentGalleryImages[0] || "" 
     };
 
-    // Konsol log para sa debugging (Makikita mo sa F12 kung tama ang data)
-    console.log("Adding to cart:", cartItem);
-
-    // 5. LocalStorage Logic
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    // Check if exactly same item exists (para qty na lang ang dagdagan)
     const existingIndex = cart.findIndex(item => 
         item.id === cartItem.id && 
         item.color === cartItem.color && 
-        item.capacity === cartItem.capacity &&
-        item.size === cartItem.size
+        item.capacity === cartItem.capacity
     );
 
     if (existingIndex > -1) {
@@ -587,11 +580,13 @@ function addToCartLogic() {
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // 6. Pumunta sa Cart Page
-    window.location.href = "cart.html";
-}
 
+    if (shouldRedirect) {
+        alert("Added to cart! 🛒");
+        window.location.href = "cart.html";
+    }
+}
+    
 // Function para ayusin ang gallery pagkatapos ma-check lahat ng images
 function finalizeGallery(gallery, counter) {
     // I-sort para hindi maghalo-halo ang sequence (1, 2, 3...)
@@ -668,8 +663,14 @@ window.onpopstate = function(event) {
     }
 };
 
-// I-update din natin ang window.onload para sa history clean-up
 window.onload = async function() {
+    // --- DAGDAG: Check Login Status ---
+    const savedUser = localStorage.getItem("flavi_user");
+    if (savedUser) {
+        console.log("Logged in as:", JSON.parse(savedUser).name);
+        // Opsyonal: Kung may element ka para sa name, i-update dito
+    }
+
     const products = await fetchProducts(); 
     
     if (products && products.length > 0) {
