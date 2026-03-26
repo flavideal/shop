@@ -272,23 +272,26 @@ async function handleLogin() {
         const result = await response.json();
 
         if (result.status === "Success") {
-            // I-save ang buong result object
+            // 1. I-save ang user session
             localStorage.setItem("flavi_user", JSON.stringify(result));
-            showDashboard(result);
             
-            // Redirect logic: Kung galing sa checkout, ibalik siya doon
+            // 2. Redirect Logic
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('redirect')) {
+                // Kung galing sa "Buy Now" o "Checkout", dito siya pupunta
                 window.location.href = urlParams.get('redirect');
+            } else {
+                // Kung wala namang redirect, ipakita lang ang dashboard
+                showDashboard(result);
             }
         } else {
-            alert("Invalid Username, PIN, or Account Not Verified.");
+            alert("Invalid Username or PIN.");
         }
     } catch (error) {
         alert("Login failed. Check your connection.");
     }
 }
-
+        
 // ... (Dito mo ituloy yung verifyOTP at handleRegister mo na dating gamit)
 function showOTPBox() {
     document.getElementById('modalTitle').innerText = "Verify Email OTP";
@@ -396,13 +399,24 @@ function handleLogout() {
 
 // I-check kung logged in na si user pagka-load ng page
 window.onload = function() {
-    fetchProducts();
-    
-    // Check if user is already logged in
     const savedUser = localStorage.getItem("flavi_user");
+    
     if (savedUser) {
-        const userData = JSON.parse(savedUser);
-        showDashboard(userData);
+        try {
+            const userData = JSON.parse(savedUser);
+            // IMPORTANTE: Kung naka-login na at may 'redirect' sa URL, ituloy na siya doon
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('redirect')) {
+                window.location.href = urlParams.get('redirect');
+                return; // Huwag na ipakita ang dashboard, lipat na agad
+            }
+            showDashboard(userData);
+        } catch(e) {
+            localStorage.removeItem("flavi_user");
+            showLogin();
+        }
+    } else {
+        showLogin();
     }
 };
 
