@@ -145,8 +145,33 @@ async function fetchProducts() {
 
     try {
         const response = await fetch(webAppUrl + "?action=getProducts"); 
-        const products = await response.json();
-        displayProducts(products);
+        const result = await response.json();
+
+        // --- CHECK KUNG MAINTENANCE MODE ---
+        // Tinitingnan nito kung ang "status" na binalik ng Apps Script ay "Maintenance"
+        if (result.status === "Maintenance") {
+            // Papalitan natin ang buong content ng body para hindi ma-access ang shop
+            document.body.innerHTML = `
+                <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; background: var(--light-bg); font-family: sans-serif;">
+                    <i class="fas fa-tools" style="font-size: 60px; color: var(--forest-green); margin-bottom: 20px;"></i>
+                    <h1 style="color: var(--forest-green); margin-bottom: 10px;">Under Maintenance</h1>
+                    <p style="color: #666; max-width: 400px; line-height: 1.6;">
+                        We are currently updating <b>Flavi Deal</b> to bring you better service. 
+                        Don't worry, we'll be back online very soon! 🚀
+                    </p>
+                    <br>
+                    <button class="cta-btn" onclick="window.open('https://www.facebook.com/flavidealinstallment', '_blank')" style="margin-top:0;">
+                        Follow our Facebook Page
+                    </button>
+                    <p style="margin-top: 20px; font-size: 12px; color: #999;">Check back later or refresh the page.</p>
+                </div>
+            `;
+            return; // Ititigil na ang code dito, hindi na mag-lo-load ang products
+        }
+
+        // Kung hindi maintenance, i-display ang products gaya ng dati
+        displayProducts(result);
+
     } catch (error) {
         console.error("Error fetching products:", error);
         container.innerHTML = `
@@ -156,7 +181,7 @@ async function fetchProducts() {
         `;
     }
 }
-
+    
 // 3. I-update ang display function para tumanggap ng data
 function displayProducts(products) {
     const container = document.getElementById('product-list');
