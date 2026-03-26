@@ -87,81 +87,121 @@
 // --- KONFIGURASYON ---
 const webAppUrl = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
 
-// --- 1. LOGIN SYNC & INITIAL LOAD ---
-async function loadCart() {
-    // Gamitin ang 'flavi_user' para consistent sa account page
-    const user = JSON.parse(localStorage.getItem('flavi_user'));
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-
-    if (user && user.email) {
-        console.log("User detected, syncing cart...");
-        // Dito mo pwedeng tawagin ang Google Apps Script mo kung gusto mo ng cloud sync
-    }
+// --- 1. ANG MISSING FUNCTION (Ito ang nagpapakita ng items) ---
+function renderCartUI(cart) {
+    const container = document.getElementById('cartItemsList');
+    const summary = document.getElementById('cartSummary');
     
-    renderCartUI(cart);
+    if (!cart || cart.length === 0) {
+        container.innerHTML = `
+            <div class="empty-cart">
+                <i class="fas fa-shopping-basket" style="font-size:40px; margin-bottom:15px; display:block;"></i>
+                <p>Your cart is empty.</p>
+                <a href="index.html" style="color:var(--forest-green); font-weight:bold; text-decoration:none;">Shop Now</a>
+            </div>`;
+        summary.style.display = "none";
+        return;
+    }
+
+    summary.style.display = "block";
+    let total = 0;
+    
+    container.innerHTML = cart.map((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        
+        let variationLabel = [];
+        if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
+        if (item.color && item.color !== "N/A") variationLabel.push(item.color);
+        if (item.size && item.size !== "N/A") variationLabel.push(`Size: ${item.size}`);
+
+        const productLink = `product.html?id=${item.id}`;
+
+        return `
+            <div class="cart-item">
+                <a href="${productLink}"><img src="${item.image}" alt="${item.name}"></a>
+                <div class="item-info">
+                    <a href="${productLink}" style="text-decoration:none; color:inherit;"><h4>${item.name}</h4></a>
+                    <div class="item-meta">${variationLabel.join(' | ')}</div>
+                    <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                        <span style="font-weight:bold; width: 30px; text-align: center; display: inline-block;">${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                    </div>
+                    <span class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove</span>
+                </div>
+            </div>`;
+    }).join('');
+
+    document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 }
 
-// --- 2. CHECKOUT LOGIC ---
+// --- 2. LOGIN SYNC & INITIAL LOAD ---
+async function loadCart() {
+    const user = JSON.parse(localStorage.getItem('flavi_user'));
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    renderCartUI(cart);
+    
+    if (user && user.email) {
+        console.log("User detected: " + user.email);
+        // Optional: Dito mo pwedeng i-fetch ang cloud cart kung gusto mo
+    }
+}
+
+// --- 3. QUANTITY & REMOVE LOGIC ---
+function updateQty(index, change) {
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    cart[index].quantity += change;
+    if (cart[index].quantity < 1) cart[index].quantity = 1;
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCartUI(cart);
+    syncCartToCloud(); 
+}
+
+function removeItem(index) {
+    if(!confirm("Remove this item?")) return;
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCartUI(cart);
+    syncCartToCloud();
+}
+
+// --- 4. CHECKOUT LOGIC ---
 function processCheckout() {
     const user = localStorage.getItem("flavi_user");
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    // A. Check kung may laman ang cart
     if (cart.length === 0) {
         alert("Your cart is empty!");
         return;
     }
 
-    // B. Check kung naka-login
     if (!user) {
         alert("Please login to proceed to checkout.");
-        // I-save ang current page para bumalik dito pagkatapos mag-login
         window.location.href = "account.html?redirect=cart.html";
         return;
     }
 
-    // C. I-set ang 'checkout_mode' para malaman ng checkout page na galing ito sa cart
     localStorage.setItem('checkout_mode', 'cart_checkout');
-    
-    // D. Tumuloy sa Checkout Page
     window.location.href = "checkout.html";
 }
 
-// --- 3. SYNC TO CLOUD (Updated with correct user key) ---
+// --- 5. SYNC TO CLOUD ---
 async function syncCartToCloud() {
     const user = JSON.parse(localStorage.getItem('flavi_user'));
     const cart = localStorage.getItem('cart');
     
     if (user && user.email && cart) {
         try {
-            // Siguraduhin na ang Google Apps Script mo ay handa tumanggap ng action=syncCart
             await fetch(`${webAppUrl}?action=syncCart&email=${encodeURIComponent(user.email)}&cartData=${encodeURIComponent(cart)}`);
         } catch(e) { 
-            console.log("Cloud sync skipped (offline or error)."); 
+            console.log("Cloud sync saved locally."); 
         }
     }
 }
 
-// I-bind ang updateQty at removeItem sa sync
-async function updateQty(index, change) {
-    let cart = JSON.parse(localStorage.getItem('cart'));
-    cart[index].quantity += change;
-    if (cart[index].quantity < 1) cart[index].quantity = 1;
-    localStorage.setItem('cart', JSON.stringify(cart));
-    renderCartUI(cart);
-    syncCartToCloud(); // Silent sync
-}
-
-async function removeItem(index) {
-    if(!confirm("Remove this item?")) return;
-    let cart = JSON.parse(localStorage.getItem('cart'));
-    cart.splice(index, 1);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    renderCartUI(cart);
-    syncCartToCloud(); // Silent sync
-}
-
-// Siguraduhin na tinatawag ang loadCart sa pagbukas
 window.onload = loadCart;
 </script>
 </body>
