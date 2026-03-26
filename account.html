@@ -267,28 +267,29 @@ async function handleLogin() {
     if (!user || !pin) return alert("Please enter username and PIN.");
 
     try {
+        // 1. Tawag sa Google Apps Script
         const loginUrl = `${webAppUrl}?action=login&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`;
         const response = await fetch(loginUrl);
         const result = await response.json();
 
         if (result.status === "Success") {
-            // 1. I-save ang user session
+            // 2. I-save ang data sa browser para hindi na mag-login ulit pag-refresh
             localStorage.setItem("flavi_user", JSON.stringify(result));
-            
-            // 2. Redirect Logic
+
+            // 3. I-check kung may 'redirect' na hinihingi (e.g. galing sa Checkout)
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('redirect')) {
-                // Kung galing sa "Buy Now" o "Checkout", dito siya pupunta
                 window.location.href = urlParams.get('redirect');
             } else {
-                // Kung wala namang redirect, ipakita lang ang dashboard
+                // 4. Kung wala, ipakita lang ang Dashboard
                 showDashboard(result);
             }
         } else {
-            alert("Invalid Username or PIN.");
+            alert("Invalid Username, PIN, or Account Not Verified.");
         }
     } catch (error) {
-        alert("Login failed. Check your connection.");
+        console.error("Login Error:", error);
+        alert("Login failed. Check your internet connection.");
     }
 }
         
