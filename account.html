@@ -377,22 +377,21 @@ async function handleLogin() {
 }
 
 function showDashboard(data) {
-    // I-lock muna ang fields (View Mode)
-    document.getElementById('dashboardFields').style.display = "block";
+    // Itago ang login/register forms
     document.getElementById('loginFields').style.display = "none";
-    
-    // I-display ang data base sa tamang keys mula sa JSON
-    document.getElementById('dashName').innerText = data.name || "User"; 
-    document.getElementById('editName').value = data.name || "";
-    document.getElementById('editEmail').value = data.email || "No Email Found";
-    
-    // Itago ang "Change" fields hangga't wala pang OTP
-    document.getElementById('extraFields').style.display = "none";
-    
-    // I-save ang buong data sa localStorage para sa update later
-    localStorage.setItem("flavi_user", JSON.stringify(data));
-}
+    document.getElementById('registerFields').style.display = "none";
+    document.getElementById('otpFields').style.display = "none";
 
+    // Ipakita ang dashboard container
+    document.getElementById('dashboardFields').style.display = "block";
+    document.getElementById('modalTitle').innerText = "My Account";
+
+    // I-fill up ang user info
+    document.getElementById('dashName').innerText = data.name || "User";
+    document.getElementById('editName').value = data.name || "";
+    document.getElementById('editEmail').value = data.email || "";
+}
+        
 function handleLogout() {
     localStorage.removeItem("flavi_user");
     location.reload(); // I-refresh ang page para bumalik sa dati
