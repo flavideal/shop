@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flavi Deal | Premium Gadgets & Installments</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer"> <title>Flavi Deal | Premium Gadgets & Installments</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
@@ -190,19 +195,19 @@ function displayProducts(products) {
     window.currentProducts = products;
 
     products.forEach((p, index) => {
-        // --- GITHUB IMAGE FIX PARA SA FACEBOOK ---
-        let rawImagePath = p.Folder_Path || "";
-        
-        // Kung ang link ay galing sa github.com, gagawin nating "raw" para mabasa ng FB Browser
-        if (rawImagePath.includes("github.com")) {
-            rawImagePath = rawImagePath
-                .replace("github.com", "raw.githubusercontent.com")
-                .replace("/blob/", "/");
-        }
-        
-        // Siguraduhin na may direct image file sa dulo
-        const finalImageUrl = `${rawImagePath}/1.png`;
-        // ------------------------------------------
+        // --- GITHUB IMAGE FIX PARA SA FACEBOOK (CDN VERSION) ---
+let rawImagePath = p.Folder_Path || "";
+
+if (rawImagePath.includes("github.com")) {
+    // Kinoconvert nito ang github link sa jsDelivr CDN link
+    rawImagePath = rawImagePath
+        .replace("https://github.com/", "https://cdn.jsdelivr.net/gh/")
+        .replace("/blob/", "@");
+}
+
+// Siguraduhin na may timestamp (?t=...) para iwas "cache" issue sa FB
+const finalImageUrl = `${rawImagePath}/1.png?t=${new Date().getTime()}`;
+// ------------------------------------------------------
 
         const getFirstPrice = (val) => {
             if (!val) return 0;
