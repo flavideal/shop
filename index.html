@@ -190,7 +190,20 @@ function displayProducts(products) {
     window.currentProducts = products;
 
     products.forEach((p, index) => {
-        // 1. Kuhanin ang pinakaunang price kung sakaling marami ang nakalagay (split by comma)
+        // --- GITHUB IMAGE FIX PARA SA FACEBOOK ---
+        let rawImagePath = p.Folder_Path || "";
+        
+        // Kung ang link ay galing sa github.com, gagawin nating "raw" para mabasa ng FB Browser
+        if (rawImagePath.includes("github.com")) {
+            rawImagePath = rawImagePath
+                .replace("github.com", "raw.githubusercontent.com")
+                .replace("/blob/", "/");
+        }
+        
+        // Siguraduhin na may direct image file sa dulo
+        const finalImageUrl = `${rawImagePath}/1.png`;
+        // ------------------------------------------
+
         const getFirstPrice = (val) => {
             if (!val) return 0;
             const prices = val.toString().split(',');
@@ -203,8 +216,6 @@ function displayProducts(products) {
         
         const months = Number(p.Plan) || 12; 
         const interestRate = parseFloat(p.Interest_Rate) || 0;
-
-        // 2. COMPUTATION: (First Installment Price / Plan) + (First Installment Price * Interest Rate)
         const monthlyPayment = (instPrice / months) + (instPrice * interestRate);
 
         const isOutOfStock = p.Stock_Count <= 0;
@@ -218,7 +229,11 @@ function displayProducts(products) {
                 
                 ${isOutOfStock ? '<div style="position:absolute; top:40%; left:0; width:100%; background:rgba(231, 76, 60, 0.85); color:white; text-align:center; padding:5px; font-size:11px; font-weight:bold; z-index:2;">SOLD OUT</div>' : ''}
                 
-                <img src="${p.Folder_Path}/1.png" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
+                <img src="${finalImageUrl}" 
+                     class="product-image" 
+                     loading="lazy"
+                     onerror="this.src='https://via.placeholder.com/150'">
+                     
                 <div class="product-name">${p.Name}</div>
                 <div class="price-regular">₱${regPrice.toLocaleString()}</div>
                 <div class="price-cash">₱${cashPrice.toLocaleString()}</div>
