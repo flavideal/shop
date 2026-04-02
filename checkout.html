@@ -122,29 +122,33 @@
 
 // 1. Check Login & Load Data
 window.onload = function() {
-    // PALITAN MO ITO: Mula 'currentUser' gawin mong 'flavi_user'
-    const user = JSON.parse(localStorage.getItem('flavi_user')); 
+    // 1. Kunin ang user data
+    const savedData = localStorage.getItem('flavi_user');
     
-    if (!user) {
-        alert("Please login first to proceed to checkout.");
-        // Siguraduhin na 'account.html' ang file name ng login page mo
-        location.href = "account.html?redirect=checkout.html"; 
+    if (!savedData) {
+        console.log("No user found in localStorage");
+        alert("Please login first to proceed.");
+        window.location.replace("account.html?redirect=checkout.html");
         return;
     }
-    
-    // Auto-fill existing user data (I-match natin sa keys ng data mo)
-    document.getElementById('email').value = user.email || "";
-    
-    // Kung 'name' lang ang nasa data mo, hatiin natin sa First at Last Name
-    if (user.name) {
-        const nameParts = user.name.split(' ');
-        document.getElementById('fname').value = nameParts[0] || "";
-        document.getElementById('lname').value = nameParts.slice(1).join(' ') || "";
+
+    try {
+        const user = JSON.parse(savedData);
+        // 2. Auto-fill fields
+        document.getElementById('email').value = user.email || "";
+        document.getElementById('mobile').value = user.mobile || "";
+        
+        if (user.name) {
+            const nameParts = user.name.split(' ');
+            document.getElementById('fname').value = nameParts[0] || "";
+            document.getElementById('lname').value = nameParts.slice(1).join(' ') || "";
+        }
+        
+        loadCheckoutItems();
+    } catch (e) {
+        console.error("JSON Parse Error", e);
+        window.location.replace("account.html?redirect=checkout.html");
     }
-    
-    document.getElementById('mobile').value = user.mobile || ""; // 'mobile' ang gamit natin sa account.html
-    
-    loadCheckoutItems();
 };
 
 function toggleBilling() {
