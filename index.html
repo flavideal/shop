@@ -99,6 +99,22 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 </head>
 <body>
 
+    <div id="fb-android-fix" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; color: white; text-align: center; padding: 40px 20px; font-family: sans-serif;">
+    <i class="fas fa-mobile-alt" style="font-size: 50px; color: var(--golden-yellow); margin-bottom: 20px;"></i>
+    <h2 style="font-size: 24px; margin-bottom: 15px;">Para Makita ang mga Larawan</h2>
+    <p style="font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
+        Ang Facebook App sa Android ay may limitasyon sa pagpapakita ng aming mga produkto. 
+    </p>
+    <div style="background: #222; padding: 20px; border-radius: 15px; border: 1px solid var(--golden-yellow); text-align: left; margin-bottom: 25px;">
+        <p style="margin-bottom: 10px;"><b>Paano ito ayusin:</b></p>
+        <p style="font-size: 14px;">1. I-click ang <b>tatlong tuldok (⋮)</b> sa kanang itaas.</p>
+        <p style="font-size: 14px;">2. Piliin ang <b>"Open in Browser"</b> o <b>"Open in Chrome"</b>.</p>
+    </div>
+    <button onclick="document.getElementById('fb-android-fix').style.display='none'" style="background: var(--golden-yellow); color: var(--forest-green); border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer;">
+        I-RELOAD ANG PAGE
+    </button>
+</div>
+
     <nav>
     <a href="#" class="logo">FLAVI DEAL</a>
    <div class="nav-icons">
@@ -282,11 +298,26 @@ function checkLoginStatus() {
     }
 }
 
-// --- I-UPDATE ANG WINDOW.ONLOAD ---
+function detectFBAndroid() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    
+    // Check kung Android AND Facebook (pero hindi Messenger)
+    const isAndroid = /Android/i.test(ua);
+    const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
+    const isMessenger = (ua.indexOf("Messenger") > -1);
+
+    // Kapag Android Facebook App (Hindi iOS at hindi Messenger)
+    if (isAndroid && isFacebook && !isMessenger) {
+        document.getElementById('fb-android-fix').style.display = 'block';
+    }
+}
+
+// I-update ang window.onload mo:
 window.onload = () => {
-    checkLoginStatus(); // Check login muna
-    fetchProducts();    // Saka i-load ang products
-    updateCartBadge();  // Update ang cart count
+    detectFBAndroid(); // Tawagin ang detection logic
+    checkLoginStatus();
+    fetchProducts();
+    updateCartBadge();
 };
 </script>
 </body>
