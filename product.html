@@ -53,6 +53,22 @@
         <p style="margin-top: 15px; color: #666; font-size: 14px; font-weight: 500;">Fetching product details...</p>
     </div>
 
+    <div id="fb-android-fix" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; font-family: sans-serif;">
+    <div style="background:white; margin:15% auto; padding:25px; width:85%; border-radius:15px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <i class="fab fa-facebook-messenger" style="font-size: 40px; color: #0084ff; margin-bottom: 15px;"></i>
+        <h2 style="font-size:18px; color:#333; margin-bottom:10px;">Notice for FB App Users</h2>
+        <p style="font-size:14px; color:#666; line-height:1.5; margin-bottom:20px;">
+            It looks like you're using the Facebook browser. Some images might not load properly here. 
+            <br><br>
+            Please tap the <b>three dots (⋮)</b> at the top right and select <b>"Open in Browser"</b> for the best experience.
+        </p>
+        <button onclick="document.getElementById('fb-android-fix').style.display='none'" 
+                style="background:#1B4D2E; color:white; border:none; padding:12px 30px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%;">
+            I UNDERSTAND
+        </button>
+    </div>
+</div>
+
     <nav>
         <a href="index.html" class="logo">
             <i class="fas fa-chevron-left"></i> 
@@ -697,6 +713,7 @@ window.onload = async function() {
             if(viewName) viewName.innerText = "Product not found.";
         }
     }
+    checkAndroidFB();
 };
 
 // 1. Keyboard Support (Left/Right Arrows & Esc)
@@ -756,6 +773,19 @@ function btnStyle(btn, text, bg) {
     btn.style.pointerEvents = "auto";
     btn.style.cursor = "pointer";
     btn.style.opacity = "1"; // Siguraduhing hindi malabo
+}
+
+function checkAndroidFB() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isAndroid = /Android/i.test(ua);
+    const isFBApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
+    const isMessenger = (ua.indexOf("Messenger") > -1);
+
+    // Ipapakita lang ang modal kung Android + Facebook (pero HINDI Messenger)
+    if (isAndroid && isFBApp && !isMessenger) {
+        const modal = document.getElementById('fb-android-fix');
+        if (modal) modal.style.display = 'block';
+    }
 }
 
 </script>
