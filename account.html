@@ -204,7 +204,7 @@ window.onload = function() {
             const userData = JSON.parse(savedUser);
             const urlParams = new URLSearchParams(window.location.search);
             
-            // REDIRECT LOGIC: Kung galing sa checkout, ibalik agad doon
+            // REDIRECT LOGIC: Kung galing sa checkout, lipat agad doon
             if (urlParams.has('redirect')) {
                 window.location.href = urlParams.get('redirect');
                 return; 
@@ -218,7 +218,7 @@ window.onload = function() {
         showLogin();
     }
 };
-
+        
 // Simplified Login Handler
 async function handleLogin() {
     const user = document.getElementById('username').value;
@@ -236,15 +236,17 @@ async function handleLogin() {
         const result = await response.json();
 
         if (result.status === "Success") {
-            // I-save ang buong result para kompleto ang data (email, name, mobile)
             localStorage.setItem("flavi_user", JSON.stringify(result));
             
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('redirect')) {
-                window.location.href = urlParams.get('redirect');
-            } else {
-                showDashboard(result);
-            }
+            // FIX PARA SA MOBILE: 500ms delay bago lumipat ng page
+            setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('redirect')) {
+                    window.location.href = urlParams.get('redirect');
+                } else {
+                    showDashboard(result);
+                }
+            }, 500);
         } else {
             alert("Invalid Username, PIN, or Account Not Verified.");
         }
@@ -263,14 +265,13 @@ function showDashboard(data) {
     document.getElementById('dashboardFields').style.display = "block";
     document.getElementById('modalTitle').innerText = "My Account";
 
-    // Siguraduhin na tama ang pag-display ng pangalan
     const displayName = data.name || data.firstName || "User";
     document.getElementById('dashName').innerText = displayName; 
     document.getElementById('editName').value = displayName;
     document.getElementById('editEmail').value = data.email || "";
     if(data.mobile) document.getElementById('editMobile').value = data.mobile;
 }
-
+        
 function showLogin() {
     document.getElementById('loginFields').style.display = "block";
     document.getElementById('dashboardFields').style.display = "none";
@@ -366,80 +367,7 @@ async function verifyOTP() {
         verifyBtn.innerText = "Verify & Complete";
     }
 }
-// Function para magpalit ng view sa Dashboard
-function switchDash(tab) {
-    document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
-    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('dash-' + tab).style.display = 'block';
-    event.target.classList.add('active');
-}
-
-// Update handleLogin para ipakita ang Dashboard
-async function handleLogin() {
-    const user = document.getElementById('username').value;
-    const pin = document.getElementById('pin').value;
-
-    if (!user || !pin) return alert("Please enter username and PIN.");
-
-    try {
-        const loginUrl = `${webAppUrl}?action=login&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`;
-        const response = await fetch(loginUrl);
-        const result = await response.json();
-
-        if (result.status === "Success") {
-            showDashboard(result);
-        } else {
-            alert("Invalid Username, PIN, or Account Not Verified.");
-        }
-    } catch (error) {
-        alert("Login failed. Check your connection.");
-    }
-}
-
-function showDashboard(data) {
-    // Itago ang login/register forms
-    document.getElementById('loginFields').style.display = "none";
-    document.getElementById('registerFields').style.display = "none";
-    document.getElementById('otpFields').style.display = "none";
-
-    // Ipakita ang dashboard container
-    document.getElementById('dashboardFields').style.display = "block";
-    document.getElementById('modalTitle').innerText = "My Account";
-
-    // I-fill up ang user info
-    document.getElementById('dashName').innerText = data.name || "User";
-    document.getElementById('editName').value = data.name || "";
-    document.getElementById('editEmail').value = data.email || "";
-}
         
-function handleLogout() {
-    localStorage.removeItem("flavi_user");
-    location.reload(); // I-refresh ang page para bumalik sa dati
-}
-
-// I-check kung logged in na si user pagka-load ng page
-window.onload = function() {
-    const savedUser = localStorage.getItem("flavi_user");
-    
-    if (savedUser) {
-        try {
-            const userData = JSON.parse(savedUser);
-            // IMPORTANTE: Kung naka-login na at may 'redirect' sa URL, ituloy na siya doon
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('redirect')) {
-                window.location.href = urlParams.get('redirect');
-                return; // Huwag na ipakita ang dashboard, lipat na agad
-            }
-            showDashboard(userData);
-        } catch(e) {
-            localStorage.removeItem("flavi_user");
-            showLogin();
-        }
-    } else {
-        showLogin();
-    }
-};
-
 async function requestProfileChange() {
     alert("An OTP has been sent to your email to authorize this change.");
     // Dito tatawag tayo ng katulad sa handleRegister pero 'action=updateProfile'
