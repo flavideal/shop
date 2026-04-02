@@ -230,9 +230,10 @@ function displayProducts(products) {
                 ${isOutOfStock ? '<div style="position:absolute; top:40%; left:0; width:100%; background:rgba(231, 76, 60, 0.85); color:white; text-align:center; padding:5px; font-size:11px; font-weight:bold; z-index:2;">SOLD OUT</div>' : ''}
                 
                 <img src="${finalImageUrl}" 
-                     class="product-image" 
-                     loading="lazy"
-                     onerror="this.src='https://via.placeholder.com/150'">
+     class="product-image" 
+     loading="lazy"
+     crossorigin="anonymous" 
+     onerror="this.src='https://via.placeholder.com/150'">
                      
                 <div class="product-name">${p.Name}</div>
                 <div class="price-regular">₱${regPrice.toLocaleString()}</div>
