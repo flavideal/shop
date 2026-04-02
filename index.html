@@ -198,34 +198,11 @@ function displayProducts(products) {
     window.currentProducts = products;
 
     products.forEach((p, index) => {
-    // --- SMART IMAGE FIX PARA SA FACEBOOK & GITHUB ---
-let path = p.Folder_Path || "";
-path = path.trim().replace(/\/$/, ""); // Linisin ang spaces at slash sa dulo
-
-let finalImageUrl = "";
-
-if (path.includes("flavideal.com") || path.includes("github.io")) {
-    // KUNG WEBSITE URL ANG NASA SHEET:
-    // I-convert natin ito sa Direct GitHub Link para makita ng FB Browser
-    // Assumption: Ang repo name mo ay 'shop' at ang images ay nasa 'main' branch
-    finalImageUrl = path
-        .replace("https://flavideal.com", "https://raw.githubusercontent.com/flavideal/shop/main")
-        .replace("https://flavideal.github.io/shop", "https://raw.githubusercontent.com/flavideal/shop/main")
-        + "/1.png";
-} else if (path.includes("github.com")) {
-    // KUNG GITHUB REPO LINK ANG NASA SHEET:
-    finalImageUrl = path
-        .replace("https://github.com/", "https://raw.githubusercontent.com/")
-        .replace("/blob/", "/") 
-        + "/1.png";
-} else {
-    // Default kung direct link na ang nasa sheet
-    finalImageUrl = path + "/1.png";
-}
-
-// Iwas Cache: Dagdagan ng timestamp para pilitin ang FB na mag-load ng bago
-const imageUrlWithCacheBuster = `${finalImageUrl}?t=${new Date().getTime()}`;
-// ------------------------------------------------------
+        // --- ORIGINAL LOGIC: No more complex transformations ---
+        // Siguraduhin lang na may /1.png sa dulo ng Folder_Path
+        const folderPath = p.Folder_Path || "";
+        const finalImageUrl = folderPath.endsWith('/') ? `${folderPath}1.png` : `${folderPath}/1.png`;
+        // ------------------------------------------------------
 
         const getFirstPrice = (val) => {
             if (!val) return 0;
@@ -252,10 +229,10 @@ const imageUrlWithCacheBuster = `${finalImageUrl}?t=${new Date().getTime()}`;
                 
                 ${isOutOfStock ? '<div style="position:absolute; top:40%; left:0; width:100%; background:rgba(231, 76, 60, 0.85); color:white; text-align:center; padding:5px; font-size:11px; font-weight:bold; z-index:2;">SOLD OUT</div>' : ''}
                 
-                <img src="${imageUrlWithCacheBuster}" 
-     class="product-image" 
-     loading="lazy"
-     onerror="this.src='https://via.placeholder.com/150'">
+                <img src="${finalImageUrl}" 
+                     class="product-image" 
+                     loading="lazy"
+                     onerror="this.src='https://via.placeholder.com/150'">
                      
                 <div class="product-name">${p.Name}</div>
                 <div class="price-regular">₱${regPrice.toLocaleString()}</div>
@@ -273,7 +250,7 @@ const imageUrlWithCacheBuster = `${finalImageUrl}?t=${new Date().getTime()}`;
         container.innerHTML += card;
     });
 }
-
+    
 function updateCartBadge() {
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     const badge = document.getElementById('cart-count');
