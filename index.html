@@ -69,7 +69,14 @@ nav { top: 0; padding: 12px 5%; background: var(--forest-green); display: flex; 
 .product-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 
 .sale-badge { position: absolute; top: 8px; left: 8px; background: var(--golden-yellow); color: var(--forest-green); font: bold 9px sans-serif; padding: 3px 6px; border-radius: 4px; z-index: 1; }
-.product-image { width: 100%; aspect-ratio: 1; object-fit: contain; }
+.product-image { 
+    width: 100%; 
+    aspect-ratio: 1 / 1; /* Pilitin maging square */
+    object-fit: contain; 
+    display: block !important; /* Siguraduhin na hindi hidden */
+    min-height: 150px; /* Para may space na agad kahit loading pa */
+    background: #f0f0f0; /* Light gray background habang wala pang image */
+}
 .product-name { font: bold 13px sans-serif; margin: 5px 0; height: 35px; overflow: hidden; color: #333; }
 .price-regular { text-decoration: line-through; color: #999; font-size: 11px; }
 .price-cash { color: var(--forest-green); font: bold 15px sans-serif; }
