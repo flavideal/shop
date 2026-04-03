@@ -122,39 +122,109 @@
 </div>
 
 <script>
-window.onload = function() {
+// API URL for Philippine Locations
+const PSGC_API = "https://psgc.gitlab.io/api";
+    
+// 1. PINAGSAMANG WINDOW ONLOAD LOGIC
+window.onload = async function() {
+    // --- DATI MONG LOGIC (Account Check) ---
     const savedData = localStorage.getItem('flavi_user');
-    const localAddress = localStorage.getItem('flavi_last_address'); // Kukunin ang saved address
+    const localAddress = localStorage.getItem('flavi_last_address'); 
     
     if (!savedData) {
+        console.log("No user found in localStorage");
+        alert("Please login first to proceed.");
         window.location.replace("account.html?redirect=checkout.html");
         return;
     }
 
     try {
         const user = JSON.parse(savedData);
-        // Fill basic details from account
+        // Auto-fill basic info
         document.getElementById('email').value = user.email || "";
         document.getElementById('mobile').value = user.mobile || "";
         document.getElementById('fullname').value = user.name || "";
 
-        // --- DITO NATIN ILALAGAY ANG SAVED ADDRESS ---
+        // --- BAGONG LOGIC (Address API Start) ---
+        await initAddressAPI(); 
+
+        // Auto-fill saved address if exists (Optional: Manual Fields Only for now)
         if (localAddress) {
             const addr = JSON.parse(localAddress);
-            document.getElementById('region').value = addr.region || "";
-            document.getElementById('province').value = addr.province || "";
-            document.getElementById('city').value = addr.city || "";
-            document.getElementById('barangay').value = addr.barangay || "";
             document.getElementById('street').value = addr.street || "";
             document.getElementById('zip').value = addr.zip || "";
         }
         
         loadCheckoutItems();
     } catch (e) {
-        console.error("JSON Parse Error", e);
-        window.location.replace("account.html?redirect=checkout.html");
+        console.error("Error in onload", e);
     }
 };
+
+// --- MGA FUNCTIONS PARA SA ADDRESS DROPDOWN ---
+
+async function initAddressAPI() {
+    try {
+        const res = await fetch(`${PSGC_API}/regions/`);
+        const regions = await res.json();
+        const regionSelect = document.getElementById('region');
+        regionSelect.innerHTML = '<option value="">Select Region</option>';
+        regions.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => {
+            regionSelect.innerHTML += `<option value="${r.code}">${r.name}</option>`;
+        });
+    } catch (e) { console.error("Error loading regions", e); }
+}
+
+async function loadProvinces() {
+    const regionCode = document.getElementById('region').value;
+    const provSelect = document.getElementById('province');
+    provSelect.disabled = false;
+    provSelect.innerHTML = '<option value="">Loading...</option>';
+
+    const res = await fetch(`${PSGC_API}/regions/${regionCode}/provinces/`);
+    const provinces = await res.json();
+    
+    provSelect.innerHTML = '<option value="">Select Province</option>';
+    if (provinces.length === 0) {
+        provSelect.innerHTML = '<option value="MM">Metro Manila</option>';
+        loadCities("MM", regionCode);
+    } else {
+        provinces.sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
+            provSelect.innerHTML += `<option value="${p.code}">${p.name}</option>`;
+        });
+    }
+}
+
+async function loadCities(manualProvCode, regCode) {
+    const provCode = manualProvCode || document.getElementById('province').value;
+    const regionCode = regCode || document.getElementById('region').value;
+    const citySelect = document.getElementById('city');
+    citySelect.disabled = false;
+    citySelect.innerHTML = '<option value="">Loading...</option>';
+
+    let url = provCode === "MM" ? `${PSGC_API}/regions/${regionCode}/cities-municipalities/` : `${PSGC_API}/provinces/${provCode}/cities-municipalities/`;
+    
+    const res = await fetch(url);
+    const cities = await res.json();
+    citySelect.innerHTML = '<option value="">Select City</option>';
+    cities.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => {
+        citySelect.innerHTML += `<option value="${c.code}">${c.name}</option>`;
+    });
+}
+
+async function loadBarangays() {
+    const cityCode = document.getElementById('city').value;
+    const brgySelect = document.getElementById('barangay');
+    brgySelect.disabled = false;
+    brgySelect.innerHTML = '<option value="">Loading...</option>';
+
+    const res = await fetch(`${PSGC_API}/cities-municipalities/${cityCode}/barangays/`);
+    const barangays = await res.json();
+    brgySelect.innerHTML = '<option value="">Select Barangay</option>';
+    barangays.sort((a, b) => a.name.localeCompare(b.name)).forEach(b => {
+        brgySelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+    });
+}
 
 function toggleBilling() {
     const isSame = document.getElementById('sameAsDelivery').checked;
