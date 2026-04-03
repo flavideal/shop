@@ -106,15 +106,45 @@
 </div>
 
         <div class="section-card">
-            <div class="section-title"><i class="fas fa-file-invoice"></i> Billing Address</div>
-            <div class="promo-box" style="margin-bottom:15px;">
-                <input type="checkbox" id="sameAsDelivery" checked onclick="toggleBilling()">
-                <span>Same as Delivery Address</span>
+    <div class="section-title"><i class="fas fa-file-invoice"></i> Billing Address</div>
+    <div class="promo-box" style="margin-bottom:15px;">
+        <input type="checkbox" id="sameAsDelivery" checked onclick="toggleBilling()">
+        <span>Same as Delivery Address</span>
+    </div>
+    
+    <div id="billingForm" style="display:none;">
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Region</label>
+                <select id="bill_region" onchange="loadBillProvinces()"><option value="">Select Region</option></select>
             </div>
-            <div id="billingForm" style="display:none;">
-                <textarea id="billingDetail" placeholder="Enter complete billing address..."></textarea>
+            <div class="form-group">
+                <label>Province</label>
+                <select id="bill_province" onchange="loadBillCities()" disabled><option value="">Select Province</option></select>
             </div>
         </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>City / Municipality</label>
+                <select id="bill_city" onchange="loadBillBarangays()" disabled><option value="">Select City</option></select>
+            </div>
+            <div class="form-group">
+                <label>Barangay</label>
+                <select id="bill_barangay" disabled><option value="">Select Barangay</option></select>
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Street / Building / House No.</label>
+                <input type="text" id="bill_street" placeholder="e.g. 123 Rizal St.">
+            </div>
+            <div class="form-group">
+                <label>Postal Code</label>
+                <input type="text" id="bill_zip" placeholder="e.g. 8600">
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="section-card">
             <div class="section-title"><i class="fas fa-shipping-fast"></i> Delivery Option</div>
@@ -186,67 +216,62 @@ window.onload = async function() {
 
 // --- MGA FUNCTIONS PARA SA ADDRESS DROPDOWN ---
 
+// Idagdag ito sa loob ng initAddressAPI() function mo para ma-load ang Regions sa Billing
 async function initAddressAPI() {
     try {
         const res = await fetch(`${PSGC_API}/regions/`);
         const regions = await res.json();
+        
+        // Load Delivery Regions
         const regionSelect = document.getElementById('region');
-        regionSelect.innerHTML = '<option value="">Select Region</option>';
+        // Load Billing Regions
+        const billRegionSelect = document.getElementById('bill_region');
+        
         regions.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => {
-            regionSelect.innerHTML += `<option value="${r.code}">${r.name}</option>`;
+            const opt = `<option value="${r.code}">${r.name}</option>`;
+            regionSelect.innerHTML += opt;
+            billRegionSelect.innerHTML += opt;
         });
     } catch (e) { console.error("Error loading regions", e); }
 }
 
-async function loadProvinces() {
-    const regionCode = document.getElementById('region').value;
-    const provSelect = document.getElementById('province');
-    provSelect.disabled = false;
-    provSelect.innerHTML = '<option value="">Loading...</option>';
-
-    const res = await fetch(`${PSGC_API}/regions/${regionCode}/provinces/`);
-    const provinces = await res.json();
-    
-    provSelect.innerHTML = '<option value="">Select Province</option>';
-    if (provinces.length === 0) {
-        provSelect.innerHTML = '<option value="MM">Metro Manila</option>';
-        loadCities("MM", regionCode);
+// Gawa tayo ng duplicate functions para sa Billing (para hindi mag-conflict sa Delivery)
+async function loadBillProvinces() {
+    const code = document.getElementById('bill_region').value;
+    const target = document.getElementById('bill_province');
+    target.disabled = false;
+    target.innerHTML = '<option value="">Loading...</option>';
+    const res = await fetch(`${PSGC_API}/regions/${code}/provinces/`);
+    const data = await res.json();
+    target.innerHTML = '<option value="">Select Province</option>';
+    if(data.length === 0) {
+        target.innerHTML = '<option value="MM">Metro Manila</option>';
+        loadBillCities("MM", code);
     } else {
-        provinces.sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
-            provSelect.innerHTML += `<option value="${p.code}">${p.name}</option>`;
-        });
+        data.forEach(p => target.innerHTML += `<option value="${p.code}">${p.name}</option>`);
     }
 }
 
-async function loadCities(manualProvCode, regCode) {
-    const provCode = manualProvCode || document.getElementById('province').value;
-    const regionCode = regCode || document.getElementById('region').value;
-    const citySelect = document.getElementById('city');
-    citySelect.disabled = false;
-    citySelect.innerHTML = '<option value="">Loading...</option>';
-
+async function loadBillCities(manualCode, regCode) {
+    const provCode = manualCode || document.getElementById('bill_province').value;
+    const regionCode = regCode || document.getElementById('bill_region').value;
+    const target = document.getElementById('bill_city');
+    target.disabled = false;
     let url = provCode === "MM" ? `${PSGC_API}/regions/${regionCode}/cities-municipalities/` : `${PSGC_API}/provinces/${provCode}/cities-municipalities/`;
-    
     const res = await fetch(url);
-    const cities = await res.json();
-    citySelect.innerHTML = '<option value="">Select City</option>';
-    cities.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => {
-        citySelect.innerHTML += `<option value="${c.code}">${c.name}</option>`;
-    });
+    const data = await res.json();
+    target.innerHTML = '<option value="">Select City</option>';
+    data.forEach(c => target.innerHTML += `<option value="${c.code}">${c.name}</option>`);
 }
 
-async function loadBarangays() {
-    const cityCode = document.getElementById('city').value;
-    const brgySelect = document.getElementById('barangay');
-    brgySelect.disabled = false;
-    brgySelect.innerHTML = '<option value="">Loading...</option>';
-
+async function loadBillBarangays() {
+    const cityCode = document.getElementById('bill_city').value;
+    const target = document.getElementById('bill_barangay');
+    target.disabled = false;
     const res = await fetch(`${PSGC_API}/cities-municipalities/${cityCode}/barangays/`);
-    const barangays = await res.json();
-    brgySelect.innerHTML = '<option value="">Select Barangay</option>';
-    barangays.sort((a, b) => a.name.localeCompare(b.name)).forEach(b => {
-        brgySelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
-    });
+    const data = await res.json();
+    target.innerHTML = '<option value="">Select Barangay</option>';
+    data.forEach(b => target.innerHTML += `<option value="${b.name}">${b.name}</option>`);
 }
 
 function toggleBilling() {
