@@ -346,19 +346,17 @@ function loadCheckoutItems() {
 }
 
 async function placeOrder() {
-    // 1. Kunin ang basic info
+    // --- 1. DATI MONG LOGIC (Collecting Customer & Order Info) ---
     const fullname = document.getElementById('fullname').value;
-    const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
-    const amount = parseFloat(subtotalText);
-    const orderId = "FLV-" + Date.now(); // Unique ID
-
-    // Validation: Siguraduhing may pangalan
-    if (!fullname) {
-        alert("Please enter your full name.");
+    const email = document.getElementById('email').value;
+    const mobile = document.getElementById('mobile').value;
+    
+    if (!fullname || !mobile) {
+        alert("Please fill up your name and mobile number.");
         return;
     }
 
-    // 2. Save Address (Dati mong logic)
+    // Save Address to LocalStorage (Dati mong logic)
     if (document.getElementById('saveAddressLocal').checked) {
         const addressToSave = {
             region: document.getElementById('region').value,
@@ -371,26 +369,43 @@ async function placeOrder() {
         localStorage.setItem('flavi_last_address', JSON.stringify(addressToSave));
     }
 
-    // --- DITO MO ILALAGAY ANG LOGIC NA NAKUHA MO ---
+    // Pagkuha ng items at total (Galing sa dati mong code)
+    const cartItems = JSON.parse(localStorage.getItem('cart'));
+    const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
+    const amount = parseFloat(subtotalText);
+    const orderId = "FLV-" + Date.now(); // Unique ID for tracking
 
-    // Kunin ang piniling payment type (Full o Installment)
+    // Ito yung dati mong object (Mananatili ito para sa console/database logs mo)
+    const orderData = {
+        orderId: orderId,
+        customer: { name: fullname, email: email, phone: mobile },
+        address: `${document.getElementById('street').value}, ${document.getElementById('barangay').value}, ${document.getElementById('city').value}`,
+        items: cartItems,
+        total: amount,
+        method: "Online/Cash"
+    };
+    
+    console.log("Order Data Compiled:", orderData);
+
+    // --- 2. BAGONG LOGIC (Redirection based on Payment Type) ---
+    
+    // Siguraduhin na may "paymentType" select element ka sa HTML
     const paymentType = document.getElementById('paymentType').value;
     let finalUrl = "";
 
     if (paymentType === "installment") {
-        // I-redirect sa Erriho Portal para sa mga kukuha ng installment
-        // Palitan ang URL ng actual na link ng Erriho Portal mo
+        // Redirect sa Erriho Portal (Installment)
         finalUrl = `https://erriho.portal/apply?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
     } else {
-        // I-redirect sa Flavideal Payment Portal (payment.html) para sa cash/full payment
+        // Redirect sa Flavideal Payment Portal (Cash/Full)
+        // Ipinapasa natin ang OID, NAME, at AMT para automatic na mag-load sa payment.html
         finalUrl = `payment.html?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
     }
 
-    // I-execute ang redirection
-    alert("Order Saved! Redirecting to Payment Gateway...");
+    alert("Order recorded! Redirecting you to complete the payment...");
     window.location.href = finalUrl;
 }
-
+    
     const orderData = {
         customer: {
             name: document.getElementById('fullname').value,
