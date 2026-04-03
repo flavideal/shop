@@ -172,12 +172,13 @@
     </div>
 </div>
 
-    <div class="form-group" style="margin-top: 15px;">
-    <label style="font-weight: bold; color: var(--forest-green);">Payment Type</label>
-    <select id="paymentType" style="border: 2px solid var(--forest-green);">
-        <option value="full">Full Payment (Cash / Gcash / Bank)</option>
-        <option value="installment">Installment via Erriho (Apply for Loan)</option>
-    </select>
+    <select id="paymentType" style="border: 2px solid var(--forest-green);" onchange="loadCheckoutItems()">
+    <option value="full">Full Payment (Cash / Gcash / Bank)</option>
+    <option value="installment">Installment via Erriho (Apply for Loan)</option>
+</select>
+
+<div id="installmentNote" style="display:none; margin-top:12px; font-size:12px; color:#1B4D2E; background:#e6ffed; padding:12px; border-radius:8px; border-left: 4px solid #1B4D2E; line-height: 1.4;">
+    <i class="fas fa-info-circle"></i> <b>Erriho Installment:</b> You will be redirected to the <b>Erriho Portal</b> to complete your application after clicking "Place Order". Approval is subject to credit checking.
 </div>
 
     <div class="right-col">
@@ -308,6 +309,14 @@ function updateShippingMsg() {
 function loadCheckoutItems() {
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     const container = document.getElementById('checkoutItemsList');
+    const paymentType = document.getElementById('paymentType').value;
+    
+    // BAGONG DAGDAG: Toggle logic para sa Installment Note
+    const instNote = document.getElementById('installmentNote');
+    if (instNote) {
+        instNote.style.display = (paymentType === "installment") ? "block" : "none";
+    }
+
     let total = 0;
 
     if (cart.length === 0) {
@@ -316,15 +325,15 @@ function loadCheckoutItems() {
     }
 
     container.innerHTML = cart.map(item => {
-        const itemTotal = item.price * item.quantity;
+        const activePrice = (paymentType === "installment") ? (item.regPrice || item.price) : item.price;
+        const itemTotal = activePrice * item.quantity;
         total += itemTotal;
         
-        // Variation Logic
         const variantDetails = [];
         if (item.color) variantDetails.push(item.color);
         if (item.size) variantDetails.push(item.size);
         if (item.capacity) variantDetails.push(item.capacity);
-        const variantString = variantDetails.length > 0 ? variantDetails.join(' | ') : "";
+        const variantString = variantDetails.join(' | ');
 
         return `
             <div style="display:flex; gap:10px; margin-bottom:12px; font-size:13px; align-items:center;">
@@ -332,16 +341,16 @@ function loadCheckoutItems() {
                 <div style="flex:1;">
                     <div style="font-weight:bold;">${item.name}</div>
                     <div style="color:#888; font-size:11px;">Qty: ${item.quantity} | ${variantString}</div>
+                    <div style="font-size:10px; color:var(--forest-green); font-weight:bold;">
+                        ${paymentType === 'installment' ? 'REGULAR PRICE' : 'CASH PRICE'}
+                    </div>
                 </div>
-                <div style="font-weight:600;">₱${itemTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                <div style="font-weight:600;">₱${itemTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
             </div>
         `;
     }).join('');
 
-    // Decimal para sa Subtotal
-    document.getElementById('subtotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-    
-    // Tawagin ang shipping calculation para ma-update ang Grand Total
+    document.getElementById('subtotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     calculateShipping();
 }
 
