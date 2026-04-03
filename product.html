@@ -582,13 +582,15 @@ function addToCartLogic(shouldRedirect = true) {
     const cartItem = {
         id: new URLSearchParams(window.location.search).get('id'),
         name: productName,
-        price: activeData.cash, 
+        price: activeData.cash,      // Ito ang Cash Price
+        regPrice: activeData.reg,    // <--- DAGDAGAN MO ITO (Regular Price)
         color: selectedColor,
         capacity: selectedCap,
         quantity: qty,
         image: currentGalleryImages[0] || "" 
     };
 
+    // ... (rest of your logic for saving to cart)
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     const existingIndex = cart.findIndex(item => 
         item.id === cartItem.id && 
