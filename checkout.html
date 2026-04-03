@@ -371,22 +371,43 @@ function calculateShipping() {
     const select = document.getElementById('deliveryOption');
     const selectedOption = select.options[select.selectedIndex];
     const dataType = selectedOption.getAttribute('data-type');
+    const method = select.value;
     
     const shipFeeDisplay = document.getElementById('shipFee');
+    const sfDetails = document.getElementById('sfDetails');
     const grandTotalDisplay = document.getElementById('grandTotal');
     
-    // Kunin ang Subtotal (Linisin ang string para makuha ang number)
+    // Get Subtotal from UI and clean string
     const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
     const subtotal = parseFloat(subtotalText) || 0;
 
+    // Formatting options para sa decimal (₱1,234.56)
+    const currencyFormat = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
     if (dataType === "free") {
+        // --- Free Pickup Logic ---
         shipFeeDisplay.innerText = "FREE";
-        // Format Grand Total with Decimals
-        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        shipFeeDisplay.style.color = "#1B4D2E";
+        
+        sfDetails.innerHTML = "<b>Store Pickup:</b> No shipping fee required. Pickup details and schedule will be sent to you once your order is ready.";
+        
+        // Added decimal formatting
+        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString(undefined, currencyFormat)}`;
     } else {
-        shipFeeDisplay.innerText = "Pay to Courier";
-        // Show Subtotal + Note for Shipping
-        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} + SF`;
+        // --- External Payment Logic (LBC / Riders) ---
+        shipFeeDisplay.innerText = "Pay to Courier"; 
+        shipFeeDisplay.style.color = "#d9534f"; // Red to highlight extra cost
+        
+        if (method === "LBC") {
+            sfDetails.innerHTML = "<b>LBC Shipping (Nationwide):</b> Shipping fee is NOT included. Please pay the fee directly to LBC upon delivery or branch pickup. <b>Details will be sent once shipped.</b>";
+        } else if (method.includes("Grab") || method === "Lalamove" || method === "Maxim") {
+            // Clean up name for display
+            const courierName = method.split('-')[0];
+            sfDetails.innerHTML = `<b>${courierName} Delivery:</b> Please pay the delivery fare directly to the rider upon arrival. <b>Details will be sent once shipped.</b>`;
+        }
+        
+        // Show Total with decimal + Shipping Fee Note
+        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString(undefined, currencyFormat)} + Shipping Fee`;
     }
 }
 
