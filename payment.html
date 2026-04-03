@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flavideal Payment Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --flavideal-green: #1B4D2E; 
+            --flavideal-gold: #FFD700;
+            --success: #2ecc71; 
+            --danger: #e74c3c; 
+            --dark: #2c3e50; 
+            --light-bg: #f0f4f1;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; }
+        
+        .container { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); padding-bottom: 40px; }
+
+        /* Header Styling */
+        .header { text-align: center; padding: 30px 20px; background: white; border-bottom: 4px solid var(--flavideal-gold); }
+        .logo { width: 100px; height: auto; margin-bottom: 10px; }
+        .portal-title { font-size: 18px; font-weight: 800; color: var(--flavideal-green); letter-spacing: 1px; }
+
+        .status-banner { padding: 12px; text-align: center; font-weight: bold; color: white; background-color: #f39c12; text-transform: uppercase; font-size: 13px; }
+
+        /* Order Card */
+        .order-card { margin: 20px; padding: 20px; border-radius: 15px; background: #fff; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .order-id { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+        
+        .amount-section { 
+            text-align: center; 
+            margin: 15px 0; 
+            background: var(--light-bg); 
+            padding: 20px; 
+            border-radius: 12px; 
+            border: 1px solid #d1dbd3;
+        }
+        .total-label { font-size: 11px; color: var(--flavideal-green); font-weight: 700; letter-spacing: 1px; }
+        .total-amount { font-size: 34px; font-weight: 800; color: var(--flavideal-green); margin: 5px 0; }
+        .shipping-note { font-size: 10px; color: #666; font-style: italic; margin-top: 5px; }
+
+        /* Payment Options */
+        .option-item { border: 1px solid #eee; border-radius: 10px; margin: 10px 20px; overflow: hidden; }
+        .option-header { padding: 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .option-content { display: none; padding: 15px; background: #fafafa; border-top: 1px solid #eee; text-align: center; }
+        
+        .qr-code { width: 100%; max-width: 220px; border-radius: 10px; margin: 10px 0; }
+
+        /* Upload Section */
+        .upload-section { margin: 20px; padding: 20px; border: 2px dashed var(--flavideal-green); border-radius: 15px; text-align: center; background: #fdfdfd; }
+        .file-input { display: none; }
+        .upload-label { cursor: pointer; color: var(--flavideal-green); font-weight: 600; font-size: 14px; }
+        
+        .btn-submit { 
+            display: block; 
+            width: calc(100% - 40px); 
+            margin: 20px auto; 
+            background: var(--flavideal-green); 
+            color: var(--flavideal-gold); 
+            border: none; 
+            padding: 16px; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            text-transform: uppercase;
+        }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Helper Classes */
+        .bank-details { text-align: left; font-size: 13px; background: white; padding: 12px; border-radius: 8px; border: 1px solid #eee; line-height: 1.6; }
+        .copy-btn { background: var(--flavideal-green); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; float: right; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <img src="images/flavideal-logo.png" class="logo" alt="Flavideal Logo">
+        <div class="portal-title">PAYMENT GATEWAY</div>
+        <div style="font-size: 10px; color: #777; margin-top: 5px;">FLAVIDEAL OFFICIAL ONLINE STORE</div>
+    </div>
+
+    <div class="status-banner">Awaiting Payment Screenshot</div>
+
+    <div class="order-card">
+        <div class="order-id" id="orderIdDisplay">Order #FLV-123456</div>
+        <div style="font-size: 12px; color: #555; margin-bottom: 5px;">Customer: <b id="customerName">---</b></div>
+        
+        <div class="amount-section">
+            <div class="total-label">TOTAL ORDER AMOUNT</div>
+            <div class="total-amount">₱<span id="displayAmount">0.00</span></div>
+            <div class="shipping-note">Shipping Fee not included (Pay upon delivery)</div>
+        </div>
+    </div>
+
+    <div style="padding: 0 20px; font-size: 13px; font-weight: 700; color: var(--flavideal-green);">SELECT PAYMENT METHOD:</div>
+
+    <div class="option-item">
+        <div class="option-header" onclick="toggleOption('qrph-box')">
+            <span><img src="images/qrph-icon.png" style="height:20px; vertical-align:middle; margin-right:8px;"> QRPH (GCash / Maya / Any Bank)</span>
+            <span style="color: var(--success); font-size: 10px;">FREE</span>
+        </div>
+        <div id="qrph-box" class="option-content">
+            <img src="images/my-qr-code.png" class="qr-code" alt="QRPH Code">
+            <p style="font-size: 11px; color: #666;">Scan or Upload this QR to your bank app.</p>
+        </div>
+    </div>
+
+    <div class="option-item">
+        <div class="option-header" onclick="toggleOption('palawan-box')">
+            <span><img src="images/palawan-icon.png" style="height:20px; vertical-align:middle; margin-right:8px;"> PalawanPay (Cash-In)</span>
+            <span style="color: var(--success); font-size: 10px;">FREE</span>
+        </div>
+        <div id="palawan-box" class="option-content">
+            <div class="bank-details">
+                <b>Account Name:</b> JERRIC JHON DELA CRUZ<br>
+                <b>Account Number:</b> <span id="pNum">09127430456</span>
+                <button class="copy-btn" onclick="copyText('pNum')">COPY</button>
+                <p style="font-size: 10px; color: var(--danger); margin-top: 10px;">*Tell the cashier: "Mag-cash-in po ako sa PalawanPay account na ito."</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="option-item">
+        <div class="option-header" onclick="toggleOption('bank-box')">
+            <span><img src="images/bank-icon.png" style="height:20px; vertical-align:middle; margin-right:8px;"> Bank Transfer (BPI / BDO)</span>
+            <span style="color: var(--success); font-size: 10px;">FREE</span>
+        </div>
+        <div id="bank-box" class="option-content">
+            <div class="bank-details">
+                <b>BPI Savings:</b> 4559 3780 92 <button class="copy-btn">COPY</button><br>
+                <b>BDO Savings:</b> 0044 5600 1979 <button class="copy-btn">COPY</button><br>
+                <small>Account Name: JERRIC JHON DELA CRUZ</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="upload-section">
+        <input type="file" id="fileUpload" class="file-input" accept="image/*" onchange="previewFile()">
+        <label for="fileUpload" class="upload-label" id="uploadText">
+            📸 TAP TO UPLOAD PROOF OF PAYMENT
+        </label>
+        <div id="previewContainer" style="margin-top:10px; display:none;">
+            <img id="imagePreview" src="" style="max-width: 100%; border-radius: 8px;">
+        </div>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" disabled onclick="submitOrder()">Confirm & Send Payment</button>
+
+</div>
+
+<script>
+    function toggleOption(id) {
+        const boxes = document.querySelectorAll('.option-content');
+        boxes.forEach(box => {
+            if (box.id === id) {
+                box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        });
+    }
+
+    function previewFile() {
+        const file = document.getElementById('fileUpload').files[0];
+        const preview = document.getElementById('imagePreview');
+        const container = document.getElementById('previewContainer');
+        const btn = document.getElementById('submitBtn');
+        const label = document.getElementById('uploadText');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                container.style.display = 'block';
+                label.innerText = "✅ Receipt Selected";
+                btn.disabled = false;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function copyText(id) {
+        const text = document.getElementById(id).innerText;
+        navigator.clipboard.writeText(text);
+        alert("Account number copied!");
+    }
+
+    function submitOrder() {
+        alert("Payment Submitted! Flavideal will verify your payment shortly.");
+        // Dito mo ilalagay ang logic para i-send ang data sa server mo o via Brevo/Email.
+    }
+</script>
+
+</body>
+</html>
