@@ -147,17 +147,24 @@
 </div>
 
         <div class="section-card">
-            <div class="section-title"><i class="fas fa-shipping-fast"></i> Delivery Option</div>
-            <select id="deliveryOption" onchange="updateShippingMsg()">
-                <option value="Pickup-Butuan">Pickup at Hub (Butuan City)</option>
-                <option value="Pickup-Caloocan">Pickup at Hub (Caloocan)</option>
-                <option value="LBC">LBC (Pickup / Delivery) - Nationwide</option>
-            </select>
-            <div id="shippingNote" style="margin-top:10px; font-size:11px; color:#666; background:#fff9e6; padding:10px; border-radius:5px; display:none;">
-                <i class="fas fa-info-circle"></i> Shipping fee is shouldered by the customer (Pay upon LBC pickup/delivery). Details will be sent once shipped.
-            </div>
-        </div>
+    <div class="section-title"><i class="fas fa-shipping-fast"></i> Delivery Option</div>
+    <select id="deliveryOption" onchange="calculateShipping()">
+        <option value="Pickup-Butuan" data-type="free">Pickup at Hub (Butuan City) - FREE</option>
+        <option value="Pickup-Caloocan" data-type="free">Pickup at Hub (Caloocan) - FREE</option>
+        
+        <option value="LBC" data-type="tbd">LBC Express (Pay SF upon Pickup/Delivery)</option>
+        
+        <optgroup label="On-Demand (Same Day - Fare Collect)">
+            <option value="Lalamove" data-type="tbd">Lalamove (Pay Fare to Rider)</option>
+            <option value="Grab" data-type="tbd">Grab Express (Pay Fare to Rider)</option>
+            <option value="Maxim" data-type="tbd">Maxim (Pay Fare to Rider)</option>
+        </optgroup>
+    </select>
+
+    <div id="shippingNote" style="margin-top:10px; font-size:12px; color:#666; background:#fff9e6; padding:12px; border-radius:8px; border-left: 4px solid #1B4D2E;">
+        <i class="fas fa-info-circle"></i> <span id="sfDetails">Selected option is FREE of charge.</span>
     </div>
+</div>
 
     <div class="right-col">
         <div class="section-card" style="position: sticky; top: 80px;">
@@ -340,6 +347,35 @@ async function placeOrder() {
 
     console.log("Order Placed:", orderData);
     alert("Order Saved! Redirecting to Maya...");
+}
+
+function calculateShipping() {
+    const select = document.getElementById('deliveryOption');
+    const selectedOption = select.options[select.selectedIndex];
+    const dataType = selectedOption.getAttribute('data-type');
+    
+    const shipFeeDisplay = document.getElementById('shipFee');
+    const sfDetails = document.getElementById('sfDetails');
+    const grandTotalDisplay = document.getElementById('grandTotal');
+    
+    // Kunin ang Subtotal (Tanggalin ang Peso sign at Comma para sa math)
+    const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
+    const subtotal = parseFloat(subtotalText) || 0;
+
+    if (dataType === "free") {
+        shipFeeDisplay.innerText = "FREE";
+        shipFeeDisplay.style.color = "#1B4D2E";
+        sfDetails.innerText = "No shipping fee for branch pickup. We will notify you when your order is ready.";
+        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString()}`;
+    } else {
+        // Kapag LBC, Lalamove, etc. (TBD)
+        shipFeeDisplay.innerText = "TBD"; 
+        shipFeeDisplay.style.color = "#d9534f"; // Reddish para mapansin ng customer
+        sfDetails.innerHTML = "<b>Note:</b> Shipping fee is NOT included in this total. Please pay the fee directly to the courier (LBC/Rider) upon delivery or pickup.";
+        
+        // Ang Grand Total ay mananatiling Subtotal lang kasi TBD ang SF
+        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString()} + SF`;
+    }
 }
 </script>
 
