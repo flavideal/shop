@@ -110,6 +110,7 @@ function renderCartUI(cart) {
         const itemTotal = item.price * item.quantity;
         total += itemTotal;
         
+        // --- VARIATION LOGIC (Nananatili) ---
         let variationLabel = [];
         if (item.capacity && item.capacity !== "N/A") variationLabel.push(item.capacity);
         if (item.color && item.color !== "N/A") variationLabel.push(item.color);
@@ -122,8 +123,20 @@ function renderCartUI(cart) {
                 <a href="${productLink}"><img src="${item.image}" alt="${item.name}"></a>
                 <div class="item-info">
                     <a href="${productLink}" style="text-decoration:none; color:inherit;"><h4>${item.name}</h4></a>
+                    
                     <div class="item-meta">${variationLabel.join(' | ')}</div>
-                    <div style="font-weight:bold; color:var(--forest-green);">₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                    
+                    <div style="margin-top: 5px;">
+                        <span style="font-weight:bold; color:var(--forest-green); font-size: 15px;">
+                            ₱${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                        </span>
+                        ${item.regPrice && item.regPrice > item.price ? `
+                            <span style="text-decoration: line-through; color: #888; font-size: 11px; margin-left: 8px;">
+                                ₱${item.regPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                            </span>
+                        ` : ''}
+                    </div>
+
                     <div class="qty-controls">
                         <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
                         <span style="font-weight:bold; width: 30px; text-align: center; display: inline-block;">${item.quantity}</span>
@@ -136,7 +149,7 @@ function renderCartUI(cart) {
 
     document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 }
-
+    
 // --- 2. LOGIN SYNC & INITIAL LOAD ---
 async function loadCart() {
     const user = JSON.parse(localStorage.getItem('flavi_user'));
