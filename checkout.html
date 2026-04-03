@@ -172,6 +172,14 @@
     </div>
 </div>
 
+    <div class="form-group" style="margin-top: 15px;">
+    <label style="font-weight: bold; color: var(--forest-green);">Payment Type</label>
+    <select id="paymentType" style="border: 2px solid var(--forest-green);">
+        <option value="full">Full Payment (Cash / Gcash / Bank)</option>
+        <option value="installment">Installment via Erriho (Apply for Loan)</option>
+    </select>
+</div>
+
     <div class="right-col">
         <div class="section-card" style="position: sticky; top: 80px;">
             <div class="section-title">Order Summary</div>
@@ -338,7 +346,19 @@ function loadCheckoutItems() {
 }
 
 async function placeOrder() {
-    // Save Address to LocalStorage if checkbox is checked
+    // 1. Kunin ang basic info
+    const fullname = document.getElementById('fullname').value;
+    const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
+    const amount = parseFloat(subtotalText);
+    const orderId = "FLV-" + Date.now(); // Unique ID
+
+    // Validation: Siguraduhing may pangalan
+    if (!fullname) {
+        alert("Please enter your full name.");
+        return;
+    }
+
+    // 2. Save Address (Dati mong logic)
     if (document.getElementById('saveAddressLocal').checked) {
         const addressToSave = {
             region: document.getElementById('region').value,
@@ -350,6 +370,26 @@ async function placeOrder() {
         };
         localStorage.setItem('flavi_last_address', JSON.stringify(addressToSave));
     }
+
+    // --- DITO MO ILALAGAY ANG LOGIC NA NAKUHA MO ---
+
+    // Kunin ang piniling payment type (Full o Installment)
+    const paymentType = document.getElementById('paymentType').value;
+    let finalUrl = "";
+
+    if (paymentType === "installment") {
+        // I-redirect sa Erriho Portal para sa mga kukuha ng installment
+        // Palitan ang URL ng actual na link ng Erriho Portal mo
+        finalUrl = `https://erriho.portal/apply?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
+    } else {
+        // I-redirect sa Flavideal Payment Portal (payment.html) para sa cash/full payment
+        finalUrl = `payment.html?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
+    }
+
+    // I-execute ang redirection
+    alert("Order Saved! Redirecting to Payment Gateway...");
+    window.location.href = finalUrl;
+}
 
     const orderData = {
         customer: {
