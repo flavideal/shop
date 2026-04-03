@@ -303,45 +303,37 @@ function loadCheckoutItems() {
     let total = 0;
 
     if (cart.length === 0) {
-        container.innerHTML = "<div style='padding:20px; text-align:center; color:#888;'>Your cart is empty.</div>";
+        container.innerHTML = "No items selected.";
         return;
     }
 
     container.innerHTML = cart.map(item => {
-        total += item.price * item.quantity;
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
         
-        // --- DISPLAY LOGIC FOR VARIATIONS ---
-        // Kinukuha natin ang mga detalye kung available sila sa cart object
-        const itemColor = item.color || item.colour || ""; 
-        const itemSize = item.size || "";
-        const itemCapacity = item.capacity || ""; // existing mo na ito
-
-        // Pagsasama-samahin natin sila sa isang line para malinis tignan
-        let variantDetails = [];
-        if (itemColor) variantDetails.push(`Color: ${itemColor}`);
-        if (itemSize) variantDetails.push(`Size: ${itemSize}`);
-        if (itemCapacity) variantDetails.push(`Capacity: ${itemCapacity}`);
-
-        const variantString = variantDetails.length > 0 ? variantDetails.join(' | ') : "No variations";
+        // Variation Logic
+        const variantDetails = [];
+        if (item.color) variantDetails.push(item.color);
+        if (item.size) variantDetails.push(item.size);
+        if (item.capacity) variantDetails.push(item.capacity);
+        const variantString = variantDetails.length > 0 ? variantDetails.join(' | ') : "";
 
         return `
-            <div style="display:flex; gap:12px; margin-bottom:15px; font-size:13px; align-items: center;">
-                <img src="${item.image}" style="width:50px; height:50px; border-radius:8px; object-fit: cover; border: 1px solid #eee;">
+            <div style="display:flex; gap:10px; margin-bottom:12px; font-size:13px; align-items:center;">
+                <img src="${item.image}" style="width:50px; height:50px; border-radius:5px; object-fit:cover;">
                 <div style="flex:1;">
-                    <div style="font-weight:bold; color:#333; margin-bottom:2px;">${item.name}</div>
-                    <div style="color:#777; font-size:11px;">
-                        Qty: ${item.quantity} <br>
-                        <span style="color:var(--forest-green);">${variantString}</span>
-                    </div>
+                    <div style="font-weight:bold;">${item.name}</div>
+                    <div style="color:#888; font-size:11px;">Qty: ${item.quantity} | ${variantString}</div>
                 </div>
-                <div style="font-weight:bold; color:var(--forest-green);">₱${(item.price * item.quantity).toLocaleString()}</div>
+                <div style="font-weight:600;">₱${itemTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             </div>
         `;
     }).join('');
 
-    document.getElementById('subtotal').innerText = `₱${total.toLocaleString()}`;
+    // Decimal para sa Subtotal
+    document.getElementById('subtotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     
-    // Tawagin ang calculateShipping para ma-update ang Grand Total kasama ang variants
+    // Tawagin ang shipping calculation para ma-update ang Grand Total
     calculateShipping();
 }
 
@@ -379,39 +371,22 @@ function calculateShipping() {
     const select = document.getElementById('deliveryOption');
     const selectedOption = select.options[select.selectedIndex];
     const dataType = selectedOption.getAttribute('data-type');
-    const method = select.value;
     
     const shipFeeDisplay = document.getElementById('shipFee');
-    const sfDetails = document.getElementById('sfDetails');
     const grandTotalDisplay = document.getElementById('grandTotal');
     
-    // Get Subtotal from UI
+    // Kunin ang Subtotal (Linisin ang string para makuha ang number)
     const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
     const subtotal = parseFloat(subtotalText) || 0;
 
     if (dataType === "free") {
-        // --- Free Pickup Logic ---
         shipFeeDisplay.innerText = "FREE";
-        shipFeeDisplay.style.color = "#1B4D2E";
-        
-        sfDetails.innerHTML = "<b>Store Pickup:</b> No shipping fee required. Pickup details and schedule will be sent to you once your order is ready.";
-        
-        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString()}`;
+        // Format Grand Total with Decimals
+        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     } else {
-        // --- External Payment Logic (LBC / Riders) ---
-        shipFeeDisplay.innerText = "Pay to Courier"; 
-        shipFeeDisplay.style.color = "#d9534f"; // Red to highlight extra cost
-        
-        if (method === "LBC") {
-            sfDetails.innerHTML = "<b>LBC Shipping (Nationwide):</b> Shipping fee is NOT included. Please pay the fee directly to LBC upon delivery or branch pickup. <b>Details will be sent once shipped.</b>";
-        } else if (method.includes("Grab") || method === "Lalamove" || method === "Maxim") {
-            // Clean up name for display (e.g., Grab-MM becomes Grab Express)
-            const courierName = method.split('-')[0];
-            sfDetails.innerHTML = `<b>${courierName} Delivery:</b> Please pay the delivery fare directly to the rider upon arrival. <b>Details will be sent once shipped.</b>`;
-        }
-        
-        // Show Total + Shipping Fee Note
-        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString()} + Shipping Fee`;
+        shipFeeDisplay.innerText = "Pay to Courier";
+        // Show Subtotal + Note for Shipping
+        grandTotalDisplay.innerText = `₱${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} + SF`;
     }
 }
 
