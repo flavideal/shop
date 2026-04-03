@@ -155,6 +155,28 @@
 </div>
 
 <script>
+    // --- BAGONG UPDATE: Basahin ang data galing sa Checkout URL ---
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Kunin ang parameters (oid, name, amt)
+        const orderId = urlParams.get('oid') || "FLV-TEMP";
+        const customerName = urlParams.get('name') || "Customer";
+        const amount = urlParams.get('amt') || "0.00";
+
+        // I-display sa UI
+        document.getElementById('orderIdDisplay').innerText = `Order #${orderId}`;
+        document.getElementById('customerName').innerText = customerName;
+        
+        // Format the amount with commas and decimals
+        const formattedAmount = parseFloat(amount).toLocaleString(undefined, {
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2
+        });
+        document.getElementById('displayAmount').innerText = formattedAmount;
+    };
+
+    // --- EXISTING FUNCTIONS ---
     function toggleOption(id) {
         const boxes = document.querySelectorAll('.option-content');
         boxes.forEach(box => {
@@ -192,10 +214,12 @@
     }
 
     function submitOrder() {
-        alert("Payment Submitted! Flavideal will verify your payment shortly.");
-        // Dito mo ilalagay ang logic para i-send ang data sa server mo o via Brevo/Email.
+        const orderId = document.getElementById('orderIdDisplay').innerText;
+        alert("Payment Submitted for " + orderId + "! Flavideal will verify your payment shortly.");
+        
+        // Dito mo pwedeng i-redirect sa 'Success Page' o i-trigger ang notification mo.
+        // window.location.href = "success.html";
     }
 </script>
-
 </body>
 </html>
