@@ -3,29 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout | Flavideal</title>
+    <title>Checkout | Flavi Deal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --forest-green: #1B4D2E; --golden-yellow: #FFD275; --light-bg: #F8F9FA; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); margin: 0; padding-bottom: 50px; }
+        
+        /* Header */
         nav { background: var(--forest-green); padding: 15px 5%; color: white; display: flex; align-items: center; gap: 15px; }
         .back-btn { color: white; text-decoration: none; font-size: 18px; }
+
         .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
         @media (min-width: 768px) { .container { grid-template-columns: 1.5fr 1fr; } }
+
         .section-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .section-title { font-size: 16px; font-weight: bold; color: var(--forest-green); border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        
+        /* Form Inputs */
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; color: #666; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #fff; }
-        input:focus, select:focus { border-color: var(--forest-green); outline: none; }
+        label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Order Summary */
         .summary-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
         .total-row { border-top: 2px solid #eee; padding-top: 10px; margin-top: 10px; font-weight: bold; font-size: 18px; color: var(--forest-green); }
-        .place-order-btn { background: var(--forest-green); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; transition: 0.3s; }
-        .place-order-btn:hover { opacity: 0.9; }
+
+        .place-order-btn { background: var(--forest-green); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        
         .promo-box { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #444; }
         .promo-box input { width: auto; }
-        select:disabled { background: #f0f0f0; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -37,57 +45,51 @@
 
 <div class="container">
     <div class="left-col">
+        
         <div class="section-card">
             <div class="section-title"><i class="fas fa-user"></i> Customer Details</div>
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" id="fullname" placeholder="Enter your complete name" required>
+                <input type="text" id="fullname" placeholder="Enter your full name" required>
             </div>
             <div class="grid-2">
                 <div class="form-group"><label>Mobile Number</label><input type="tel" id="mobile" placeholder="09xxxxxxxxx" required></div>
-                <div class="form-group"><label>Email Address</label><input type="email" id="email" required></div>
+                <div class="form-group"><label>Alt Number (Optional)</label><input type="tel" id="altMobile"></div>
+            </div>
+            <div class="form-group"><label>Email Address</label><input type="email" id="email" required></div>
+            <div class="promo-box">
+                <input type="checkbox" id="promoConsent" checked>
+                <span>Keep me updated on latest promos, products, and services.</span>
             </div>
         </div>
 
         <div class="section-card">
             <div class="section-title"><i class="fas fa-map-marker-alt"></i> Delivery Address</div>
+            <div class="grid-2">
+                <div class="form-group"><label>Region</label><input type="text" id="region" required></div>
+                <div class="form-group"><label>Province</label><input type="text" id="province" required></div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>City</label><input type="text" id="city" required></div>
+                <div class="form-group"><label>Barangay</label><input type="text" id="barangay" required></div>
+            </div>
+            <div class="form-group"><label>Street Name, Building, House No.</label><input type="text" id="street" required></div>
+            <div class="form-group"><label>Postal Code</label><input type="text" id="zip"></div>
             
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Region</label>
-                    <select id="region" onchange="loadProvinces()" required><option value="">Select Region</option></select>
-                </div>
-                <div class="form-group">
-                    <label>Province</label>
-                    <select id="province" onchange="loadCities()" disabled required><option value="">Select Province</option></select>
-                </div>
+            <div class="promo-box" style="margin-top: 10px; color: var(--forest-green); font-weight: bold;">
+                <input type="checkbox" id="saveAddressLocal" checked>
+                <span>Save this address for my next order</span>
             </div>
+        </div>
 
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>City / Municipality</label>
-                    <select id="city" onchange="loadBarangays()" disabled required><option value="">Select City</option></select>
-                </div>
-                <div class="form-group">
-                    <label>Barangay</label>
-                    <select id="barangay" disabled required><option value="">Select Barangay</option></select>
-                </div>
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-file-invoice"></i> Billing Address</div>
+            <div class="promo-box" style="margin-bottom:15px;">
+                <input type="checkbox" id="sameAsDelivery" checked onclick="toggleBilling()">
+                <span>Same as Delivery Address</span>
             </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Street / Building / House No.</label>
-                    <input type="text" id="street" placeholder="e.g. 123 Rizal St." required>
-                </div>
-                <div class="form-group">
-                    <label>Postal Code</label>
-                    <input type="text" id="zip" placeholder="e.g. 8600">
-                </div>
-            </div>
-            
-            <div class="promo-box" style="margin-top: 10px;">
-                <input type="checkbox" id="saveAddress" checked>
-                <span>Save this address for my next order.</span>
+            <div id="billingForm" style="display:none;">
+                <textarea id="billingDetail" placeholder="Enter complete billing address..."></textarea>
             </div>
         </div>
 
@@ -99,13 +101,13 @@
                 <option value="LBC">LBC (Pickup / Delivery) - Nationwide</option>
             </select>
             <div id="shippingNote" style="margin-top:10px; font-size:11px; color:#666; background:#fff9e6; padding:10px; border-radius:5px; display:none;">
-                <i class="fas fa-info-circle"></i> Shipping fee is shouldered by the customer (Pay upon LBC pickup/delivery).
+                <i class="fas fa-info-circle"></i> Shipping fee is shouldered by the customer (Pay upon LBC pickup/delivery). Details will be sent once shipped.
             </div>
         </div>
     </div>
 
     <div class="right-col">
-        <div class="section-card" style="position: sticky; top: 20px;">
+        <div class="section-card" style="position: sticky; top: 80px;">
             <div class="section-title">Order Summary</div>
             <div id="checkoutItemsList"></div>
             
@@ -113,167 +115,113 @@
             <div class="summary-item"><span>Shipping</span><span id="shipFee">TBD</span></div>
             <div class="summary-item total-row"><span>Total</span><span id="grandTotal">₱0.00</span></div>
             
-            <div style="margin-top: 15px; text-align: center;">
-                <img src="https://getmaya.com/wp-content/uploads/2022/04/Maya-Logo-Primary.png" style="height: 25px; filter: grayscale(1); opacity: 0.6;">
-            </div>
-            <button class="place-order-btn" onclick="placeOrder()">PROCEED TO PAYMENT</button>
+            <p style="font-size:10px; color:#888; margin-top:10px;">Payment via <b>Maya</b></p>
+            <button class="place-order-btn" onclick="placeOrder()">PLACE ORDER NOW</button>
         </div>
     </div>
 </div>
 
 <script>
-// API URL for PH Locations
-const BASE_URL = "https://psgc.gitlab.io/api";
-
-window.onload = async function() {
-    const savedUser = JSON.parse(localStorage.getItem('flavi_user'));
-    const savedAddress = JSON.parse(localStorage.getItem('saved_address'));
-
-    if (!savedUser) {
+window.onload = function() {
+    const savedData = localStorage.getItem('flavi_user');
+    const localAddress = localStorage.getItem('flavi_last_address'); // Kukunin ang saved address
+    
+    if (!savedData) {
         window.location.replace("account.html?redirect=checkout.html");
         return;
     }
 
-    // Auto-fill basic info
-    document.getElementById('fullname').value = savedUser.name || "";
-    document.getElementById('email').value = savedUser.email || "";
-    document.getElementById('mobile').value = savedUser.mobile || "";
+    try {
+        const user = JSON.parse(savedData);
+        // Fill basic details from account
+        document.getElementById('email').value = user.email || "";
+        document.getElementById('mobile').value = user.mobile || "";
+        document.getElementById('fullname').value = user.name || "";
 
-    await loadRegions();
-
-    // Auto-fill saved address if exists
-    if (savedAddress) {
-        document.getElementById('street').value = savedAddress.street || "";
-        document.getElementById('zip').value = savedAddress.zip || "";
-        // Optional: Dito pwedeng lagyan ng logic para ma-auto select yung dropdowns
+        // --- DITO NATIN ILALAGAY ANG SAVED ADDRESS ---
+        if (localAddress) {
+            const addr = JSON.parse(localAddress);
+            document.getElementById('region').value = addr.region || "";
+            document.getElementById('province').value = addr.province || "";
+            document.getElementById('city').value = addr.city || "";
+            document.getElementById('barangay').value = addr.barangay || "";
+            document.getElementById('street').value = addr.street || "";
+            document.getElementById('zip').value = addr.zip || "";
+        }
+        
+        loadCheckoutItems();
+    } catch (e) {
+        console.error("JSON Parse Error", e);
+        window.location.replace("account.html?redirect=checkout.html");
     }
-
-    loadCheckoutItems();
 };
 
-// --- ADDRESS API LOGIC ---
-
-async function loadRegions() {
-    const res = await fetch(`${BASE_URL}/regions/`);
-    const data = await res.json();
-    const dropdown = document.getElementById('region');
-    data.sort((a,b) => a.name.localeCompare(b.name)).forEach(r => {
-        dropdown.innerHTML += `<option value="${r.code}">${r.name}</option>`;
-    });
+function toggleBilling() {
+    const isSame = document.getElementById('sameAsDelivery').checked;
+    document.getElementById('billingForm').style.display = isSame ? "none" : "block";
 }
 
-async function loadProvinces() {
-    const regionCode = document.getElementById('region').value;
-    const provDropdown = document.getElementById('province');
-    provDropdown.innerHTML = '<option value="">Loading...</option>';
-    provDropdown.disabled = false;
-
-    const res = await fetch(`${BASE_URL}/regions/${regionCode}/provinces/`);
-    const data = await res.json();
-    provDropdown.innerHTML = '<option value="">Select Province</option>';
-    data.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
-        provDropdown.innerHTML += `<option value="${p.code}">${p.name}</option>`;
-    });
-    
-    // Check for cities if Metro Manila (no province)
-    if(data.length === 0) {
-        const resCity = await fetch(`${BASE_URL}/regions/${regionCode}/cities-municipalities/`);
-        const dataCity = await resCity.json();
-        provDropdown.innerHTML = '<option value="MM">Metro Manila</option>';
-        loadCities("MM", regionCode);
-    }
+function updateShippingMsg() {
+    const opt = document.getElementById('deliveryOption').value;
+    document.getElementById('shippingNote').style.display = (opt === "LBC") ? "block" : "none";
 }
-
-async function loadCities(manualCode, regCode) {
-    const provCode = manualCode || document.getElementById('province').value;
-    const regionCode = regCode || document.getElementById('region').value;
-    const cityDropdown = document.getElementById('city');
-    cityDropdown.disabled = false;
-    cityDropdown.innerHTML = '<option value="">Loading...</option>';
-
-    let url = provCode === "MM" ? `${BASE_URL}/regions/${regionCode}/cities-municipalities/` : `${BASE_URL}/provinces/${provCode}/cities-municipalities/`;
-    
-    const res = await fetch(url);
-    const data = await res.json();
-    cityDropdown.innerHTML = '<option value="">Select City</option>';
-    data.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
-        cityDropdown.innerHTML += `<option value="${c.code}">${c.name}</option>`;
-    });
-}
-
-async function loadBarangays() {
-    const cityCode = document.getElementById('city').value;
-    const brgyDropdown = document.getElementById('barangay');
-    brgyDropdown.disabled = false;
-    brgyDropdown.innerHTML = '<option value="">Loading...</option>';
-
-    const res = await fetch(`${BASE_URL}/cities-municipalities/${cityCode}/barangays/`);
-    const data = await res.json();
-    brgyDropdown.innerHTML = '<option value="">Select Barangay</option>';
-    data.sort((a,b) => a.name.localeCompare(b.name)).forEach(b => {
-        brgyDropdown.innerHTML += `<option value="${b.name}">${b.name}</option>`;
-    });
-}
-
-// --- ORDER LOGIC ---
 
 function loadCheckoutItems() {
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     const container = document.getElementById('checkoutItemsList');
     let total = 0;
-    if (cart.length === 0) { container.innerHTML = "Your cart is empty."; return; }
+
+    if (cart.length === 0) {
+        container.innerHTML = "No items selected.";
+        return;
+    }
 
     container.innerHTML = cart.map(item => {
         total += item.price * item.quantity;
         return `
-            <div style="display:flex; gap:12px; margin-bottom:12px; font-size:13px; align-items:center;">
-                <img src="${item.image}" style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
+            <div style="display:flex; gap:10px; margin-bottom:10px; font-size:13px;">
+                <img src="${item.image}" style="width:40px; height:40px; border-radius:5px; object-fit: cover;">
                 <div style="flex:1;">
-                    <div style="font-weight:bold; color:#333;">${item.name}</div>
-                    <div style="color:#888; font-size:11px;">Qty: ${item.quantity} | ${item.capacity || 'N/A'}</div>
+                    <div style="font-weight:bold;">${item.name}</div>
+                    <div style="color:#888;">Qty: ${item.quantity} | ${item.capacity || ''}</div>
                 </div>
-                <div style="font-weight:bold;">₱${(item.price * item.quantity).toLocaleString()}</div>
-            </div>`;
+                <div>₱${(item.price * item.quantity).toLocaleString()}</div>
+            </div>
+        `;
     }).join('');
 
     document.getElementById('subtotal').innerText = `₱${total.toLocaleString()}`;
     document.getElementById('grandTotal').innerText = `₱${total.toLocaleString()}`;
 }
 
-function updateShippingMsg() {
-    document.getElementById('shippingNote').style.display = (document.getElementById('deliveryOption').value === "LBC") ? "block" : "none";
-}
-
 async function placeOrder() {
-    // Check if fields are empty
-    const fields = ['fullname', 'mobile', 'region', 'province', 'city', 'barangay', 'street'];
-    for (let f of fields) {
-        if (!document.getElementById(f).value) {
-            alert("Please complete all required address fields.");
-            return;
-        }
-    }
-
-    // Save address if checked
-    if (document.getElementById('saveAddress').checked) {
-        const addr = {
+    // Save Address to LocalStorage if checkbox is checked
+    if (document.getElementById('saveAddressLocal').checked) {
+        const addressToSave = {
+            region: document.getElementById('region').value,
+            province: document.getElementById('province').value,
+            city: document.getElementById('city').value,
+            barangay: document.getElementById('barangay').value,
             street: document.getElementById('street').value,
             zip: document.getElementById('zip').value
         };
-        localStorage.setItem('saved_address', JSON.stringify(addr));
+        localStorage.setItem('flavi_last_address', JSON.stringify(addressToSave));
     }
 
     const orderData = {
-        customerName: document.getElementById('fullname').value,
-        contact: document.getElementById('mobile').value,
-        fullAddress: `${document.getElementById('street').value}, Brgy. ${document.getElementById('barangay').value}, ${document.getElementById('city').options[document.getElementById('city').selectedIndex].text}, ${document.getElementById('province').options[document.getElementById('province').selectedIndex].text}`,
+        customer: {
+            name: document.getElementById('fullname').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('mobile').value
+        },
+        address: `${document.getElementById('street').value}, ${document.getElementById('barangay').value}, ${document.getElementById('city').value}, ${document.getElementById('province').value}, ${document.getElementById('zip').value}`,
         items: JSON.parse(localStorage.getItem('cart')),
         total: document.getElementById('grandTotal').innerText,
-        delivery: document.getElementById('deliveryOption').value
+        method: "Maya"
     };
 
-    console.log("Order Data:", orderData);
-    alert("Order Successful! Redirecting to Maya...");
+    console.log("Order Placed:", orderData);
+    alert("Order Saved! Redirecting to Maya...");
 }
 </script>
 
