@@ -405,22 +405,6 @@ async function placeOrder() {
     alert("Order recorded! Redirecting you to complete the payment...");
     window.location.href = finalUrl;
 }
-    
-    const orderData = {
-        customer: {
-            name: document.getElementById('fullname').value,
-            email: document.getElementById('email').value,
-            phone: document.getElementById('mobile').value
-        },
-        address: `${document.getElementById('street').value}, ${document.getElementById('barangay').value}, ${document.getElementById('city').value}, ${document.getElementById('province').value}, ${document.getElementById('zip').value}`,
-        items: JSON.parse(localStorage.getItem('cart')),
-        total: document.getElementById('grandTotal').innerText,
-        method: "Maya"
-    };
-
-    console.log("Order Placed:", orderData);
-    alert("Order Saved! Redirecting to Maya...");
-}
 
 function calculateShipping() {
     const select = document.getElementById('deliveryOption');
