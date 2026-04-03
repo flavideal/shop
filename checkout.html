@@ -369,6 +369,25 @@ function toggleBilling() {
     }
 }
 
+// ILAGAY ITO SA LOOB NG <script> TAG
+function handlePaymentChange() {
+    const paymentType = document.getElementById('paymentType').value;
+    const cashNote = document.getElementById('cashNote');
+    const installmentNote = document.getElementById('installmentNote');
+
+    // 1. Toggle visibility ng notes (Para lumabas ang 24-hr reminder o Erriho note)
+    if (paymentType === "installment") {
+        installmentNote.style.display = "block";
+        cashNote.style.display = "none";
+    } else {
+        installmentNote.style.display = "none";
+        cashNote.style.display = "block";
+    }
+
+    // 2. I-refresh ang items list para magbago ang presyo (Cash Price vs Regular Price)
+    loadCheckoutItems();
+}
+
 function updateShippingMsg() {
     const opt = document.getElementById('deliveryOption').value;
     document.getElementById('shippingNote').style.display = (opt === "LBC") ? "block" : "none";
@@ -379,12 +398,6 @@ function loadCheckoutItems() {
     const container = document.getElementById('checkoutItemsList');
     const paymentType = document.getElementById('paymentType').value;
     
-    // BAGONG DAGDAG: Toggle logic para sa Installment Note
-    const instNote = document.getElementById('installmentNote');
-    if (instNote) {
-        instNote.style.display = (paymentType === "installment") ? "block" : "none";
-    }
-
     let total = 0;
 
     if (cart.length === 0) {
@@ -393,6 +406,7 @@ function loadCheckoutItems() {
     }
 
     container.innerHTML = cart.map(item => {
+        // LOGIC: Kung installment, gamitin ang regPrice. Kung wala, fallback sa price.
         const activePrice = (paymentType === "installment") ? (item.regPrice || item.price) : item.price;
         const itemTotal = activePrice * item.quantity;
         total += itemTotal;
@@ -418,7 +432,10 @@ function loadCheckoutItems() {
         `;
     }).join('');
 
+    // I-update ang Subtotal display
     document.getElementById('subtotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    
+    // Tawagin ang shipping calculation para ma-update ang Grand Total
     calculateShipping();
 }
 
