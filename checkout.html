@@ -151,14 +151,18 @@
     <select id="deliveryOption" onchange="calculateShipping()">
         <optgroup label="Store Pickup (Free)">
             <option value="Pickup-Butuan" data-type="free">Pickup at Hub (Butuan City)</option>
-            <option value="Pickup-Caloocan" data-type="free">Pickup at Hub (Caloocan)</option>
+            <option value="Pickup-Caloocan" data-type="free">Pickup at Hub (Caloocan, Metro Manila)</option>
         </optgroup>
         
-        <optgroup label="Nationwide / Local Delivery">
-            <option value="LBC" data-type="tbd">LBC Express (Pay SF upon Delivery/Pickup)</option>
-            <option value="Lalamove" data-type="tbd">Lalamove (Pay Fare to Rider)</option>
-            <option value="Grab" data-type="tbd">Grab Express (Pay Fare to Rider)</option>
-            <option value="Maxim" data-type="tbd">Maxim (Pay Fare to Rider)</option>
+        <optgroup label="Nationwide Shipping">
+            <option value="LBC" data-type="tbd">LBC Express (Door-to-Door or Branch Pickup)</option>
+        </optgroup>
+
+        <optgroup label="Local / Same Day Delivery (Fare Collect)">
+            <option value="Lalamove" data-type="tbd">Lalamove (Metro Manila Only)</option>
+            <option value="Grab-MM" data-type="tbd">Grab Express (Metro Manila)</option>
+            <option value="Grab-Butuan" data-type="tbd">Grab Express (Butuan City)</option>
+            <option value="Maxim" data-type="tbd">Maxim (Butuan City Only)</option>
         </optgroup>
     </select>
 
@@ -361,35 +365,37 @@ function calculateShipping() {
     const sfDetails = document.getElementById('sfDetails');
     const grandTotalDisplay = document.getElementById('grandTotal');
     
-    // Parse Subtotal from the UI
+    // Get Subtotal from UI
     const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
     const subtotal = parseFloat(subtotalText) || 0;
 
     if (dataType === "free") {
-        // --- Logic for Free Pickup ---
+        // --- Free Pickup Logic ---
         shipFeeDisplay.innerText = "FREE";
-        shipFeeDisplay.style.color = "#1B4D2E"; // Professional Green
+        shipFeeDisplay.style.color = "#1B4D2E";
         
         sfDetails.innerHTML = "<b>Store Pickup:</b> No shipping fee required. Pickup details and schedule will be sent to you once your order is ready.";
         
         grandTotalDisplay.innerText = `₱${subtotal.toLocaleString()}`;
     } else {
-        // --- Logic for LBC / Riders (External Payment) ---
+        // --- External Payment Logic (LBC / Riders) ---
         shipFeeDisplay.innerText = "Pay to Courier"; 
-        shipFeeDisplay.style.color = "#d9534f"; // Alert Red for clarity
+        shipFeeDisplay.style.color = "#d9534f"; // Red to highlight extra cost
         
         if (method === "LBC") {
-            sfDetails.innerHTML = "<b>LBC Shipping:</b> Shipping fee is NOT included in this total. Please pay the fee directly to LBC upon delivery or branch pickup. <b>Details will be sent once shipped.</b>";
-        } else {
-            sfDetails.innerHTML = `<b>${method} Delivery:</b> Please pay the delivery fare directly to the rider upon arrival. <b>Details will be sent once shipped.</b>`;
+            sfDetails.innerHTML = "<b>LBC Shipping (Nationwide):</b> Shipping fee is NOT included. Please pay the fee directly to LBC upon delivery or branch pickup. <b>Details will be sent once shipped.</b>";
+        } else if (method.includes("Grab") || method === "Lalamove" || method === "Maxim") {
+            // Clean up name for display (e.g., Grab-MM becomes Grab Express)
+            const courierName = method.split('-')[0];
+            sfDetails.innerHTML = `<b>${courierName} Delivery:</b> Please pay the delivery fare directly to the rider upon arrival. <b>Details will be sent once shipped.</b>`;
         }
         
-        // Show Total + Note that SF is extra
+        // Show Total + Shipping Fee Note
         grandTotalDisplay.innerText = `₱${subtotal.toLocaleString()} + Shipping Fee`;
     }
 }
 
-// Call once on load to set the initial state
+// Initial call to set the default state on page load
 document.addEventListener('DOMContentLoaded', calculateShipping);
     
 </script>
