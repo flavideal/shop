@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flavideal | Queuing System</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        h2 { color: #333; margin-bottom: 1rem; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; background-color: #007bff; color: white; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; }
+        .queue-number { font-size: 48px; font-weight: bold; color: #007bff; display: block; margin: 10px 0; }
+        .qr-section img { width: 150px; margin-top: 15px; border: 2px solid #eee; padding: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <h2>Flavideal Queuing</h2>
+    <p>Mangyaring ilagay ang detalye para sa iyong Priority Number.</p>
+    
+    <form id="queueForm">
+        <input type="text" id="name" placeholder="Pangalan" required>
+        <select id="billType" required>
+            <option value="" disabled selected>Anong babayaran?</option>
+            <option value="Electricity">Electricity (Meralco/etc)</option>
+            <option value="Water">Water Bill</option>
+            <option value="Internet">Internet/Phone</option>
+            <option value="Others">Others</option>
+        </select>
+        
+        <div class="qr-section">
+            <p style="font-size: 12px; color: #666;">Scan to Pay via GCash/Maya:</p>
+            <img src="https://via.placeholder.com/150?text=YOUR+QR+HERE" alt="Payment QR">
+        </div>
+
+        <button type="submit" id="submitBtn">Kumuha ng Number</button>
+    </form>
+
+    <div id="result">
+        <h3>Ang iyong Number:</h3>
+        <span class="queue-number" id="qNum">--</span>
+        <p>Mangyaring hintayin na tawagin sa counter. Salamat!</p>
+        <button onclick="location.reload()" style="background-color: #6c757d;">Bagong Transaction</button>
+    </div>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxdL92jEXVhc6hxIIYT-ujfvmQxEVqZaeoMvcJtPE5K4gFuqgymAQVTAYOqNeWiY38/exec'; // <--- Palitan mo ito!
+    const form = document.getElementById('queueForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        document.getElementById('submitBtn').innerText = "Generating...";
+        document.getElementById('submitBtn').disabled = true;
+
+        const data = {
+            name: document.getElementById('name').value,
+            billType: document.getElementById('billType').value
+        };
+
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(res => {
+            if(res.result === 'success') {
+                form.style.display = 'none';
+                resultDiv.style.display = 'block';
+                document.getElementById('qNum').innerText = "#" + res.queueNumber;
+            }
+        })
+        .catch(error => {
+            alert('Error! Pakisubukang muli.');
+            console.error('Error!', error.message);
+            document.getElementById('submitBtn').innerText = "Kumuha ng Number";
+            document.getElementById('submitBtn').disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
