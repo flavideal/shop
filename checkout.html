@@ -474,64 +474,93 @@ function loadCheckoutItems() {
 }
 
 async function placeOrder() {
-    // --- 1. DATI MONG LOGIC (Collecting Customer & Order Info) ---
+    const btn = document.querySelector('.place-order-btn');
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+
+    // 1. Pagkuha ng Customer Details
     const fullname = document.getElementById('fullname').value;
     const email = document.getElementById('email').value;
     const mobile = document.getElementById('mobile').value;
-    
+    const altMobile = document.getElementById('altMobile').value;
+    const promo = document.getElementById('promoConsent').checked ? "YES" : "NO";
+
     if (!fullname || !mobile) {
         alert("Please fill up your name and mobile number.");
+        btn.disabled = false;
+        btn.innerText = "PLACE ORDER NOW";
         return;
     }
 
-    // Save Address to LocalStorage (Dati mong logic)
-    if (document.getElementById('saveAddressLocal').checked) {
-        const addressToSave = {
-            region: document.getElementById('region').value,
-            province: document.getElementById('province').value,
-            city: document.getElementById('city').value,
-            barangay: document.getElementById('barangay').value,
-            street: document.getElementById('street').value,
-            zip: document.getElementById('zip').value
-        };
-        localStorage.setItem('flavi_last_address', JSON.stringify(addressToSave));
+    // 2. Pag-construct ng Delivery Address (Full String)
+    const dRegion = document.getElementById('region').options[document.getElementById('region').selectedIndex]?.text || "";
+    const dProvince = document.getElementById('province').options[document.getElementById('province').selectedIndex]?.text || "";
+    const dCity = document.getElementById('city').options[document.getElementById('city').selectedIndex]?.text || "";
+    const dBrgy = document.getElementById('barangay').value;
+    const dStreet = document.getElementById('street').value;
+    const dZip = document.getElementById('zip').value;
+    const deliveryAddress = `${dStreet}, Brgy. ${dBrgy}, ${dCity}, ${dProvince}, ${dRegion} ${dZip}`;
+
+    // 3. Pag-construct ng Billing Address
+    let billingAddress = "";
+    if (document.getElementById('sameAsDelivery').checked) {
+        billingAddress = "SAME AS DELIVERY";
+    } else {
+        const bRegion = document.getElementById('bill_region').options[document.getElementById('bill_region').selectedIndex]?.text || "";
+        const bProvince = document.getElementById('bill_province').options[document.getElementById('bill_province').selectedIndex]?.text || "";
+        const bCity = document.getElementById('bill_city').options[document.getElementById('bill_city').selectedIndex]?.text || "";
+        const bBrgy = document.getElementById('bill_barangay').value;
+        const bStreet = document.getElementById('bill_street').value;
+        const bZip = document.getElementById('bill_zip').value;
+        billingAddress = `${bStreet}, Brgy. ${bBrgy}, ${bCity}, ${bProvince}, ${bRegion} ${bZip}`;
     }
 
-    // Pagkuha ng items at total (Galing sa dati mong code)
-    const cartItems = JSON.parse(localStorage.getItem('cart'));
+    // 4. Iba pang info
+    const deliveryOption = document.getElementById('deliveryOption').value;
+    const paymentMethod = document.getElementById('paymentType').value;
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
     const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
     const amount = parseFloat(subtotalText);
-    const orderId = "FLV-" + Date.now(); // Unique ID for tracking
+    const orderId = "FLV-" + Date.now();
 
-    // Ito yung dati mong object (Mananatili ito para sa console/database logs mo)
+    // 5. Pag-compile ng lahat ng Data
     const orderData = {
         orderId: orderId,
-        customer: { name: fullname, email: email, phone: mobile },
-        address: `${document.getElementById('street').value}, ${document.getElementById('barangay').value}, ${document.getElementById('city').value}`,
+        customer: { name: fullname, email: email, phone: mobile, altPhone: altMobile, promo: promo },
+        deliveryAddress: deliveryAddress,
+        billingAddress: billingAddress,
+        deliveryOption: deliveryOption,
+        paymentMethod: paymentMethod,
         items: cartItems,
-        total: amount,
-        method: "Online/Cash"
+        total: amount
     };
-    
-    console.log("Order Data Compiled:", orderData);
 
-    // --- 2. BAGONG LOGIC (Redirection based on Payment Type) ---
-    
-    // Siguraduhin na may "paymentType" select element ka sa HTML
-    const paymentType = document.getElementById('paymentType').value;
-    let finalUrl = "";
+    try {
+        // IPADALA SA GOOGLE SHEET (Palitan ang URL na ito!)
+        const scriptURL = "I-PASTE_DITO_ANG_DEPLOYMENT_URL_MO";
+        
+        await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors', // Mahalaga ito para sa Google Apps Script
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
 
-    if (paymentType === "installment") {
-        // Redirect sa Erriho Portal (Installment)
-        finalUrl = `https://erriho.portal/apply?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
-    } else {
-        // Redirect sa Flavideal Payment Portal (Cash/Full)
-        // Ipinapasa natin ang OID, NAME, at AMT para automatic na mag-load sa payment.html
-        finalUrl = `payment.html?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
+        // 6. Redirection logic (Dati mong logic)
+        let finalUrl = (paymentMethod === "installment") 
+            ? `https://erriho.portal/apply?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`
+            : `payment.html?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
+
+        alert("Order Recorded to Flavi Deal Orders!");
+        window.location.href = finalUrl;
+
+    } catch (error) {
+        console.error('Error!', error.message);
+        alert("May error sa pag-save ng order. Pakisubukang muli.");
+        btn.disabled = false;
+        btn.innerText = "PLACE ORDER NOW";
     }
-
-    alert("Order recorded! Redirecting you to complete the payment...");
-    window.location.href = finalUrl;
 }
 
 function calculateShipping() {
