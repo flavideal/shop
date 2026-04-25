@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flavi Deal Checkout</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f4; }
+        .checkout-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%; text-align: center; }
+        #product-image { max-width: 100%; border-radius: 8px; margin-bottom: 15px; }
+        .price { color: #28a745; font-size: 1.5rem; font-weight: bold; }
+        .btn { display: block; background: #007bff; color: white; padding: 12px; text-decoration: none; border-radius: 6px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="checkout-card" id="loader">Loading product details...</div>
+    <div class="checkout-card" id="content" style="display:none;">
+        <img id="product-image" src="" alt="Product Image">
+        <h2 id="product-title"></h2>
+        <p class="price" id="product-price"></p>
+        <p>Complete your order via <strong>ERRIHO Personal Finance</strong>.</p>
+        <a href="https://errihoportal.flavideal.com" class="btn">Proceed to Payment</a>
+    </div>
+
+    <script>
+        // Kunin ang ID mula sa URL (flavideal.com/onlinecheckout?id=GADGET01)
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        
+        // PALITAN ITO ng iyong Apps Script Web App URL
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbzp3ks8f2yB_Ox0zNNilWDjIT2luBj71evOeiHV5yL_EgBiXb834UfRqyriXwWQoAr3/exec";
+
+        if (productId) {
+            fetch(`${scriptUrl}?id=${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('product-title').innerText = data.title;
+                    document.getElementById('product-price').innerText = data.price;
+                    document.getElementById('product-image').src = data.image;
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                })
+                .catch(err => {
+                    document.getElementById('loader').innerText = "Product not found.";
+                });
+        }
+    </script>
+</body>
+</html>
