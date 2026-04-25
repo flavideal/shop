@@ -499,7 +499,7 @@ async function placeOrder() {
     const dBrgy = document.getElementById('barangay').value;
     const dStreet = document.getElementById('street').value;
     const dZip = document.getElementById('zip').value;
-    const deliveryAddress = `${dStreet}, Brgy. ${dBrgy}, ${dCity}, ${dProvince}, ${dRegion} ${dZip}`;
+    const deliveryAddress = `${dStreet}, ${dBrgy}, ${dCity}, ${dProvince}, ${dRegion} ${dZip}`;
 
     // 3. Pag-construct ng Billing Address
     let billingAddress = "";
@@ -512,7 +512,7 @@ async function placeOrder() {
         const bBrgy = document.getElementById('bill_barangay').value;
         const bStreet = document.getElementById('bill_street').value;
         const bZip = document.getElementById('bill_zip').value;
-        billingAddress = `${bStreet}, Brgy. ${bBrgy}, ${bCity}, ${bProvince}, ${bRegion} ${bZip}`;
+        billingAddress = `${bStreet}, ${bBrgy}, ${bCity}, ${bProvince}, ${bRegion} ${bZip}`;
     }
 
     // 4. Iba pang info
