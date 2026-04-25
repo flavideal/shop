@@ -525,6 +525,7 @@ async function placeOrder() {
 
     // 5. Pag-compile ng lahat ng Data
     const orderData = {
+        action: "createOrder",
         orderId: orderId,
         customer: { name: fullname, email: email, phone: mobile, altPhone: altMobile, promo: promo },
         deliveryAddress: deliveryAddress,
@@ -541,23 +542,34 @@ async function placeOrder() {
         
         await fetch(scriptURL, {
             method: 'POST',
-            mode: 'no-cors', // Mahalaga ito para sa Google Apps Script
+            mode: 'no-cors',
             cache: 'no-cache',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
+            body: JSON.stringify({
+                action: "createOrder", // Mahalaga ito para malaman ng script kung ano ang gagawin
+                ...orderData
+            })
         });
 
-        // 6. Redirection logic (Dati mong logic)
-        let finalUrl = (paymentMethod === "installment") 
-            ? `https://erriho.portal/apply?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`
-            : `payment.html?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
+        // 2. Clear Cart para hindi na ma-order ulit ng doble
+        localStorage.removeItem('cart');
 
-        alert("Order Recorded to Flavi Deal Orders!");
+        // 3. Redirection Logic
+        let finalUrl = "";
+        if (paymentMethod === "installment") {
+            // Papunta sa Erriho Portal
+            finalUrl = `https://errihoportal.flavideal.com/apply?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
+        } else {
+            // Papunta sa Payment Gateway (Dito mag-uupload ng GCash/Maya receipt)
+            finalUrl = `payment.html?oid=${orderId}&name=${encodeURIComponent(fullname)}&amt=${amount}`;
+        }
+
+        alert("Order placed successfully! Redirecting...");
         window.location.href = finalUrl;
 
     } catch (error) {
         console.error('Error!', error.message);
-        alert("May error sa pag-save ng order. Pakisubukang muli.");
+        alert("May error sa pag-save ng order. Pakisuri ang iyong internet connection.");
         btn.disabled = false;
         btn.innerText = "PLACE ORDER NOW";
     }
