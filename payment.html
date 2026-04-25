@@ -243,10 +243,11 @@
         const scriptURL = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
         
         try {
-            // Gamit ang regular fetch para sa actual upload
+            // Gagamit tayo ng URLSearchParams para maipasa ang data nang hindi naba-block ng CORS
             const response = await fetch(scriptURL, {
                 method: 'POST',
-                mode: 'no-cors',
+                mode: 'no-cors', // Panatilihin ito pero siguraduhin ang format sa Apps Script
+                headers: { 'Content-Type': 'text/plain' }, // Text/plain para tanggapin ng Apps Script ang JSON string
                 body: JSON.stringify({
                     action: "uploadPayment",
                     orderId: orderId,
@@ -254,7 +255,8 @@
                 })
             });
 
-            // Mark as finished
+            // Dahil sa 'no-cors', hindi natin mababasa ang response body, 
+            // pero hangga't walang network error, ituturing nating "Success"
             hasUploaded = true; 
             localStorage.setItem('payment_' + orderId, 'submitted');
             
