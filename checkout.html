@@ -34,6 +34,68 @@
         
         .promo-box { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #444; }
         .promo-box input { width: auto; }
+        /* Payment Methods Grid */
+.payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+.payment-card {
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    background: white;
+}
+.payment-card.active {
+    border-color: var(--forest-green);
+    background: #e6ffed;
+}
+.payment-card i {
+    font-size: 24px;
+    color: var(--forest-green);
+    margin-bottom: 8px;
+}
+.payment-card span {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Modal Styling */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 15px;
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.installment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 13px;
+}
+.installment-table th, .installment-table td {
+    border: 1px solid #eee;
+    padding: 10px;
+    text-align: left;
+}
+.installment-table th { background: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -175,12 +237,46 @@
     <label style="font-size: 13px; font-weight: bold; color: var(--forest-green); display: block; margin-bottom: 8px;">
     CHOOSE PAYMENT METHOD:
 </label>
-<select id="paymentType" 
-        style="width: 100%; padding: 12px; border: 2px solid var(--forest-green); border-radius: 10px; font-weight: 600; cursor: pointer; outline: none;" 
-        onchange="handlePaymentChange()">
-    <option value="full">Full Payment (Cash / GCash / Bank Transfer)</option>
-    <option value="installment">Flavi Deal Installment (Powered by Erriho)</option>
-</select>
+
+<input type="hidden" id="paymentType" value="full">
+
+<div class="payment-grid">
+    <div class="payment-card active" id="payFull" onclick="selectPayment('full')">
+        <i class="fas fa-wallet"></i>
+        <span>Full Payment</span>
+        <small style="font-size:10px; color:#666;">Cash/GCash/Bank</small>
+    </div>
+    <div class="payment-card" id="payInstallment" onclick="selectPayment('installment')">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Pay Later</span>
+        <small style="font-size:10px; color:#666;">Installment Plan</small>
+    </div>
+</div>
+
+<div id="installmentModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color:var(--forest-green); margin-top:0;">Installment Terms</h3>
+        <p style="font-size:12px; color:#666;">Below is your estimated payment schedule provided by <b>Erriho Personal Finance</b>.</p>
+        
+        <table class="installment-table">
+            <thead>
+                <tr>
+                    <th>Term</th>
+                    <th>Monthly Pay</th>
+                </tr>
+            </thead>
+            <tbody id="installmentSchedule">
+                </tbody>
+        </table>
+
+        <div style="background:#f9f9f9; padding:10px; border-radius:8px; font-size:11px; color:#444; margin-bottom:15px;">
+            <input type="checkbox" id="agreeTerms"> I agree to the terms and conditions of Flavi Deal Pay Later and authorize Erriho to process my application.
+        </div>
+
+        <button class="place-order-btn" onclick="confirmInstallment()" style="margin-top:0;">AGREE & CONTINUE</button>
+        <button onclick="closeModal()" style="width:100%; background:none; border:none; color:red; margin-top:10px; cursor:pointer;">Cancel</button>
+    </div>
+</div>
 
 <div id="cashNote" style="margin-top: 12px; font-size: 12px; color: #856404; background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107; line-height: 1.5;">
     <i class="fas fa-clock"></i> <b>Payment Reminder:</b> 
@@ -546,6 +642,63 @@ function calculateShipping() {
 
 // Initial call to set the default state on page load
 document.addEventListener('DOMContentLoaded', calculateShipping);
+
+// Global variable para sa payment selection
+function selectPayment(type) {
+    // UI Update
+    document.getElementById('paymentType').value = type;
+    document.getElementById('payFull').classList.remove('active');
+    document.getElementById('payInstallment').classList.remove('active');
+    
+    if(type === 'full') {
+        document.getElementById('payFull').classList.add('active');
+        handlePaymentChange(); // Existing logic mo para sa notes
+    } else {
+        document.getElementById('payInstallment').classList.add('active');
+        showInstallmentModal();
+    }
+}
+
+function showInstallmentModal() {
+    const subtotalText = document.getElementById('subtotal').innerText.replace('₱', '').replace(/,/g, '');
+    const amount = parseFloat(subtotalText);
+    
+    // Simple 3-month and 6-month calculation (Sample logic)
+    const monthly3 = (amount * 1.05) / 3; // 5% interest sample
+    const monthly6 = (amount * 1.10) / 6; // 10% interest sample
+
+    document.getElementById('installmentSchedule').innerHTML = `
+        <tr><td>3 Months Plan</td><td>₱${monthly3.toLocaleString(undefined, {minimumFractionDigits:2})} / mo.</td></tr>
+        <tr><td>6 Months Plan</td><td>₱${monthly6.toLocaleString(undefined, {minimumFractionDigits:2})} / mo.</td></tr>
+    `;
+    
+    document.getElementById('installmentModal').style.display = "flex";
+}
+
+function closeModal() {
+    // Ibalik sa 'full' payment kung ayaw mag-agree
+    selectPayment('full');
+    document.getElementById('installmentModal').style.display = "none";
+}
+
+function confirmInstallment() {
+    if(!document.getElementById('agreeTerms').checked) {
+        alert("Please agree to the terms first.");
+        return;
+    }
+    document.getElementById('installmentModal').style.display = "none";
+    handlePaymentChange(); // I-trigger ang Erriho notes sa checkout
+}
+
+// I-update ang placeOrder function mo para sa agreement check
+async function placeOrder() {
+    const paymentType = document.getElementById('paymentType').value;
+    
+    // Kung installment pero hindi nag check sa modal
+    if(paymentType === 'installment' && !document.getElementById('agreeTerms').checked) {
+        alert("Please select Installment and agree to terms first.");
+        return;
+    }
     
 </script>
 </body>
