@@ -34,7 +34,33 @@
         
         .promo-box { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #444; }
         .promo-box input { width: auto; }
-        
+
+        .pay-btn {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: white;
+    transition: 0.2s;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+}
+
+.pay-btn i { font-size: 18px; }
+
+.pay-btn.active {
+    border-color: var(--forest-green);
+    background: #e6ffed;
+    color: var(--forest-green);
+}
+
+.pay-btn:hover { border-color: var(--forest-green); }
     </style>
 </head>
 <body>
@@ -176,13 +202,19 @@
     <label style="font-size: 13px; font-weight: bold; color: var(--forest-green); display: block; margin-bottom: 8px;">
     CHOOSE PAYMENT METHOD:
 </label>
-        
-<select id="paymentType" 
-        style="width: 100%; padding: 12px; border: 2px solid var(--forest-green); border-radius: 10px; font-weight: 600; cursor: pointer; outline: none;" 
-        onchange="handlePaymentChange()">
-    <option value="full">Full Payment (Cash / GCash / Bank Transfer)</option>
-    <option value="installment">Flavi Deal Installment (Powered by Erriho)</option>
-</select>
+
+<input type="hidden" id="paymentType" value="full">
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 5px;">
+    <div id="btnFull" class="pay-btn active" onclick="setPayment('full')">
+        <i class="fas fa-wallet"></i>
+        <span>Full Payment</span>
+    </div>
+    <div id="btnInstallment" class="pay-btn" onclick="setPayment('installment')">
+        <i class="fas fa-calendar-check"></i>
+        <span>Pay Later</span>
+    </div>
+</div>
 
 <div id="cashNote" style="margin-top: 12px; font-size: 12px; color: #856404; background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107; line-height: 1.5;">
     <i class="fas fa-clock"></i> <b>Payment Reminder:</b> 
@@ -548,6 +580,19 @@ function calculateShipping() {
 
 // Initial call to set the default state on page load
 document.addEventListener('DOMContentLoaded', calculateShipping);
+
+function setPayment(val) {
+    // 1. I-update ang value ng hidden input
+    const input = document.getElementById('paymentType');
+    input.value = val;
+
+    // 2. I-update ang itsura ng buttons
+    document.getElementById('btnFull').classList.toggle('active', val === 'full');
+    document.getElementById('btnInstallment').classList.toggle('active', val === 'installment');
+
+    // 3. Tawagin ang original logic mo para lumabas ang notes at mag-update ang presyo
+    handlePaymentChange();
+}
     
 </script>
 </body>
