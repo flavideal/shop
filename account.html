@@ -172,10 +172,13 @@ nav {
             </div>
 
             <div id="dash-installments" class="dash-section" style="display:none;">
-    <div style="padding: 30px 20px; text-align: center; border: 2px dashed #ddd; border-radius: 15px; background: #fafafa; margin-top: 10px;">
-        <i class="fas fa-hand-holding-usd" style="font-size: 40px; color: var(--forest-green); opacity: 0.5;"></i>
-        <p style="font-size: 13px; color: #555; margin: 15px 0;">You don't have an active installment plan.</p>
-        <button class="login-btn" style="font-size: 14px; margin-top: 0;">Apply for Installment</button>
+    <div style="padding: 25px 20px; text-align: center; border-radius: 20px; background: linear-gradient(145deg, #ffffff, #f0f0f0); box-shadow: 5px 5px 15px #d1d1d1, -5px -5px 15px #ffffff; margin-top: 10px;">
+        <h4 style="color: var(--forest-green); margin-bottom: 5px; font-size: 14px;">Flavi Deal Pay Later</h4>
+        <p style="font-size: 11px; color: #666; margin-bottom: 20px;">Powered by Erriho Personal Finance</p>
+        
+        <div id="creditLimitBox">
+            <p style="font-size: 12px; color: #888;">Checking your account status...</p>
+        </div>
     </div>
 </div>
 
@@ -270,6 +273,27 @@ function showDashboard(data) {
     document.getElementById('editName').value = displayName;
     document.getElementById('editEmail').value = data.email || "";
     if(data.mobile) document.getElementById('editMobile').value = data.mobile;
+
+    // --- BAGONG LOGIC: Flavi Deal Pay Later Limit ---
+    const limitBox = document.getElementById('creditLimitBox');
+    // I-check kung may limit (Dapat ang column sa Google Sheets ay may header na "limit")
+    const creditLimit = parseFloat(data.limit) || 0;
+
+    if (creditLimit > 0) {
+        limitBox.innerHTML = `
+            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Available Credit Limit:</p>
+            <h2 style="color: var(--forest-green); margin: 0; font-size: 32px;">₱${creditLimit.toLocaleString()}</h2>
+            <p style="font-size: 10px; color: #27ae60; margin-top: 10px;"><i class="fas fa-check-circle"></i> Account Active</p>
+        `;
+    } else {
+        limitBox.innerHTML = `
+            <i class="fas fa-lock" style="font-size: 30px; color: #ccc; margin-bottom: 15px;"></i>
+            <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Get up to ₱50,000 credit limit instantly.</p>
+            <button class="login-btn" onclick="window.location.href='application.html'" style="margin-top: 0; background: var(--forest-green);">
+                ACTIVATE NOW
+            </button>
+        `;
+    }
 }
         
 function showLogin() {
