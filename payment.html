@@ -213,13 +213,62 @@
         alert("Account number copied!");
     }
 
-    function submitOrder() {
-        const orderId = document.getElementById('orderIdDisplay').innerText;
-        alert("Payment Submitted for " + orderId + "! Flavideal will verify your payment shortly.");
-        
-        // Dito mo pwedeng i-redirect sa 'Success Page' o i-trigger ang notification mo.
-        // window.location.href = "success.html";
+   async function submitOrder() {
+    const btn = document.getElementById('submitBtn');
+    const fileInput = document.getElementById('fileUpload');
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('oid');
+
+    if (!fileInput.files[0]) {
+        alert("Please upload your receipt first.");
+        return;
     }
+
+    btn.disabled = true;
+    btn.innerText = "UPDATING STATUS...";
+    document.querySelector('.status-banner').innerText = "Uploading Receipt...";
+
+    // 1. I-convert ang image to Base64
+    const file = fileInput.files[0];
+    const base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+
+    // 2. Ipadala sa Apps Script
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwOAaFDHHvMAurq6wc5N8kN6fXmm1a2DyGP3rsLETh9nDt1PnXIyEKZPn1rV_DZWAEY/exec";
+    
+    const payload = {
+        action: "uploadPayment",
+        orderId: orderId,
+        image: base64Image
+    };
+
+    try {
+        const response = await fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        // Dahil 'no-cors' ang Apps Script, hindi tayo makakabasa ng response minsan
+        // Pero kung successful ang fetch, i-assume nating okay na.
+        
+        document.querySelector('.status-banner').style.backgroundColor = "#2ecc71";
+        document.querySelector('.status-banner').innerText = "VERIFYING PAYMENT...";
+        
+        alert("Receipt uploaded! Your order status is now: VERIFYING PAYMENT. We will check this within 24 hours.");
+        
+        // Opsyonal: I-redirect sa main page pagkatapos
+        // window.location.href = "index.html";
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Failed to upload. Please check your internet.");
+        btn.disabled = false;
+        btn.innerText = "Confirm & Send Payment";
+    }
+}
 </script>
 </body>
 </html>
