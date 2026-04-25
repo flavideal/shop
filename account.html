@@ -239,6 +239,7 @@ async function handleLogin() {
         const result = await response.json();
 
         if (result.status === "Success") {
+            // Dito sa result, kasama na ang 'limit' field galing sa Google Sheets (Column K)
             localStorage.setItem("flavi_user", JSON.stringify(result));
             
             // FIX PARA SA MOBILE: 500ms delay bago lumipat ng page
@@ -247,20 +248,23 @@ async function handleLogin() {
                 if (urlParams.has('redirect')) {
                     window.location.href = urlParams.get('redirect');
                 } else {
+                    // Ipapasa ang buong result (kasama ang limit) sa showDashboard
                     showDashboard(result);
                 }
             }, 500);
         } else {
-            alert("Invalid Username, PIN, or Account Not Verified.");
+            // Ipapakita ang error message na galing mismo sa Google Script (hal. "Account not verified")
+            alert(result.message || "Invalid Username, PIN, or Account Not Verified.");
         }
     } catch (error) {
+        console.error("Login Error:", error);
         alert("Login failed. Check your connection.");
     } finally {
         loginBtn.disabled = false;
         loginBtn.innerText = "Login";
     }
 }
-
+        
 function showDashboard(data) {
     document.getElementById('loginFields').style.display = "none";
     document.getElementById('registerFields').style.display = "none";
