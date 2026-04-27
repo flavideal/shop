@@ -363,15 +363,15 @@ function uploadToDrive() {
 }
 
 // Open Modal
+// Open Modal with Unified History
 function openAdminModal() {
     document.getElementById('adminModal').style.display = 'block';
     const logDiv = document.getElementById('historyLog');
     const balanceDisplay = document.getElementById('currentBalance');
     
-    logDiv.innerHTML = "Fetching data...";
+    logDiv.innerHTML = "Fetching history...";
     balanceDisplay.innerText = "₱...";
 
-    // GAMITIN ANG TAMA MONG URL DITO:
     const scriptURL = 'https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec';
 
     fetch(scriptURL)
@@ -380,39 +380,67 @@ function openAdminModal() {
         // 1. Update Balance
         balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
 
-        // 2. Build History List
+        // 2. Combine and Sort History
+        let combinedHistory = [];
+
+        // Kunin ang Payments (Cash-In)
+        if (data.payments) {
+            data.payments.forEach(row => {
+                combinedHistory.push({
+                    type: 'IN',
+                    amount: row[1],
+                    date: row[0], // Timestamp
+                    status: row[3]
+                });
+            });
+        }
+
+        // Kunin ang Withdrawals (Cash-Out)
+        if (data.withdrawals) {
+            data.withdrawals.forEach(row => {
+                combinedHistory.push({
+                    type: 'OUT',
+                    amount: row[4],
+                    date: row[0], // Date string
+                    status: row[5]
+                });
+            });
+        }
+
+        // I-sort para pinakabago ang nasa itaas
+        combinedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // 3. Build the Table
         let html = '<table style="width:100%; border-collapse: collapse; font-size: 0.9em;">';
         
-        // Combine and Sort by date (Optional, pero mas maganda kung naka-separate gaya nito)
-        if (data.payments) {
-            data.payments.reverse().slice(0, 5).forEach(row => {
-                html += `<tr style="border-bottom:1px solid #eee;">
-                    <td style="padding:5px; color:green;"><b>+</b></td>
-                    <td style="padding:5px;">₱${parseFloat(row[1]).toFixed(2)}</td>
-                    <td style="padding:5px;"><small>${row[3]}</small></td>
-                </tr>`;
-            });
-        }
+        combinedHistory.slice(0, 15).forEach(item => {
+            const isCashIn = item.type === 'IN';
+            const color = isCashIn ? 'green' : 'red';
+            const sign = isCashIn ? '+' : '-';
+            const bgColor = isCashIn ? 'transparent' : '#fff0f0';
 
-        if (data.withdrawals) {
-            data.withdrawals.reverse().slice(0, 5).forEach(row => {
-                html += `<tr style="border-bottom:1px solid #eee; background: #fff0f0;">
-                    <td style="padding:5px; color:red;"><b>-</b></td>
-                    <td style="padding:5px;">₱${parseFloat(row[4]).toFixed(2)}</td>
-                    <td style="padding:5px;"><small>${row[5]}</small></td>
-                </tr>`;
-            });
-        }
+            html += `<tr style="border-bottom:1px solid #eee; background: ${bgColor};">
+                        <td style="padding:8px; color:${color};"><b>${sign}</b></td>
+                        <td style="padding:8px;">
+                            <div style="font-weight:bold;">₱${parseFloat(item.amount).toFixed(2)}</div>
+                            <div style="font-size:0.8em; color:#666;">${item.date}</div>
+                        </td>
+                        <td style="padding:8px; text-align:right;">
+                            <span style="font-size:0.7em; padding:2px 5px; border-radius:4px; background:#eee; font-weight:bold;">${item.status}</span>
+                        </td>
+                    </tr>`;
+        });
 
         html += '</table>';
-        logDiv.innerHTML = html;
+        logDiv.innerHTML = combinedHistory.length > 0 ? html : "No transactions yet.";
     })
     .catch(err => {
         console.error(err);
         logDiv.innerHTML = "Error loading history.";
-        balanceDisplay.innerText = "₱0.00";
     });
 }
+
+    
     
 // Close Modal
 function closeAdminModal() {
