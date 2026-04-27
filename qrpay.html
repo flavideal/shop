@@ -391,16 +391,18 @@ function openAdminModal() {
         let combinedHistory = [];
 
         if (data.payments) {
-            data.payments.forEach(row => {
-                combinedHistory.push({
-                    type: 'IN',
-                    amount: parseFloat(row[1]), // Gross Amount
-                    date: row[0],
-                    proof: row[4],
-                    status: row[5]
-                });
-            });
-        }
+    data.payments.forEach(row => {
+        combinedHistory.push({
+            type: 'IN',
+            gross: parseFloat(row[1]), // Column B: Total Paid
+            fee: parseFloat(row[2]),   // Column C: Fee (Dito natin kukunin!)
+            net: parseFloat(row[3]),   // Column D: Net Amount (Dito natin kukunin!)
+            date: row[0],              // Column A: Date
+            proof: row[4],             // Column E: Proof
+            status: row[5]             // Column F: Status
+        });
+    });
+}
 
         if (data.withdrawals) {
             data.withdrawals.forEach(row => {
@@ -426,23 +428,16 @@ function openAdminModal() {
 
             // FEE CALCULATION PARA SA DISPLAY
             let detailsHtml = "";
-          if(isCashIn) {
-    // Gamit ang -0.0001 para ang 1.000000002 ay maging 0.9999... 
-    // At ang Math.ceil niyan ay babalik sa saktong 1.
-    let fee = Math.ceil((item.amount * 0.01) - 0.0001); 
-    if (fee < 1 && item.amount > 0) fee = 1; // Optional: Minimum 1 peso fee
-    
-    let net = item.amount - fee;
-    
+         if(isCashIn) {
     detailsHtml = `
         <div style="font-size:0.75em; color:#666; margin-top:3px;">
-            Gross: ₱${item.amount.toFixed(2)}<br>
-            Fee (1% Up): -₱${fee.toFixed(2)}<br>
-            <b style="color:#2e7d32;">Net: ₱${net.toFixed(2)}</b>
+            Gross: ₱${item.gross.toFixed(2)}<br>
+            Fee: -₱${item.fee.toFixed(2)}<br>
+            <b style="color:#2e7d32;">Net: ₱${item.net.toFixed(2)}</b>
         </div>`;
-            } else {
-                detailsHtml = `<div style="font-weight:bold;">₱${item.amount.toFixed(2)}</div>`;
-            }
+} else {
+    detailsHtml = `<div style="font-weight:bold;">₱${item.amount.toFixed(2)}</div>`;
+}
 
             let displayDate = "";
             try {
