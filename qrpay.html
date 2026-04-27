@@ -293,7 +293,8 @@ document.getElementById('pinInput').addEventListener("keyup", function(e) {
 // 5. Calculator Logic
 function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
-    let fee = Math.ceil(orderAmount * 0.01); 
+    // PALITAN ITO: Mula Math.ceil, gawin nating simple math lang
+    let fee = orderAmount * 0.01; 
     let total = orderAmount + fee;
 
     document.getElementById('feeAmount').innerText = "₱" + fee.toFixed(2);
