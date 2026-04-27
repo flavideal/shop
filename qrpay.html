@@ -180,6 +180,11 @@
 
         <button class="btn-upload" style="margin: 10px 0; width: 100%;" onclick="requestWithdraw()">SUBMIT WITHDRAWAL</button>
         <p style="font-size: 0.7em; color: #666; text-align: center; margin: 0;">Processing via PesoNet. Please wait for completion.</p>
+        <hr>
+<h4 style="text-align:center;">Recent Transactions</h4>
+<div id="historyLog" style="font-size: 0.75em; max-height: 200px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+    Loading history...
+</div>
     </div>
 </div>
 
@@ -358,8 +363,46 @@ function uploadToDrive() {
 // Open Modal
 function openAdminModal() {
     document.getElementById('adminModal').style.display = 'block';
-}
+    const logDiv = document.getElementById('historyLog');
+    const balanceDisplay = document.getElementById('currentBalance');
+    
+    logDiv.innerHTML = "Fetching data...";
+    balanceDisplay.innerText = "₱...";
 
+    fetch('IYONG_SCRIPT_URL_DITO')
+    .then(res => res.json())
+    .then(data => {
+        // 1. Update Balance
+        balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toFixed(2);
+
+        // 2. Build History List (Pinagsamang Payments at Withdrawals)
+        let html = '<table style="width:100%; border-collapse: collapse;">';
+        
+        // Loop sa Payments
+        data.payments.reverse().forEach(row => {
+            html += `<tr style="border-bottom:1px solid #ddd;">
+                <td>🟢 IN</td>
+                <td>₱${row[1]}</td>
+                <td><small>${row[3]}</small></td>
+            </tr>`;
+        });
+
+        // Loop sa Withdrawals
+        data.withdrawals.reverse().forEach(row => {
+            html += `<tr style="border-bottom:1px solid #ddd; color: #d32f2f;">
+                <td>🔴 OUT</td>
+                <td>₱${row[4]}</td>
+                <td><small>${row[5]}</small></td>
+            </tr>`;
+        });
+
+        html += '</table>';
+        logDiv.innerHTML = html;
+    })
+    .catch(() => {
+        logDiv.innerHTML = "Failed to load history.";
+    });
+}
 // Close Modal
 function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
