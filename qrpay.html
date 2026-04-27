@@ -84,10 +84,14 @@
         </div>
     </div>
 
-    <a href="YOUR_CONFIRMATION_LINK" class="btn-upload">
-        <span class="lang-group-en">SUBMIT PROOF OF PAYMENT</span>
-        <span class="lang-group-tl" lang="tl">I-SUBMIT ANG PROOF OF PAYMENT</span>
-    </a>
+
+    <div style="padding: 20px;">
+    <input type="file" id="fileInput" accept="image/*" style="margin-bottom: 10px;">
+    <button onclick="uploadFile()" id="uploadBtn" class="btn-upload" style="width: 100%; border: none; cursor: pointer;">
+        SUBMIT PROOF OF PAYMENT
+    </button>
+    <p id="status" style="text-align: center; font-size: 0.8em; margin-top: 10px;"></p>
+</div>
 
     <div class="footer">
         Official Payment Portal of Flavi Deal &copy; 2026
@@ -116,6 +120,55 @@
             tlElements.forEach(el => el.style.display = 'none');
         }
     }
+
+    async function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const status = document.getElementById('status');
+    const btn = document.getElementById('uploadBtn');
+
+    if (fileInput.files.length === 0) {
+        alert("Please select a file first / Pumili muna ng file.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    
+    status.innerText = "Uploading... please wait.";
+    btn.disabled = true;
+    btn.style.backgroundColor = "#ccc";
+
+    reader.onload = async function() {
+        const base64 = reader.result.split(',')[1];
+        const payload = {
+            base64: base64,
+            type: file.type,
+            name: "Payment_" + new Date().getTime() + "_" + file.name
+        };
+
+        try {
+            // PALITAN ITONG URL NG WEB APP URL MO MULA SA GOOGLE APPS SCRIPT
+            const response = await fetch('IYONG_WEB_APP_URL_DITO', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (result.result === "success") {
+                status.innerText = "Success! Proof of payment saved.";
+                status.style.color = "green";
+                alert("Salamat! Na-save na ang iyong proof of payment.");
+            } else {
+                throw new Error();
+            }
+        } catch (error) {
+            status.innerText = "Error uploading. Please try again.";
+            status.style.color = "red";
+            btn.disabled = false;
+            btn.style.backgroundColor = "#28a745";
+        }
+    };
+    reader.readAsDataURL(file);
+}
 </script>
 
 </body>
