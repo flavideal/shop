@@ -86,6 +86,7 @@
 
 <div class="payment-card">
     <div class="lang-switch">
+        <button onclick="logout()" style="cursor:pointer; border:1px solid #ccc; padding:4px 10px; border-radius:15px; background:#fff; font-size:0.75em; font-weight:bold; color:red; margin-right:auto;">LOGOUT</button>
         <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
         <button class="lang-btn" onclick="setLanguage('tl')">TL</button>
     </div>
@@ -155,6 +156,36 @@
 </div>
 
 <script>
+
+    // Check status pagka-load ng page
+window.onload = function() {
+    if (localStorage.getItem("isLoggedIn") === "true") {
+        document.getElementById('pin-overlay').style.display = 'none';
+        document.querySelector('.payment-card').style.display = 'block';
+    }
+}
+
+function checkPin() {
+    const enteredPin = document.getElementById('pinInput').value;
+    const correctPin = "1984"; 
+
+    if (enteredPin === correctPin) {
+        localStorage.setItem("isLoggedIn", "true"); // Tandaan ang login
+        document.getElementById('pin-overlay').style.display = 'none'; 
+        document.querySelector('.payment-card').style.display = 'block'; 
+    } else {
+        alert("Maling PIN! Subukan ulit.");
+        document.getElementById('pinInput').value = "";
+    }
+}
+
+function logout() {
+    if(confirm("Sigurado ka bang mag-logout?")) {
+        localStorage.removeItem("isLoggedIn"); // Burahin ang login record
+        location.reload(); // I-refresh ang page para bumalik sa PIN screen
+    }
+}
+    
     function checkPin() {
     const enteredPin = document.getElementById('pinInput').value;
     const correctPin = "1984"; 
