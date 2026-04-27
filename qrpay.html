@@ -458,15 +458,25 @@ function openAdminModal() {
 }
 
             // PALITAN ITONG BLOCK NA ITO:
+// --- HANAPIN ITO SA LOOB NG combinedHistory.forEach ---
 let displayDate = "";
 try {
-    // Lilinisin muna ang date string (aalisin ang "at") bago i-parse
-    let cleanDate = String(item.date).replace(" at ", ", "); 
-    displayDate = new Date(cleanDate).toLocaleString('en-US', { 
-        month: 'short', day: 'numeric', year: 'numeric', 
-        hour: 'numeric', minute: 'numeric', hour12: true 
-    });
-    if (displayDate === "Invalid Date") displayDate = item.date;
+    // Lilinisin ang string: aalisin ang "at", "GMT", at "Z" para standard format
+    let rawDate = String(item.date).replace(" at ", ", ").replace("Z", "").replace(/GMT.*/, ""); 
+    let parsedDate = new Date(rawDate);
+
+    if (!isNaN(parsedDate)) {
+        displayDate = parsedDate.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric', 
+            hour: 'numeric', 
+            minute: 'numeric', 
+            hour12: true 
+        });
+    } else {
+        displayDate = item.date; // Fallback kung di talaga ma-parse
+    }
 } catch(e) { 
     displayDate = item.date; 
 }
