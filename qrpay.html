@@ -334,11 +334,11 @@ function uploadToDrive() {
     reader.onload = function(e) {
         const base64 = e.target.result.split(',')[1];
         const payload = {
-    action: "UPLOAD", // Idagdag ito
+    action: "UPLOAD",
     base64: base64,
     type: file.type,
-    name: "GRACEY_" + amount + "_" + new Date().getTime() + "_" + file.name,
-    amount: amount     // Idagdag ito para makuha ang halaga sa sheet
+    name: "GRACEY_" + amount.replace("₱","") + "_" + new Date().getTime() + "_" + file.name,
+    amount: amount.replace("₱","") // Inalis ang symbol para bibilangin ng Sheets
 };
 
         fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec', {
@@ -369,40 +369,49 @@ function openAdminModal() {
     logDiv.innerHTML = "Fetching data...";
     balanceDisplay.innerText = "₱...";
 
-    fetch('IYONG_SCRIPT_URL_DITO')
+    // GAMITIN ANG TAMA MONG URL DITO:
+    const scriptURL = 'https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec';
+
+    fetch(scriptURL)
     .then(res => res.json())
     .then(data => {
         // 1. Update Balance
-        balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toFixed(2);
+        balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
 
-        // 2. Build History List (Pinagsamang Payments at Withdrawals)
-        let html = '<table style="width:100%; border-collapse: collapse;">';
+        // 2. Build History List
+        let html = '<table style="width:100%; border-collapse: collapse; font-size: 0.9em;">';
         
-        // Loop sa Payments
-        data.payments.reverse().forEach(row => {
-            html += `<tr style="border-bottom:1px solid #ddd;">
-                <td>🟢 IN</td>
-                <td>₱${row[1]}</td>
-                <td><small>${row[3]}</small></td>
-            </tr>`;
-        });
+        // Combine and Sort by date (Optional, pero mas maganda kung naka-separate gaya nito)
+        if (data.payments) {
+            data.payments.reverse().slice(0, 5).forEach(row => {
+                html += `<tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:5px; color:green;"><b>+</b></td>
+                    <td style="padding:5px;">₱${parseFloat(row[1]).toFixed(2)}</td>
+                    <td style="padding:5px;"><small>${row[3]}</small></td>
+                </tr>`;
+            });
+        }
 
-        // Loop sa Withdrawals
-        data.withdrawals.reverse().forEach(row => {
-            html += `<tr style="border-bottom:1px solid #ddd; color: #d32f2f;">
-                <td>🔴 OUT</td>
-                <td>₱${row[4]}</td>
-                <td><small>${row[5]}</small></td>
-            </tr>`;
-        });
+        if (data.withdrawals) {
+            data.withdrawals.reverse().slice(0, 5).forEach(row => {
+                html += `<tr style="border-bottom:1px solid #eee; background: #fff0f0;">
+                    <td style="padding:5px; color:red;"><b>-</b></td>
+                    <td style="padding:5px;">₱${parseFloat(row[4]).toFixed(2)}</td>
+                    <td style="padding:5px;"><small>${row[5]}</small></td>
+                </tr>`;
+            });
+        }
 
         html += '</table>';
         logDiv.innerHTML = html;
     })
-    .catch(() => {
-        logDiv.innerHTML = "Failed to load history.";
+    .catch(err => {
+        console.error(err);
+        logDiv.innerHTML = "Error loading history.";
+        balanceDisplay.innerText = "₱0.00";
     });
 }
+    
 // Close Modal
 function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
