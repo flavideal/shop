@@ -171,7 +171,7 @@
 
 <script>
 
-    // Check status pagka-load ng page
+   // 1. Check status agad pagka-load ng page
 window.onload = function() {
     if (localStorage.getItem("isLoggedIn") === "true") {
         document.getElementById('pin-overlay').style.display = 'none';
@@ -179,12 +179,13 @@ window.onload = function() {
     }
 }
 
+// 2. PIN Function na may memory (localStorage)
 function checkPin() {
     const enteredPin = document.getElementById('pinInput').value;
     const correctPin = "1984"; 
 
     if (enteredPin === correctPin) {
-        localStorage.setItem("isLoggedIn", "true"); // Tandaan ang login
+        localStorage.setItem("isLoggedIn", "true"); // Eto ang kulang sa isang duplicate mo
         document.getElementById('pin-overlay').style.display = 'none'; 
         document.querySelector('.payment-card').style.display = 'block'; 
     } else {
@@ -193,98 +194,86 @@ function checkPin() {
     }
 }
 
+// 3. Logout Function para mabura ang memory
 function logout() {
     if(confirm("Sigurado ka bang mag-logout?")) {
-        localStorage.removeItem("isLoggedIn"); // Burahin ang login record
-        location.reload(); // I-refresh ang page para bumalik sa PIN screen
-    }
-}
-    
-    function checkPin() {
-    const enteredPin = document.getElementById('pinInput').value;
-    const correctPin = "1984"; 
-
-    if (enteredPin === correctPin) {
-        document.getElementById('pin-overlay').style.display = 'none'; 
-        document.querySelector('.payment-card').style.display = 'block'; 
-    } else {
-        alert("Maling PIN! Subukan ulit.");
-        document.getElementById('pinInput').value = "";
+        localStorage.removeItem("isLoggedIn"); 
+        location.reload(); 
     }
 }
 
+// 4. Enter key support
 document.getElementById('pinInput').addEventListener("keyup", function(e) {
     if (e.key === "Enter") checkPin();
 });
-    
-    function calculateTotal() {
+
+// 5. Calculator Logic
+function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
-    let fee = Math.ceil(orderAmount * 0.01); // Laging round up sa pinakamalapit na piso
+    let fee = Math.ceil(orderAmount * 0.01); 
     let total = orderAmount + fee;
 
     document.getElementById('feeAmount').innerText = "₱" + fee.toFixed(2);
     document.getElementById('finalTotal').innerText = "₱" + total.toFixed(2);
 }
-    
-    function setLanguage(lang) {
-        const isTl = lang === 'tl';
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.innerText === (isTl ? 'TL' : 'EN'))));
-        
-        document.querySelectorAll('[lang="tl"]').forEach(el => el.style.display = isTl ? 'block' : 'none');
-        
-        document.getElementById('title-en').style.display = isTl ? 'none' : 'block';
-        document.getElementById('lbl-en').style.display = isTl ? 'none' : 'block';
-        document.getElementById('tot-en').style.display = isTl ? 'none' : 'inline';
-        document.getElementById('scan-en').style.display = isTl ? 'none' : 'block';
-        document.getElementById('btn-en').style.display = isTl ? 'none' : 'block';
-        
-        // Toggle Instructions language
-        document.getElementById('inst-title-en').style.display = isTl ? 'none' : 'inline';
-        document.getElementById('inst-list-en').style.display = isTl ? 'none' : 'block';
+
+// 6. Language Switcher
+function setLanguage(lang) {
+    const isTl = lang === 'tl';
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.innerText === (isTl ? 'TL' : 'EN'))));
+    document.querySelectorAll('[lang="tl"]').forEach(el => el.style.display = isTl ? 'block' : 'none');
+    document.getElementById('title-en').style.display = isTl ? 'none' : 'block';
+    document.getElementById('lbl-en').style.display = isTl ? 'none' : 'block';
+    document.getElementById('tot-en').style.display = isTl ? 'none' : 'inline';
+    document.getElementById('scan-en').style.display = isTl ? 'none' : 'block';
+    document.getElementById('btn-en').style.display = isTl ? 'none' : 'block';
+    document.getElementById('inst-title-en').style.display = isTl ? 'none' : 'inline';
+    document.getElementById('inst-list-en').style.display = isTl ? 'none' : 'block';
+}
+
+// 7. Upload Logic
+function uploadToDrive() {
+    const fileInput = document.getElementById('fileInput');
+    const statusMsg = document.getElementById('status-msg');
+    const btn = document.getElementById('uploadBtn');
+    const amount = document.getElementById('finalTotal').innerText;
+
+    if (fileInput.files.length === 0) {
+        alert("Please select your receipt first.");
+        return;
     }
 
-    function uploadToDrive() {
-        const fileInput = document.getElementById('fileInput');
-        const statusMsg = document.getElementById('status-msg');
-        const btn = document.getElementById('uploadBtn');
-        const amount = document.getElementById('finalTotal').innerText;
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    statusMsg.innerText = "Uploading...";
+    btn.disabled = true;
 
-        if (fileInput.files.length === 0) {
-            alert("Please select your receipt first.");
-            return;
-        }
-
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        statusMsg.innerText = "Uploading...";
-        btn.disabled = true;
-
-        reader.onload = function(e) {
-            const base64 = e.target.result.split(',')[1];
-            const payload = {
-                base64: base64,
-                type: file.type,
-                name: "GRACEY_" + amount + "_" + new Date().getTime() + "_" + file.name
-            };
-
-            fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.result === "success") {
-                    alert("Thank you for your payment to Gracey Kainan! Your proof has been saved. Come again!");
-                    location.reload(); 
-                } else { throw new Error(); }
-            })
-            .catch(() => {
-                alert("Upload failed. Please try again.");
-                btn.disabled = false;
-            });
+    reader.onload = function(e) {
+        const base64 = e.target.result.split(',')[1];
+        const payload = {
+            base64: base64,
+            type: file.type,
+            name: "GRACEY_" + amount + "_" + new Date().getTime() + "_" + file.name
         };
-        reader.readAsDataURL(file);
-    }
+
+        fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.result === "success") {
+                alert("Thank you for your payment to Gracey Kainan!");
+                location.reload(); 
+            } else { throw new Error(); }
+        })
+        .catch(() => {
+            alert("Upload failed. Please try again.");
+            btn.disabled = false;
+        });
+    };
+    reader.readAsDataURL(file);
+}
 </script>
 
 </body>
