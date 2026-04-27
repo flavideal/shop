@@ -9,7 +9,7 @@
 
     <meta property="og:title" content="Payment Portal | Gracey Kainan">
     <meta property="og:description" content="Official Payment Portal of Gracey Kainan - Amparo, Caloocan City">
-    <meta property="og:image" content="https://flavideal.com/logos/graceyfb1.png">
+    <meta property="og:image" content="https://flavideal.com/logos/graceyfb2.png">
     <meta property="og:url" content="https://flavideal.com/graceypay">
      <meta property="og:type" content="website">
 
@@ -593,28 +593,36 @@ function openAdminModal() {
     
     // Kung ang status ay PAID at may laman ang Column G (paidDate)
     if (item.status === "PAID" && item.paidDate) {
-        pDate = `<div style="font-size:0.85em; color:blue; font-weight:bold; margin-top:3px;">
-                    ✅ Paid: ${item.paidDate}
-                 </div>`;
-    }
+    let formattedPaidDate = item.paidDate;
+    try {
+        let pd = new Date(item.paidDate);
+        if (!isNaN(pd.getTime())) {
+            // Ito ang format na gusto mo: April 28, 2026 12:30 PM
+            formattedPaidDate = pd.toLocaleString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true 
+            });
+        }
+    } catch(e) { formattedPaidDate = item.paidDate; }
 
-    detailsHtml = `
-        <div style="font-weight:bold;">₱${item.amount.toFixed(2)}</div>
-        ${pDate}
-    `;
+    pDate = `<div style="font-size:0.85em; color:blue; font-weight:bold; margin-top:3px;">
+                ✅ Paid: ${formattedPaidDate}
+             </div>`;
 }
 
             // PALITAN ITONG BLOCK NA ITO:
 // --- HANAPIN ITO SA LOOB NG combinedHistory.forEach ---
 let displayDate = "";
 try {
-    // 1. Gawing Date object ang value mula sa Sheet
     let d = new Date(item.date);
-    
-    // 2. Kung valid ang date, i-format natin. Kung hindi, ipakita kung ano ang nasa cell.
     if (!isNaN(d.getTime())) {
+        // Pinalitan ang 'short' ng 'long' para maging "April" imbes na "Apr"
         displayDate = d.toLocaleString('en-US', { 
-            month: 'short', 
+            month: 'long', 
             day: 'numeric', 
             year: 'numeric', 
             hour: 'numeric', 
@@ -622,7 +630,7 @@ try {
             hour12: true 
         });
     } else {
-        displayDate = item.date; // Fallback: Ipakita ang text mula sa Google Sheets
+        displayDate = item.date; 
     }
 } catch(e) { 
     displayDate = item.date; 
