@@ -372,6 +372,11 @@ function openAdminModal() {
     const today = new Date().toLocaleString('en-US', options);
     document.getElementById('adminDate').innerText = "Balance as of: " + today;
 
+    // LOAD SAVED BANK DETAILS
+    document.getElementById('bankName').value = localStorage.getItem("savedBank") || "";
+    document.getElementById('accName').value = localStorage.getItem("savedName") || "";
+    document.getElementById('accNum').value = localStorage.getItem("savedNum") || "";
+
     document.getElementById('adminModal').style.display = 'block';
     const logDiv = document.getElementById('historyLog');
     const balanceDisplay = document.getElementById('currentBalance');
@@ -379,12 +384,11 @@ function openAdminModal() {
     logDiv.innerHTML = "Fetching history...";
     balanceDisplay.innerText = "₱...";
 
-    const scriptURL = 'https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec';
-
-    fetch(scriptURL)
+    fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec')
     .then(res => res.json())
     .then(data => {
         balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+        // ... (itutuloy ang history logic mo rito, huwag burahin yung logic ng data.payments pababa)
 
         let combinedHistory = [];
 
@@ -502,6 +506,11 @@ function requestWithdraw() {
         alert("Paki-fill up lahat ng bank details.");
         return;
     }
+
+    // SAVE TO LOCALSTORAGE PARA NEXT TIME ANDITO PA RIN
+    localStorage.setItem("savedBank", bank);
+    localStorage.setItem("savedName", name);
+    localStorage.setItem("savedNum", num);
 
     const timestamp = new Date().toISOString(); 
 
