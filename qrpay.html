@@ -421,15 +421,16 @@ function openAdminModal() {
 
             // FEE CALCULATION PARA SA DISPLAY
             let detailsHtml = "";
-            if(isCashIn) {
-                let fee = Math.ceil(item.amount * 0.01);
-                let net = item.amount - fee;
-                detailsHtml = `
-                    <div style="font-size:0.75em; color:#666; margin-top:3px;">
-                        Gross: ₱${item.amount.toFixed(2)}<br>
-                        Fee (1%): -₱${fee.toFixed(2)}<br>
-                        <b style="color:#2e7d32;">Net: ₱${net.toFixed(2)}</b>
-                    </div>`;
+           if(isCashIn) {
+    // PALITAN DIN ITO: Alisin ang Math.ceil
+    let fee = item.amount * 0.01;
+    let net = item.amount - fee;
+    detailsHtml = `
+        <div style="font-size:0.75em; color:#666; margin-top:3px;">
+            Gross: ₱${item.amount.toFixed(2)}<br>
+            Fee (1%): -₱${fee.toFixed(2)}<br>
+            <b style="color:#2e7d32;">Net: ₱${net.toFixed(2)}</b>
+        </div>`;
             } else {
                 detailsHtml = `<div style="font-weight:bold;">₱${item.amount.toFixed(2)}</div>`;
             }
