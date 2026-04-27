@@ -293,8 +293,13 @@ document.getElementById('pinInput').addEventListener("keyup", function(e) {
 // 5. Calculator Logic
 function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
-    // PALITAN ITO: Mula Math.ceil, gawin nating simple math lang
-    let fee = orderAmount * 0.01; 
+    
+    // Ito ang formula para maging sakto ang 100=1, pero ang 101=2
+    let fee = Math.ceil((orderAmount * 0.01) - 0.000001); 
+    
+    // Kung gusto mo naman na basta may butal ay up agad (ex: 100.01 = 2 fee)
+    // Gamitin lang ang: let fee = Math.ceil(orderAmount * 0.01);
+
     let total = orderAmount + fee;
 
     document.getElementById('feeAmount').innerText = "₱" + fee.toFixed(2);
@@ -421,14 +426,13 @@ function openAdminModal() {
 
             // FEE CALCULATION PARA SA DISPLAY
             let detailsHtml = "";
-           if(isCashIn) {
-    // PALITAN DIN ITO: Alisin ang Math.ceil
-    let fee = item.amount * 0.01;
+          if(isCashIn) {
+    let fee = Math.ceil((item.amount * 0.01) - 0.000001); // Round up logic
     let net = item.amount - fee;
     detailsHtml = `
         <div style="font-size:0.75em; color:#666; margin-top:3px;">
             Gross: ₱${item.amount.toFixed(2)}<br>
-            Fee (1%): -₱${fee.toFixed(2)}<br>
+            Fee (1% Up): -₱${fee.toFixed(2)}<br>
             <b style="color:#2e7d32;">Net: ₱${net.toFixed(2)}</b>
         </div>`;
             } else {
