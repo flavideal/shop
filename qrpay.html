@@ -27,8 +27,13 @@
         .total-row { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 2px solid #eee; font-weight: bold; color: var(--primary-color); font-size: 1.2em; }
 
         .qr-area { text-align: center; padding: 10px; }
-        .qr-code { width: 180px; height: 180px; border: 2px solid #eee; border-radius: 10px; }
-
+        .qr-code { 
+    width: 100%;         /* Sasakupin ang buong width ng modal box */
+    height: auto;        /* Para hindi ma-stretch ang image */
+    max-width: 350px;    /* Sakto lang ang laki para ma-scan */
+    border: 5px solid #eee; 
+    border-radius: 15px;
+}
         /* Payment Instructions Style */
         .instructions { text-align: left; background: #fff3e0; margin: 10px 20px; padding: 15px; border-radius: 8px; border-left: 5px solid #ff9800; font-size: 0.85em; }
         .instructions b { color: #e65100; }
@@ -151,7 +156,9 @@
     padding: 20px;
     border-radius: 15px;
     text-align: center;
-    max-width: 90%;
+    width: 95%;          /* Mas malapad sa screen */
+    max-width: 450px;    /* Limit sa desktop */
+    box-sizing: border-box;
 }
 
 .btn-view-qr {
