@@ -3,70 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Instructions | QRPH</title>
+    <title>Payment Portal | Flavi Deal</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; }
-        .header { text-align: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
-        .qr-section { text-align: center; margin: 20px 0; background: #f9f9f9; padding: 20px; border-radius: 8px; }
-        .steps { margin-top: 20px; }
-        .step-item { margin-bottom: 15px; display: flex; align-items: flex-start; }
-        .step-number { background: #0056b3; color: #fff; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; margin-right: 15px; flex-shrink: 0; font-weight: bold; }
-        .important { background: #fff3cd; border-left: 5px solid #ffecb5; padding: 10px; margin-top: 20px; font-size: 0.9em; }
-        .footer { text-align: center; margin-top: 30px; font-size: 0.8em; color: #777; }
-        .btn-confirm { display: block; width: 100%; text-align: center; background: #28a745; color: white; padding: 12px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 20px; }
+        :root { --primary-color: #0056b3; --success-color: #28a745; --bg-color: #f8f9fa; }
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #333; }
+        .payment-card { max-width: 500px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        /* Language Switcher */
+        .lang-switch { display: flex; justify-content: flex-end; padding: 15px; background: #eee; gap: 10px; }
+        .lang-btn { cursor: pointer; border: 1px solid #ccc; padding: 5px 12px; border-radius: 20px; background: white; font-size: 0.8em; font-weight: bold; transition: 0.3s; }
+        .lang-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .header { text-align: center; padding: 20px; border-bottom: 1px solid #eee; }
+        .qr-area { text-align: center; padding: 20px; background: #fff; }
+        .qr-code { width: 200px; height: 200px; border: 2px solid #eee; border-radius: 10px; }
+
+        .details-box { margin: 0 20px; padding: 15px; background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; font-size: 0.9em; }
+        .details-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #f9f9f9; padding-bottom: 5px; }
+        .label { font-weight: bold; color: #666; }
+        
+        .instructions { padding: 20px; }
+        .step { margin-bottom: 15px; display: flex; gap: 12px; }
+        .step-num { background: var(--primary-color); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.8em; }
+
+        .btn-upload { display: block; margin: 20px; padding: 15px; background: var(--success-color); color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; }
+        .footer { text-align: center; padding: 15px; font-size: 0.75em; color: #999; border-top: 1px solid #eee; }
+
+        /* Multi-language display logic */
+        [lang="tl"] { display: none; }
     </style>
 </head>
 <body>
 
+<div class="payment-card">
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLanguage('en')">ENGLISH</button>
+        <button class="lang-btn" onclick="setLanguage('tl')">TAGALOG</button>
+    </div>
+
     <div class="header">
-        <h2>Gabay sa Pagbabayad (QRPh)</h2>
-        <p>Mabilis, Ligtas, at Madali</p>
+        <h2 id="title-en">Payment Instruction</h2>
+        <h2 id="title-tl" lang="tl">Gabay sa Pagbabayad</h2>
+        <p style="color:var(--primary-color); font-weight:bold;">QRPh Supported</p>
     </div>
 
-    <div class="qr-section">
-        <img src="qr-code-placeholder.png" alt="QRPh Code" style="width: 200px; height: 200px; border: 5px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <p><strong>I-scan ang QR Code sa itaas</strong></p>
-    </div>
-
-    <div class="steps">
-        <h3>Paano magbayad:</h3>
-        
-        <div class="step-item">
-            <div class="step-number">1</div>
-            <div>Buksan ang iyong preferred Banking o E-Wallet app (tulad ng GCash, Maya, SeaBank, BDO, atbp.).</div>
+    <div class="details-box">
+        <div class="details-row">
+            <span class="label">Merchant Name:</span>
+            <span>Flavi Deal</span>
         </div>
-
-        <div class="step-item">
-            <div class="step-number">2</div>
-            <div>Hanapin at piliin ang <strong>"Scan QR"</strong> icon sa loob ng app.</div>
+        <div class="details-row">
+            <span class="label">Location:</span>
+            <span>Butuan City</span>
         </div>
-
-        <div class="step-item">
-            <div class="step-number">3</div>
-            <div>I-scan ang QR code na nasa screen o i-upload ang screenshot nito mula sa iyong gallery.</div>
-        </div>
-
-        <div class="step-item">
-            <div class="step-number">4</div>
-            <div>Ilagay ang tamang halaga (Amount) at i-check kung tugma ang Merchant/Account name.</div>
-        </div>
-
-        <div class="step-item">
-            <div class="step-number">5</div>
-            <div>I-click ang <strong>Confirm</strong> o <strong>Pay</strong>.</div>
+        <div class="details-row">
+            <span class="label">Account Type:</span>
+            <span>Savings / Business</span>
         </div>
     </div>
 
-    <div class="important">
-        <strong>Paalala:</strong> Pagkatapos ng transaksyon, kumuha ng <strong>Screenshot</strong> ng inyong Proof of Payment para sa validation.
+    <div class="qr-area">
+        <img src="YOUR_QR_CODE_IMAGE.png" alt="QR Code" class="qr-code">
+        <p id="scan-text-en">Scan the QR code to pay</p>
+        <p id="scan-text-tl" lang="tl">I-scan ang QR code para magbayad</p>
     </div>
 
-    <a href="#" class="btn-confirm">I-SEND ANG PROOF OF PAYMENT</a>
+    <div class="instructions">
+        <div class="lang-group-en">
+            <div class="step"><div class="step-num">1</div><div>Open your GCash, Maya, or Banking App.</div></div>
+            <div class="step"><div class="step-num">2</div><div>Select "Scan QR" and scan the code above.</div></div>
+            <div class="step"><div class="step-num">3</div><div>Enter the amount and complete the transfer.</div></div>
+            <div class="step"><div class="step-num">4</div><div>Save or Screenshot your Receipt.</div></div>
+        </div>
+
+        <div class="lang-group-tl" lang="tl">
+            <div class="step"><div class="step-num">1</div><div>Buksan ang iyong GCash, Maya, o Banking App.</div></div>
+            <div class="step"><div class="step-num">2</div><div>Piliin ang "Scan QR" at i-scan ang code sa itaas.</div></div>
+            <div class="step"><div class="step-num">3</div><div>Ilagay ang halaga at tapusin ang transfer.</div></div>
+            <div class="step"><div class="step-num">4</div><div>I-save o i-screenshot ang Receipt.</div></div>
+        </div>
+    </div>
+
+    <a href="YOUR_CONFIRMATION_LINK" class="btn-upload">
+        <span class="lang-group-en">SUBMIT PROOF OF PAYMENT</span>
+        <span class="lang-group-tl" lang="tl">I-SUBMIT ANG PROOF OF PAYMENT</span>
+    </a>
 
     <div class="footer">
-        &copy; 2026 Flavi Deal. Lahat ng karapatan ay rezerved. <br>
-        Powered by QRPh - Integrated Digital Payments
+        Official Payment Portal of Flavi Deal &copy; 2026
     </div>
+</div>
+
+<script>
+    function setLanguage(lang) {
+        // Toggle buttons
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.innerText.toLowerCase() === (lang === 'en' ? 'english' : 'tagalog')) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Toggle content
+        const enElements = document.querySelectorAll('.lang-group-en, #title-en, #scan-text-en');
+        const tlElements = document.querySelectorAll('.lang-group-tl, #title-tl, #scan-text-tl');
+
+        if (lang === 'tl') {
+            enElements.forEach(el => el.style.display = 'none');
+            tlElements.forEach(el => el.style.display = 'block');
+        } else {
+            enElements.forEach(el => el.style.display = 'block');
+            tlElements.forEach(el => el.style.display = 'none');
+        }
+    }
+</script>
 
 </body>
 </html>
