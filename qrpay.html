@@ -29,6 +29,11 @@
         .qr-area { text-align: center; padding: 10px; }
         .qr-code { width: 180px; height: 180px; border: 2px solid #eee; border-radius: 10px; }
 
+        /* Payment Instructions Style */
+        .instructions { text-align: left; background: #fff3e0; margin: 10px 20px; padding: 15px; border-radius: 8px; border-left: 5px solid #ff9800; font-size: 0.85em; }
+        .instructions b { color: #e65100; }
+        .instructions ol { margin: 5px 0 0 15px; padding: 0; }
+
         .file-input-container { padding: 0 20px; margin-top: 10px; }
         .btn-upload { display: block; width: calc(100% - 40px); margin: 10px 20px 20px 20px; padding: 15px; background: var(--success-color); color: white; text-align: center; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1em; }
         .btn-upload:disabled { background: #ccc; }
@@ -36,18 +41,19 @@
         #status-msg { text-align: center; font-size: 0.85em; margin-bottom: 10px; font-weight: bold; }
         .footer { text-align: center; padding: 15px; font-size: 0.75em; color: #999; border-top: 1px solid #eee; }
         [lang="tl"] { display: none; }
-        /* PIN Overlay Screen */
-#pin-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--primary-color); display: flex; align-items: center;
-    justify-content: center; z-index: 1000; text-align: center;
-}
-.pin-box { background: white; padding: 30px; border-radius: 15px; width: 80%; max-width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-.pin-box input { width: 100%; padding: 12px; font-size: 1.5em; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin: 15px 0; }
-.pin-box button { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
 
-/* Itatago muna ang main card */
-.payment-card { display: none; }
+        /* PIN Overlay Screen */
+        #pin-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--primary-color); display: flex; align-items: center;
+            justify-content: center; z-index: 1000; text-align: center;
+        }
+        .pin-box { background: white; padding: 30px; border-radius: 15px; width: 80%; max-width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .pin-box input { width: 100%; padding: 12px; font-size: 1.5em; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin: 15px 0; }
+        .pin-box button { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+
+        /* Itatago muna ang main card */
+        .payment-card { display: none; }
     </style>
 </head>
 <body>
@@ -99,6 +105,22 @@
         <p id="scan-tl" lang="tl" style="font-size:0.85em;">I-scan para bayaran ang Total</p>
     </div>
 
+    <div class="instructions">
+        <b><i id="inst-title-en">How to Pay via QRPh:</i><i id="inst-title-tl" lang="tl">Paano Magbayad gamit ang QRPh:</i></b>
+        <ol id="inst-list-en">
+            <li>Open your Bank or E-Wallet app (GCash, Maya, etc.)</li>
+            <li>Select <b>"Scan QR"</b> and scan the code above.</li>
+            <li>Input the <b>Total Amount</b> shown above.</li>
+            <li>Take a <b>Screenshot</b> of your successful transaction.</li>
+        </ol>
+        <ol id="inst-list-tl" lang="tl">
+            <li>Buksan ang Bank o E-Wallet app (GCash, Maya, atbp.)</li>
+            <li>Piliin ang <b>"Scan QR"</b> at i-scan ang code sa itaas.</li>
+            <li>I-type ang <b>Total Amount</b> na lumabas sa calculator.</li>
+            <li>Kumuha ng <b>Screenshot</b> ng inyong resibo.</li>
+        </ol>
+    </div>
+
     <div class="file-input-container">
         <input type="file" id="fileInput" accept="image/*">
     </div>
@@ -118,31 +140,25 @@
 <script>
     function checkPin() {
     const enteredPin = document.getElementById('pinInput').value;
-    const correctPin = "1984"; // <--- PALITAN MO ITO NG GUSTO MONG PIN
+    const correctPin = "1984"; 
 
     if (enteredPin === correctPin) {
-        document.getElementById('pin-overlay').style.display = 'none'; // Alisin ang takip
-        document.querySelector('.payment-card').style.display = 'block'; // Ipakita ang portal
+        document.getElementById('pin-overlay').style.display = 'none'; 
+        document.querySelector('.payment-card').style.display = 'block'; 
     } else {
         alert("Maling PIN! Subukan ulit.");
         document.getElementById('pinInput').value = "";
     }
 }
 
-// Para gumana ang "Enter" key sa keyboard
 document.getElementById('pinInput').addEventListener("keyup", function(e) {
     if (e.key === "Enter") checkPin();
 });
     
     function calculateTotal() {
         const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
-        
-        // Logic: 1% Fee
         let fee = orderAmount * 0.01;
-        
-        // Logic: If there is a decimal (e.g., 1.30), round UP to nearest whole number (e.g., 2)
         let roundedFee = Math.ceil(fee);
-        
         let total = orderAmount + roundedFee;
 
         document.getElementById('feeAmount').innerText = "₱" + roundedFee.toFixed(2);
@@ -153,15 +169,17 @@ document.getElementById('pinInput').addEventListener("keyup", function(e) {
         const isTl = lang === 'tl';
         document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.innerText === (isTl ? 'TL' : 'EN'))));
         
-        // Toggle elements with lang="tl"
         document.querySelectorAll('[lang="tl"]').forEach(el => el.style.display = isTl ? 'block' : 'none');
         
-        // Toggle English elements
         document.getElementById('title-en').style.display = isTl ? 'none' : 'block';
         document.getElementById('lbl-en').style.display = isTl ? 'none' : 'block';
         document.getElementById('tot-en').style.display = isTl ? 'none' : 'inline';
         document.getElementById('scan-en').style.display = isTl ? 'none' : 'block';
         document.getElementById('btn-en').style.display = isTl ? 'none' : 'block';
+        
+        // Toggle Instructions language
+        document.getElementById('inst-title-en').style.display = isTl ? 'none' : 'inline';
+        document.getElementById('inst-list-en').style.display = isTl ? 'none' : 'block';
     }
 
     function uploadToDrive() {
