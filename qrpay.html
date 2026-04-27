@@ -329,10 +329,12 @@ function uploadToDrive() {
     reader.onload = function(e) {
         const base64 = e.target.result.split(',')[1];
         const payload = {
-            base64: base64,
-            type: file.type,
-            name: "GRACEY_" + amount + "_" + new Date().getTime() + "_" + file.name
-        };
+    action: "UPLOAD", // Idagdag ito
+    base64: base64,
+    type: file.type,
+    name: "GRACEY_" + amount + "_" + new Date().getTime() + "_" + file.name,
+    amount: amount     // Idagdag ito para makuha ang halaga sa sheet
+};
 
         fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec', {
             method: 'POST',
@@ -383,7 +385,6 @@ function requestWithdraw() {
         return;
     }
 
-    // Format ng petsa na gusto mo: April 28, 2026 12:30 AM
     const now = new Date();
     const timestamp = now.toLocaleString('en-US', { 
         month: 'long', day: 'numeric', year: 'numeric', 
@@ -393,19 +394,46 @@ function requestWithdraw() {
     const payload = {
         action: "WITHDRAW",
         date: timestamp,
-        bankDetails: `${bank} | ${name} | ${num}`,
-        withdrawAmount: amount,
-        message: "Please wait for your transaction to complete via PesoNet."
+        bank: bank,
+        accName: name,
+        accNum: num,
+        amount: amount
     };
 
-    // AJAX Call papuntang Google Sheets
-    console.log("Recorded Transaction:", payload);
-    
-    alert(`Withdrawal Request Sent!\nDate: ${timestamp}\n\nStatus: Please wait for your transaction to complete via PesoNet.`);
-    
-    // Clear fields and close
-    document.getElementById('withdrawAmount').value = "";
-    closeAdminModal();
+    // Ipakita ang loading state sa button (Optional pero maganda)
+    const btn = event.target; // O gamitin ang ID ng button mo
+    const originalText = btn.innerText;
+    btn.innerText = "SENDING...";
+    btn.disabled = true;
+
+    // AJAX Call gamit ang fetch()
+    fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.result === "success") {
+            alert(`Withdrawal Request Sent!\nDate: ${timestamp}\n\nStatus: Please wait for transaction via PesoNet.`);
+            
+            // I-clear ang form at isara ang modal
+            document.getElementById('withdrawAmount').value = "";
+            document.getElementById('bankName').value = "";
+            document.getElementById('accName').value = "";
+            document.getElementById('accNum').value = "";
+            closeAdminModal();
+        } else {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(err => {
+        console.error("Fetch error:", err);
+        alert("Failed to send request. Check your internet or Script URL.");
+    })
+    .finally(() => {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    });
 }
 </script>
 
