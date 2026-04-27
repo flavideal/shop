@@ -85,6 +85,52 @@
 
         /* Itatago muna ang main card */
         .payment-card { display: none; }
+
+        /* Admin Icon Button sa Taas */
+.admin-trigger {
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 4px 10px;
+    border-radius: 15px;
+    background: white;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #d32f2f;
+}
+
+/* Modal Background (Yung itim na transparent) */
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+}
+
+/* Modal Content Box */
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+}
+
+.close-modal {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999;
+}
     </style>
 </head>
 <body>
@@ -100,10 +146,42 @@
 
 <div class="payment-card">
     <div class="lang-switch">
-        <button onclick="logout()" style="cursor:pointer; border:1px solid #ccc; padding:4px 10px; border-radius:15px; background:#fff; font-size:0.75em; font-weight:bold; color:red; margin-right:auto;">LOGOUT</button>
-        <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
-        <button class="lang-btn" onclick="setLanguage('tl')">TL</button>
+    <button onclick="logout()" style="cursor:pointer; border:1px solid #ccc; padding:4px 10px; border-radius:15px; background:#fff; font-size:0.75em; font-weight:bold; color:red; margin-right:auto;">LOGOUT</button>
+    <button class="admin-trigger" onclick="openAdminModal()">ADMIN</button> <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+    <button class="lang-btn" onclick="setLanguage('tl')">TL</button>
+</div>
+
+<div id="adminModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeAdminModal()">&times;</span>
+        <h3 style="text-align:center; color: var(--primary-color);">Admin Dashboard</h3>
+        
+        <div class="balance-display" style="background: #2e7d32; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 0.8em; opacity: 0.9;">Sales Today: April 28, 2026</div>
+            <div style="font-size: 1.8em; font-weight: bold;" id="currentBalance">₱0.00</div>
+        </div>
+
+        <div class="input-group">
+            <label>Bank / E-Wallet:</label>
+            <input type="text" id="bankName" placeholder="e.g. GCash / BPI">
+        </div>
+        <div class="input-group">
+            <label>Account Name:</label>
+            <input type="text" id="accName" placeholder="Juan Dela Cruz">
+        </div>
+        <div class="input-group">
+            <label>Account Number:</label>
+            <input type="text" id="accNum" placeholder="09123456789">
+        </div>
+        <div class="input-group">
+            <label>Amount to Withdraw:</label>
+            <input type="number" id="withdrawAmount" placeholder="0.00">
+        </div>
+
+        <button class="btn-upload" style="margin: 10px 0; width: 100%;" onclick="requestWithdraw()">SUBMIT WITHDRAWAL</button>
+        <p style="font-size: 0.7em; color: #666; text-align: center; margin: 0;">Processing via PesoNet. Please wait for completion.</p>
     </div>
+</div>
 
     <div class="header">
         <h2 id="title-en">GRACEY KAINAN</h2>
@@ -273,6 +351,61 @@ function uploadToDrive() {
         });
     };
     reader.readAsDataURL(file);
+}
+
+// Open Modal
+function openAdminModal() {
+    document.getElementById('adminModal').style.display = 'block';
+}
+
+// Close Modal
+function closeAdminModal() {
+    document.getElementById('adminModal').style.display = 'none';
+}
+
+// Close Modal pag pinindot ang labas ng box
+window.onclick = function(event) {
+    let modal = document.getElementById('adminModal');
+    if (event.target == modal) {
+        closeAdminModal();
+    }
+}
+
+// Withdraw Request Function
+function requestWithdraw() {
+    const bank = document.getElementById('bankName').value;
+    const name = document.getElementById('accName').value;
+    const num = document.getElementById('accNum').value;
+    const amount = document.getElementById('withdrawAmount').value;
+    
+    if(!bank || !name || !num || !amount) {
+        alert("Paki-fill up lahat ng bank details.");
+        return;
+    }
+
+    // Format ng petsa na gusto mo: April 28, 2026 12:30 AM
+    const now = new Date();
+    const timestamp = now.toLocaleString('en-US', { 
+        month: 'long', day: 'numeric', year: 'numeric', 
+        hour: 'numeric', minute: 'numeric', hour12: true 
+    });
+
+    const payload = {
+        action: "WITHDRAW",
+        date: timestamp,
+        bankDetails: `${bank} | ${name} | ${num}`,
+        withdrawAmount: amount,
+        message: "Please wait for your transaction to complete via PesoNet."
+    };
+
+    // AJAX Call papuntang Google Sheets
+    console.log("Recorded Transaction:", payload);
+    
+    alert(`Withdrawal Request Sent!\nDate: ${timestamp}\n\nStatus: Please wait for your transaction to complete via PesoNet.`);
+    
+    // Clear fields and close
+    document.getElementById('withdrawAmount').value = "";
+    closeAdminModal();
 }
 </script>
 
