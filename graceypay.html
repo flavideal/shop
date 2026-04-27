@@ -188,6 +188,25 @@
     font-weight: bold;
     cursor: pointer;
 }
+
+/* Hiwalay na modal para sa Withdraw Form */
+#withdrawModal .modal-content {
+    background: #fff;
+    border-top: 5px solid var(--success-color);
+}
+
+/* Button style para sa Open Withdraw Form */
+.btn-open-withdraw {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #2e7d32;
+    padding: 8px;
+    border-radius: 8px;
+    width: 100%;
+    font-weight: bold;
+    margin-top: 10px;
+    cursor: pointer;
+}
     </style>
 </head>
 <body>
@@ -209,39 +228,50 @@
 </div>
 
 <div id="adminModal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 450px;">
         <span class="close-modal" onclick="closeAdminModal()">&times;</span>
-        <h3 style="text-align:center; color: var(--primary-color);">Admin Dashboard</h3>
+        <h3 style="text-align:center; color: var(--primary-color); margin-top:0;">Admin Dashboard</h3>
         
-        <div class="balance-display" style="background: #2e7d32; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
-            <div style="font-size: 0.8em; opacity: 0.9;" id="adminDate">Available Balance: --</div>
+        <div class="balance-display" style="background: #2e7d32; color: white; padding: 15px; border-radius: 10px; text-align: center;">
+            <div style="font-size: 0.75em; opacity: 0.9;" id="adminDate">Available Balance: --</div>
             <div style="font-size: 1.8em; font-weight: bold;" id="currentBalance">₱0.00</div>
+            
+            <button class="btn-open-withdraw" onclick="openWithdrawForm()">➕ WITHDRAW FUNDS</button>
         </div>
 
+        <h4 style="text-align:center; margin: 15px 0 5px 0;">Recent Transactions</h4>
+        <div id="historyLog" style="font-size: 0.75em; max-height: 350px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+            Loading history...
+        </div>
+        
+        <button class="btn-upload" style="margin: 15px 0 0 0; width: 100%; background: #666;" onclick="closeAdminModal()">DONE / CLOSE</button>
+    </div>
+</div>
+
+<div id="withdrawModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 350px; margin-top: 5%;">
+        <span class="close-modal" onclick="closeWithdrawForm()">&times;</span>
+        <h3 style="text-align:center; color: var(--success-color);">Withdraw Funds</h3>
+        
         <div class="input-group">
             <label>Bank / E-Wallet:</label>
-            <input type="text" id="bankName" placeholder="e.g. GCash / BPI">
+            <input type="text" id="bankName" placeholder="e.g. GCash">
         </div>
         <div class="input-group">
             <label>Account Name:</label>
-            <input type="text" id="accName" placeholder="Juan Dela Cruz">
+            <input type="text" id="accName">
         </div>
         <div class="input-group">
             <label>Account Number:</label>
-            <input type="text" id="accNum" placeholder="09123456789">
+            <input type="text" id="accNum">
         </div>
         <div class="input-group">
-            <label>Amount to Withdraw:</label>
+            <label>Amount:</label>
             <input type="number" id="withdrawAmount" placeholder="0.00">
         </div>
 
         <button class="btn-upload" style="margin: 10px 0; width: 100%;" onclick="requestWithdraw()">SUBMIT WITHDRAWAL</button>
-        <p style="font-size: 0.7em; color: #666; text-align: center; margin: 0;">Processing via PesoNet. Please wait for completion.</p>
-        <hr>
-<h4 style="text-align:center;">Recent Transactions</h4>
-<div id="historyLog" style="font-size: 0.75em; max-height: 200px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 8px;">
-    Loading history...
-</div>
+        <button class="btn-upload" style="margin: 0; width: 100%; background:#ccc; color:#333;" onclick="closeWithdrawForm()">CANCEL</button>
     </div>
 </div>
 
@@ -663,6 +693,53 @@ function requestWithdraw() {
         btn.innerText = originalText;
         btn.disabled = false;
     });
+}
+
+// Buksan ang Withdraw Form Modal
+function openWithdrawForm() {
+    // Load saved details bago buksan
+    document.getElementById('bankName').value = localStorage.getItem("savedBank") || "";
+    document.getElementById('accName').value = localStorage.getItem("savedName") || "";
+    document.getElementById('accNum').value = localStorage.getItem("savedNum") || "";
+    
+    document.getElementById('withdrawModal').style.display = 'block';
+}
+
+// Isara ang Withdraw Form Modal
+function closeWithdrawForm() {
+    document.getElementById('withdrawModal').style.display = 'none';
+}
+
+// I-update ang requestWithdraw para isara ang modal pag tapos na
+// (Hanapin ang dating requestWithdraw at i-update ang success part)
+function requestWithdraw() {
+    // ... (keep your existing validation code) ...
+
+    fetch('YOUR_URL', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.result === "success") {
+            alert("Withdrawal Request Sent!");
+            document.getElementById('withdrawAmount').value = "";
+            closeWithdrawForm(); // Isasara ang maliit na modal
+            openAdminModal();   // Refresh ang main admin para makita ang bagong transaction
+        } else { alert("Error: " + data.error); }
+    })
+    // ... (rest of the code) ...
+}
+
+// I-update din ang window.onclick para masali ang withdraw modal sa "click outside to close"
+window.onclick = function(event) {
+    let adminModal = document.getElementById('adminModal');
+    let withdrawModal = document.getElementById('withdrawModal');
+    let qrModal = document.getElementById('qrModal');
+    
+    if (event.target == adminModal) closeAdminModal();
+    if (event.target == withdrawModal) closeWithdrawForm();
+    if (event.target == qrModal) toggleQR(false);
 }
 </script>
 
