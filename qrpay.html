@@ -352,10 +352,12 @@ function uploadToDrive() {
                 location.reload(); 
             } else { throw new Error(); }
         })
-        .catch(() => {
-            alert("Upload failed. Please try again.");
-            btn.disabled = false;
-        });
+       // Palitan ang lumang .catch() nito:
+.catch((err) => {
+    console.error("Full Error Details:", err);
+    alert("Upload failed. Error: " + err.message);
+    btn.disabled = false;
+});
     };
     reader.readAsDataURL(file);
 }
