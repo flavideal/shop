@@ -5,170 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Portal | Flavi Deal</title>
     <style>
-        :root { --primary-color: #0056b3; --success-color: #28a745; --bg-color: #f8f9fa; }
-        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #333; }
-        .payment-card { max-width: 500px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        
-        /* Language Switcher */
-        .lang-switch { display: flex; justify-content: flex-end; padding: 15px; background: #eee; gap: 10px; }
-        .lang-btn { cursor: pointer; border: 1px solid #ccc; padding: 5px 12px; border-radius: 20px; background: white; font-size: 0.8em; font-weight: bold; transition: 0.3s; }
-        .lang-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-
-        .header { text-align: center; padding: 20px; border-bottom: 1px solid #eee; }
-        .qr-area { text-align: center; padding: 20px; background: #fff; }
-        .qr-code { width: 200px; height: 200px; border: 2px solid #eee; border-radius: 10px; }
-
-        .details-box { margin: 0 20px; padding: 15px; background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; font-size: 0.9em; }
-        .details-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #f9f9f9; padding-bottom: 5px; }
-        .label { font-weight: bold; color: #666; }
-        
-        .instructions { padding: 20px; }
-        .step { margin-bottom: 15px; display: flex; gap: 12px; }
-        .step-num { background: var(--primary-color); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.8em; }
-
-        .btn-upload { display: block; margin: 20px; padding: 15px; background: var(--success-color); color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; }
-        .footer { text-align: center; padding: 15px; font-size: 0.75em; color: #999; border-top: 1px solid #eee; }
-
-        /* Multi-language display logic */
+        :root { --primary: #0056b3; --success: #28a745; --light: #f8f9fa; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light); margin: 0; padding: 15px; }
+        .card { max-width: 450px; margin: auto; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        .lang-bar { background: #eee; padding: 10px; display: flex; justify-content: center; gap: 10px; }
+        .lang-btn { border: none; padding: 5px 15px; border-radius: 15px; cursor: pointer; font-size: 0.8em; }
+        .active { background: var(--primary); color: white; }
+        .content { padding: 20px; }
+        .details { background: #fdfdfd; border: 1px solid #eee; padding: 10px; border-radius: 8px; font-size: 0.85em; margin-bottom: 15px; }
+        .qr-img { width: 100%; max-width: 200px; display: block; margin: 10px auto; border: 1px solid #ddd; }
+        .upload-section { border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px; }
+        input[type="file"] { width: 100%; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-upload { background: var(--success); color: white; }
+        .btn-upload:disabled { background: #ccc; }
         [lang="tl"] { display: none; }
     </style>
 </head>
 <body>
 
-<div class="payment-card">
-    <div class="lang-switch">
-        <button class="lang-btn active" onclick="setLanguage('en')">ENGLISH</button>
-        <button class="lang-btn" onclick="setLanguage('tl')">TAGALOG</button>
+<div class="card">
+    <div class="lang-bar">
+        <button id="en-btn" class="lang-btn active" onclick="switchLang('en')">English</button>
+        <button id="tl-btn" class="lang-btn" onclick="switchLang('tl')">Tagalog</button>
     </div>
 
-    <div class="header">
-        <h2 id="title-en">Payment Instruction</h2>
-        <h2 id="title-tl" lang="tl">Gabay sa Pagbabayad</h2>
-        <p style="color:var(--primary-color); font-weight:bold;">QRPh Supported</p>
-    </div>
+    <div class="content">
+        <h3 id="h-en">Payment Instructions</h3>
+        <h3 id="h-tl" lang="tl">Gabay sa Pagbabayad</h3>
 
-    <div class="details-box">
-        <div class="details-row">
-            <span class="label">Merchant Name:</span>
-            <span>Flavi Deal</span>
+        <div class="details">
+            <b>Merchant:</b> Flavi Deal<br>
+            <b>Location:</b> Butuan City<br>
+            <b>Type:</b> QRPh / GCash / Maya
         </div>
-        <div class="details-row">
-            <span class="label">Location:</span>
-            <span>Butuan City</span>
-        </div>
-        <div class="details-row">
-            <span class="label">Account Type:</span>
-            <span>Savings / Business</span>
-        </div>
-    </div>
 
-    <div class="qr-area">
-        <img src="YOUR_QR_CODE_IMAGE.png" alt="QR Code" class="qr-code">
-        <p id="scan-text-en">Scan the QR code to pay</p>
-        <p id="scan-text-tl" lang="tl">I-scan ang QR code para magbayad</p>
-    </div>
+        <img src="YOUR_QR_CODE.png" class="qr-img" alt="QR Code">
 
-    <div class="instructions">
         <div class="lang-group-en">
-            <div class="step"><div class="step-num">1</div><div>Open your GCash, Maya, or Banking App.</div></div>
-            <div class="step"><div class="step-num">2</div><div>Select "Scan QR" and scan the code above.</div></div>
-            <div class="step"><div class="step-num">3</div><div>Enter the amount and complete the transfer.</div></div>
-            <div class="step"><div class="step-num">4</div><div>Save or Screenshot your Receipt.</div></div>
+            <p>1. Scan the QR code.<br>2. Complete the payment.<br>3. Upload the receipt below.</p>
         </div>
-
         <div class="lang-group-tl" lang="tl">
-            <div class="step"><div class="step-num">1</div><div>Buksan ang iyong GCash, Maya, o Banking App.</div></div>
-            <div class="step"><div class="step-num">2</div><div>Piliin ang "Scan QR" at i-scan ang code sa itaas.</div></div>
-            <div class="step"><div class="step-num">3</div><div>Ilagay ang halaga at tapusin ang transfer.</div></div>
-            <div class="step"><div class="step-num">4</div><div>I-save o i-screenshot ang Receipt.</div></div>
+            <p>1. I-scan ang QR code.<br>2. Bayaran ang tamang halaga.<br>3. I-upload ang resibo sa ibaba.</p>
         </div>
-    </div>
 
-
-    <div style="padding: 20px;">
-    <input type="file" id="fileInput" accept="image/*" style="margin-bottom: 10px;">
-    <button onclick="uploadFile()" id="uploadBtn" class="btn-upload" style="width: 100%; border: none; cursor: pointer;">
-        SUBMIT PROOF OF PAYMENT
-    </button>
-    <p id="status" style="text-align: center; font-size: 0.8em; margin-top: 10px;"></p>
-</div>
-
-    <div class="footer">
-        Official Payment Portal of Flavi Deal &copy; 2026
+        <div class="upload-section">
+            <input type="file" id="fileInput" accept="image/*">
+            <button id="uploadBtn" class="btn btn-upload" onclick="startUpload()">
+                <span class="lang-group-en">UPLOAD RECEIPT</span>
+                <span class="lang-group-tl" lang="tl">I-UPLOAD ANG RESIBO</span>
+            </button>
+            <p id="msg" style="text-align:center; font-size: 0.8em; margin-top:10px;"></p>
+        </div>
     </div>
 </div>
 
 <script>
-    function setLanguage(lang) {
-        // Toggle buttons
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if(btn.innerText.toLowerCase() === (lang === 'en' ? 'english' : 'tagalog')) {
-                btn.classList.add('active');
-            }
-        });
-
-        // Toggle content
-        const enElements = document.querySelectorAll('.lang-group-en, #title-en, #scan-text-en');
-        const tlElements = document.querySelectorAll('.lang-group-tl, #title-tl, #scan-text-tl');
-
-        if (lang === 'tl') {
-            enElements.forEach(el => el.style.display = 'none');
-            tlElements.forEach(el => el.style.display = 'block');
-        } else {
-            enElements.forEach(el => el.style.display = 'block');
-            tlElements.forEach(el => el.style.display = 'none');
-        }
+    function switchLang(l) {
+        document.querySelectorAll('[lang="tl"]').forEach(el => el.style.display = (l === 'tl' ? 'block' : 'none'));
+        document.querySelectorAll('.lang-group-en, #h-en').forEach(el => el.style.display = (l === 'en' ? 'block' : 'none'));
+        document.getElementById('en-btn').classList.toggle('active', l === 'en');
+        document.getElementById('tl-btn').classList.toggle('active', l === 'tl');
     }
 
-    async function uploadFile() {
-    const fileInput = document.getElementById('fileInput');
-    const status = document.getElementById('status');
-    const btn = document.getElementById('uploadBtn');
+    function startUpload() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) return alert("Select file first!");
 
-    if (fileInput.files.length === 0) {
-        alert("Please select a file first / Pumili muna ng file.");
-        return;
-    }
+        const btn = document.getElementById('uploadBtn');
+        const msg = document.getElementById('msg');
+        btn.disabled = true;
+        msg.innerText = "Processing upload...";
 
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    
-    status.innerText = "Uploading... please wait.";
-    btn.disabled = true;
-    btn.style.backgroundColor = "#ccc";
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64 = e.target.result.split(',')[1];
+            const payload = {
+                base64: base64,
+                type: file.type,
+                name: "PAYMENT_" + Date.now() + "_" + file.name
+            };
 
-    reader.onload = async function() {
-        const base64 = reader.result.split(',')[1];
-        const payload = {
-            base64: base64,
-            type: file.type,
-            name: "Payment_" + new Date().getTime() + "_" + file.name
-        };
-
-        try {
-            // PALITAN ITONG URL NG WEB APP URL MO MULA SA GOOGLE APPS SCRIPT
-            const response = await fetch('IYONG_WEB_APP_URL_DITO', {
+            fetch('IYONG_WEB_APP_URL_DITO', {
                 method: 'POST',
                 body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.result === "success") {
+                    msg.style.color = "green";
+                    msg.innerText = "Upload Successful! Thank you.";
+                } else { throw new Error(); }
+            })
+            .catch(() => {
+                msg.style.color = "red";
+                msg.innerText = "Error. Please try again.";
+                btn.disabled = false;
             });
-            const result = await response.json();
-            if (result.result === "success") {
-                status.innerText = "Success! Proof of payment saved.";
-                status.style.color = "green";
-                alert("Salamat! Na-save na ang iyong proof of payment.");
-            } else {
-                throw new Error();
-            }
-        } catch (error) {
-            status.innerText = "Error uploading. Please try again.";
-            status.style.color = "red";
-            btn.disabled = false;
-            btn.style.backgroundColor = "#28a745";
-        }
-    };
-    reader.readAsDataURL(file);
-}
+        };
+        reader.readAsDataURL(file);
+    }
 </script>
 
 </body>
