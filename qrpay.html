@@ -294,8 +294,9 @@ document.getElementById('pinInput').addEventListener("keyup", function(e) {
 function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
     
-    // Sakto na ang calculation nito: 100=1, 101=2
-    let fee = Math.ceil((orderAmount * 0.01) - 0.0001); 
+    // Ito ang logic na tumutugma sa reverse calculation ng Apps Script
+    // Para kung 100 ang order, 101 ang total. Kung 101 ang order, 103 ang total (approx).
+    let fee = Math.ceil((orderAmount * 0.01)); 
     if (fee < 1 && orderAmount > 0) fee = 1;
 
     let total = orderAmount + fee;
@@ -507,23 +508,26 @@ function requestWithdraw() {
         return;
     }
 
-    // SAVE TO LOCALSTORAGE PARA NEXT TIME ANDITO PA RIN
     localStorage.setItem("savedBank", bank);
     localStorage.setItem("savedName", name);
     localStorage.setItem("savedNum", num);
 
-    const timestamp = new Date().toISOString(); 
+    // FIX: Imbes na .toISOString(), gagamit tayo ng simpleng locale string 
+    // para hindi mag-error o magka-"Z" sa Google Sheets.
+    const now = new Date();
+    const cleanDate = now.toLocaleString('en-US'); 
 
     const payload = {
         action: "WITHDRAW",
-        date: timestamp,
+        date: cleanDate, // Malinis na date format
         bank: bank,
         accName: name,
         accNum: num,
         amount: amount
     };
 
-    const btn = event.target;
+    // Siguraduhin na makuha ang button element nang tama
+    const btn = document.querySelector('button[onclick="requestWithdraw()"]');
     const originalText = btn.innerText;
     btn.innerText = "SENDING...";
     btn.disabled = true;
