@@ -321,7 +321,7 @@
 
     <button class="btn-view-qr" onclick="toggleQR(true)">
     <span id="view-en">VIEW QR CODE</span>
-    <span id="view-tl" lang="tl">TINGNAN ANG QR</span>
+    <span id="view-tl" lang="tl" style="display:none;">TINGNAN ANG QR</span>
 </button>
 
 <div id="qrModal" class="qr-modal">
@@ -453,17 +453,39 @@ function toggleQR(show) {
 // 6. Language Switcher
 function setLanguage(lang) {
     const isTl = lang === 'tl';
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.innerText === (isTl ? 'TL' : 'EN'))));
-    document.querySelectorAll('[lang="tl"]').forEach(el => el.style.display = isTl ? 'block' : 'none');
-    document.getElementById('title-en').style.display = isTl ? 'none' : 'block';
-    document.getElementById('lbl-en').style.display = isTl ? 'none' : 'block';
-    document.getElementById('tot-en').style.display = isTl ? 'none' : 'inline';
-    document.getElementById('scan-en').style.display = isTl ? 'none' : 'block';
-    document.getElementById('btn-en').style.display = isTl ? 'none' : 'block';
-    document.getElementById('inst-title-en').style.display = isTl ? 'none' : 'inline';
-    document.getElementById('inst-list-en').style.display = isTl ? 'none' : 'block';
-    document.getElementById('view-en').style.display = isTl ? 'none' : 'block';
-    document.getElementById('view-tl').style.display = isTl ? 'block' : 'none';
+    
+    // 1. I-update ang Active State ng Buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.innerText === (isTl ? 'TGL' : 'ENG')) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // 2. I-toggle ang lahat ng elements na may lang="tl" attribute
+    document.querySelectorAll('[lang="tl"]').forEach(el => {
+        el.style.display = isTl ? 'block' : 'none';
+    });
+
+    // 3. I-toggle ang mga English counterparts (ID based)
+    // Listahan ng lahat ng English IDs na kailangang itago/ipakita
+    const enElements = [
+        'title-en', 'lbl-en', 'tot-en', 'view-en', 
+        'inst-title-en', 'inst-list-en', 'btn-en'
+    ];
+
+    enElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Kung inline element (katulad ng SPAN o I), gamitin ang inline display
+            if (id === 'tot-en' || id === 'inst-title-en') {
+                el.style.display = isTl ? 'none' : 'inline';
+            } else {
+                el.style.display = isTl ? 'none' : 'block';
+            }
+        }
+    });
 }
 
 // 7. Upload Logic
