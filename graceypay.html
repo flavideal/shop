@@ -558,16 +558,16 @@ function openAdminModal() {
 }
 
         if (data.withdrawals) {
-            data.withdrawals.forEach(row => {
-                combinedHistory.push({
-                    type: 'OUT',
-                    amount: parseFloat(row[4]),
-                    date: row[0],
-                    proof: null,
-                    status: row[5]
-                });
-            });
-        }
+    data.withdrawals.forEach(row => {
+        combinedHistory.push({
+            type: 'OUT',
+            amount: parseFloat(row[4]), // Column E
+            date: row[0],              // Column A
+            status: row[5],            // Column F
+            paidDate: row[6]           // DAGDAG: Babasahin ang Column G (Payment Date)
+        });
+    });
+}
 
         combinedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -589,7 +589,19 @@ function openAdminModal() {
             <b style="color:#2e7d32;">Net: ₱${item.net.toFixed(2)}</b>
         </div>`;
 } else {
-    detailsHtml = `<div style="font-weight:bold;">₱${item.amount.toFixed(2)}</div>`;
+    let pDate = "";
+    
+    // Kung ang status ay PAID at may laman ang Column G (paidDate)
+    if (item.status === "PAID" && item.paidDate) {
+        pDate = `<div style="font-size:0.85em; color:blue; font-weight:bold; margin-top:3px;">
+                    ✅ Paid: ${item.paidDate}
+                 </div>`;
+    }
+
+    detailsHtml = `
+        <div style="font-weight:bold;">₱${item.amount.toFixed(2)}</div>
+        ${pDate}
+    `;
 }
 
             // PALITAN ITONG BLOCK NA ITO:
