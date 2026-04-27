@@ -533,12 +533,12 @@ function openAdminModal() {
 // --- HANAPIN ITO SA LOOB NG combinedHistory.forEach ---
 let displayDate = "";
 try {
-    // Lilinisin ang string: aalisin ang "at", "GMT", at "Z" para standard format
-    let rawDate = String(item.date).replace(" at ", ", ").replace("Z", "").replace(/GMT.*/, ""); 
-    let parsedDate = new Date(rawDate);
-
-    if (!isNaN(parsedDate)) {
-        displayDate = parsedDate.toLocaleString('en-US', { 
+    // 1. Gawing Date object ang value mula sa Sheet
+    let d = new Date(item.date);
+    
+    // 2. Kung valid ang date, i-format natin. Kung hindi, ipakita kung ano ang nasa cell.
+    if (!isNaN(d.getTime())) {
+        displayDate = d.toLocaleString('en-US', { 
             month: 'short', 
             day: 'numeric', 
             year: 'numeric', 
@@ -547,7 +547,7 @@ try {
             hour12: true 
         });
     } else {
-        displayDate = item.date; // Fallback kung di talaga ma-parse
+        displayDate = item.date; // Fallback: Ipakita ang text mula sa Google Sheets
     }
 } catch(e) { 
     displayDate = item.date; 
@@ -615,13 +615,13 @@ function requestWithdraw() {
     const cleanDate = now.toLocaleString('en-US'); 
 
     const payload = {
-        action: "WITHDRAW",
-        date: cleanDate, // Malinis na date format
-        bank: bank,
-        accName: name,
-        accNum: num,
-        amount: amount
-    };
+    action: "WITHDRAW",
+    date: new Date().toLocaleString('en-US'), // Idagdag itong line na ito
+    bank: bank,
+    accName: name,
+    accNum: num,
+    amount: amount
+};
 
     // Siguraduhin na makuha ang button element nang tama
     const btn = document.querySelector('button[onclick="requestWithdraw()"]');
