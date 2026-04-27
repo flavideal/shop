@@ -157,7 +157,7 @@
         <h3 style="text-align:center; color: var(--primary-color);">Admin Dashboard</h3>
         
         <div class="balance-display" style="background: #2e7d32; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
-            <div style="font-size: 0.8em; opacity: 0.9;">Sales Today: April 28, 2026</div>
+            <div style="font-size: 0.8em; opacity: 0.9;" id="adminDate">Available Balance: --</div>
             <div style="font-size: 1.8em; font-weight: bold;" id="currentBalance">₱0.00</div>
         </div>
 
@@ -365,6 +365,14 @@ function uploadToDrive() {
 // Open Modal
 // Open Modal with Unified History
 function openAdminModal() {
+    // AUTOMATIC DATE LOGIC
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const today = new Date().toLocaleDateString('en-US', options);
+    document.getElementById('adminDate').innerText = "Available Balance: " + today;
+
+    // ... (itutuloy ang dating code mo)
+    document.getElementById('adminModal').style.display = 'block';
+    
     document.getElementById('adminModal').style.display = 'block';
     const logDiv = document.getElementById('historyLog');
     const balanceDisplay = document.getElementById('currentBalance');
