@@ -294,15 +294,30 @@ document.getElementById('pinInput').addEventListener("keyup", function(e) {
 function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
     
-    // Ito ang logic na tumutugma sa reverse calculation ng Apps Script
-    // Para kung 100 ang order, 101 ang total. Kung 101 ang order, 103 ang total (approx).
-    let fee = Math.ceil((orderAmount * 0.01)); 
-    if (fee < 1 && orderAmount > 0) fee = 1;
+    if (orderAmount <= 0) {
+        document.getElementById('feeAmount').innerText = "₱0";
+        document.getElementById('finalTotal').innerText = "₱0";
+        return;
+    }
+
+    let rawFee = orderAmount * 0.01;
+    let fee;
+
+    // 50-CENT RULE:
+    // Halimbawa: 1.50 -> 1 | 1.51 -> 2
+    let decimalPart = rawFee % 1;
+    if (decimalPart <= 0.50) {
+        fee = Math.floor(rawFee); // Stay sa baba
+    } else {
+        fee = Math.ceil(rawFee);  // Talon sa taas
+    }
+
+    if (fee < 1) fee = 1;
 
     let total = orderAmount + fee;
 
-    document.getElementById('feeAmount').innerText = "₱" + fee.toFixed(2);
-    document.getElementById('finalTotal').innerText = "₱" + total.toFixed(2);
+    document.getElementById('feeAmount').innerText = "₱" + fee.toFixed(0);
+    document.getElementById('finalTotal').innerText = "₱" + total.toFixed(0);
 }
 
 // 6. Language Switcher
