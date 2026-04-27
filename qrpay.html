@@ -422,12 +422,16 @@ function uploadToDrive() {
 
     reader.onload = function(e) {
         const base64 = e.target.result.split(',')[1];
-        const payload = {
+        // Palitan ang part na ito sa loob ng uploadToDrive()
+const payload = {
     action: "UPLOAD",
     base64: base64,
     type: file.type,
     name: "GRACEY_" + amount.replace("₱","") + "_" + new Date().getTime() + "_" + file.name,
-    amount: amount.replace("₱","") // Inalis ang symbol para bibilangin ng Sheets
+    // Mas maganda kung pati original amount at fee ay ipadala mo ng hiwalay
+    orderAmount: document.getElementById('orderAmount').value,
+    fee: document.getElementById('feeAmount').innerText.replace("₱",""),
+    totalAmount: amount.replace("₱","") 
 };
 
         fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec', {
