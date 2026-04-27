@@ -8,8 +8,8 @@
     <link rel="icon" type="image/png" href="logos/gracey.png">
 
     <meta property="og:title" content="Payment Portal | Gracey Kainan">
-    <meta property="og:description" content="Official Payment Portal of Gracey Kainan - Amparo, Calooc City">
-    <meta property="og:image" content="https://flavideal.com/logos/gcfb.png?v=2">
+    <meta property="og:description" content="Official Payment Portal of Gracey Kainan - Amparo, Caloocan City">
+    <meta property="og:image" content="https://flavideal.com/logos/graceyfb1">
     <meta property="og:url" content="https://flavideal.com/graceypay">
      <meta property="og:type" content="website">
 
@@ -503,7 +503,7 @@ const payload = {
         .then(res => res.json())
         .then(data => {
             if(data.result === "success") {
-                alert("Thank you for your payment to Gracey Kainan!");
+               alert("Thank you! Your payment has been recorded. Jerric will now verify the transaction. Once confirmed, your status will change from 'PENDING' to 'PAID'.");
                 location.reload(); 
             } else { throw new Error(); }
         })
@@ -709,7 +709,7 @@ function requestWithdraw() {
     .then(res => res.json())
     .then(data => {
         if(data.result === "success") {
-            alert("Withdrawal Request Sent!");
+           alert("Withdrawal request successfully received! We are now processing it via PesoNet. You will receive an email notification once the funds have been credited to your account. Thank you for your patience!");
             document.getElementById('withdrawAmount').value = "";
             closeWithdrawForm(); // Isasara ang maliit na modal
             openAdminModal();    // I-refresh ang balance at history
