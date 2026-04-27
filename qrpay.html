@@ -439,13 +439,19 @@ function openAdminModal() {
     detailsHtml = `<div style="font-weight:bold;">₱${item.amount.toFixed(2)}</div>`;
 }
 
-            let displayDate = "";
-            try {
-                displayDate = new Date(item.date).toLocaleString('en-US', { 
-                    month: 'numeric', day: 'numeric', year: 'numeric', 
-                    hour: 'numeric', minute: 'numeric', hour12: true 
-                });
-            } catch(e) { displayDate = item.date; }
+            // PALITAN ITONG BLOCK NA ITO:
+let displayDate = "";
+try {
+    // Lilinisin muna ang date string (aalisin ang "at") bago i-parse
+    let cleanDate = String(item.date).replace(" at ", ", "); 
+    displayDate = new Date(cleanDate).toLocaleString('en-US', { 
+        month: 'short', day: 'numeric', year: 'numeric', 
+        hour: 'numeric', minute: 'numeric', hour12: true 
+    });
+    if (displayDate === "Invalid Date") displayDate = item.date;
+} catch(e) { 
+    displayDate = item.date; 
+}
 
             const proofLink = (item.proof && item.proof.includes('http')) 
                 ? `<br><a href="${item.proof}" target="_blank" style="color:#d32f2f; text-decoration:none; font-size:0.85em; font-weight:bold;">🖼️ VIEW PROOF</a>` 
@@ -500,9 +506,7 @@ function requestWithdraw() {
     }
 
     const now = new Date();
-    const timestamp = now.toLocaleString('en-US', { 
-        month: 'long', day: 'numeric', year: 'numeric', 
-        hour: 'numeric', minute: 'numeric', hour12: true 
+    const timestamp = new Date().toISOString(); // Mas malinis na format para sa database/sheets 
     });
 
     const payload = {
