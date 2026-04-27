@@ -294,11 +294,9 @@ document.getElementById('pinInput').addEventListener("keyup", function(e) {
 function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
     
-    // Ito ang formula para maging sakto ang 100=1, pero ang 101=2
-   let fee = Math.ceil((item.amount * 0.01) - 0.000001); // Minsan kulang pa ang 0.000001
-    
-    // Kung gusto mo naman na basta may butal ay up agad (ex: 100.01 = 2 fee)
-    // Gamitin lang ang: let fee = Math.ceil(orderAmount * 0.01);
+    // Sakto na ang calculation nito: 100=1, 101=2
+    let fee = Math.ceil((orderAmount * 0.01) - 0.0001); 
+    if (fee < 1 && orderAmount > 0) fee = 1;
 
     let total = orderAmount + fee;
 
@@ -505,9 +503,7 @@ function requestWithdraw() {
         return;
     }
 
-    const now = new Date();
-    const timestamp = new Date().toISOString(); // Mas malinis na format para sa database/sheets 
-    });
+    const timestamp = new Date().toISOString(); 
 
     const payload = {
         action: "WITHDRAW",
@@ -518,13 +514,11 @@ function requestWithdraw() {
         amount: amount
     };
 
-    // Ipakita ang loading state sa button (Optional pero maganda)
-    const btn = event.target; // O gamitin ang ID ng button mo
+    const btn = event.target;
     const originalText = btn.innerText;
     btn.innerText = "SENDING...";
     btn.disabled = true;
 
-    // AJAX Call gamit ang fetch()
     fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec', {
         method: 'POST',
         body: JSON.stringify(payload)
@@ -532,22 +526,12 @@ function requestWithdraw() {
     .then(res => res.json())
     .then(data => {
         if(data.result === "success") {
-            alert(`Withdrawal Request Sent!\nDate: ${timestamp}\n\nStatus: Please wait for transaction via PesoNet.`);
-            
-            // I-clear ang form at isara ang modal
+            alert("Withdrawal Request Sent!");
             document.getElementById('withdrawAmount').value = "";
-            document.getElementById('bankName').value = "";
-            document.getElementById('accName').value = "";
-            document.getElementById('accNum').value = "";
             closeAdminModal();
-        } else {
-            alert("Error: " + data.error);
-        }
+        } else { alert("Error: " + data.error); }
     })
-    .catch(err => {
-        console.error("Fetch error:", err);
-        alert("Failed to send request. Check your internet or Script URL.");
-    })
+    .catch(err => { alert("Failed to send request."); })
     .finally(() => {
         btn.innerText = originalText;
         btn.disabled = false;
