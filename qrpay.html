@@ -295,7 +295,7 @@ function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
     
     // Ito ang formula para maging sakto ang 100=1, pero ang 101=2
-   let fee = Math.ceil((item.amount * 0.01) - 0.0001);
+   let fee = Math.ceil((item.amount * 0.01) - 0.000001); // Minsan kulang pa ang 0.000001
     
     // Kung gusto mo naman na basta may butal ay up agad (ex: 100.01 = 2 fee)
     // Gamitin lang ang: let fee = Math.ceil(orderAmount * 0.01);
