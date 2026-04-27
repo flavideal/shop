@@ -295,7 +295,7 @@ function calculateTotal() {
     const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
     
     // Ito ang formula para maging sakto ang 100=1, pero ang 101=2
-    let fee = Math.ceil((orderAmount * 0.01) - 0.000001); 
+   let fee = Math.ceil((item.amount * 0.01) - 0.0001);
     
     // Kung gusto mo naman na basta may butal ay up agad (ex: 100.01 = 2 fee)
     // Gamitin lang ang: let fee = Math.ceil(orderAmount * 0.01);
@@ -427,8 +427,13 @@ function openAdminModal() {
             // FEE CALCULATION PARA SA DISPLAY
             let detailsHtml = "";
           if(isCashIn) {
-    let fee = Math.ceil((item.amount * 0.01) - 0.000001); // Round up logic
+    // Gamit ang -0.0001 para ang 1.000000002 ay maging 0.9999... 
+    // At ang Math.ceil niyan ay babalik sa saktong 1.
+    let fee = Math.ceil((item.amount * 0.01) - 0.0001); 
+    if (fee < 1 && item.amount > 0) fee = 1; // Optional: Minimum 1 peso fee
+    
     let net = item.amount - fee;
+    
     detailsHtml = `
         <div style="font-size:0.75em; color:#666; margin-top:3px;">
             Gross: ₱${item.amount.toFixed(2)}<br>
