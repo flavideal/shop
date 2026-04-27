@@ -674,14 +674,16 @@ function requestWithdraw() {
     localStorage.setItem("savedNum", num);
 
     const payload = {
-        action: "WITHDRAW",
-        date: new Date().toLocaleString('en-US'),
-        bank: bank,
-        accName: name,
-        accNum: num,
-        amount: amount
-    };
-
+    action: "WITHDRAW",
+    date: new Date().toLocaleString('en-US'), // Column A (Date)
+    bank: bank,                               // Column B (Bank)
+    accName: name,                            // Column C (Account Name)
+    accNum: num,                              // Column D (Account Number)
+    amount: amount,                           // Column E (Amount)
+    status: "PENDING",                        // Column F (Status)
+    remarks: "Request Sent"                   // Column G (Payment Data/Remarks)
+};
+    
     // Hanapin ang button sa loob ng withdrawModal
     const btn = document.querySelector('#withdrawModal .btn-upload');
     const originalText = btn.innerText;
