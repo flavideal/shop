@@ -539,35 +539,34 @@ function openAdminModal() {
     .then(res => res.json())
     .then(data => {
         balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        // ... (itutuloy ang history logic mo rito, huwag burahin yung logic ng data.payments pababa)
 
         let combinedHistory = [];
 
         if (data.payments) {
-    data.payments.forEach(row => {
-        combinedHistory.push({
-            type: 'IN',
-            gross: parseFloat(row[1]), // Column B: Total Paid
-            fee: parseFloat(row[2]),   // Column C: Fee (Dito natin kukunin!)
-            net: parseFloat(row[3]),   // Column D: Net Amount (Dito natin kukunin!)
-            date: row[0],              // Column A: Date
-            proof: row[4],             // Column E: Proof
-            status: row[5]             // Column F: Status
-        });
-    });
-}
+            data.payments.forEach(row => {
+                combinedHistory.push({
+                    type: 'IN',
+                    gross: parseFloat(row[1]), 
+                    fee: parseFloat(row[2]),   
+                    net: parseFloat(row[3]),   
+                    date: row[0],              
+                    proof: row[4],             
+                    status: row[5]              
+                });
+            });
+        }
 
         if (data.withdrawals) {
-    data.withdrawals.forEach(row => {
-        combinedHistory.push({
-            type: 'OUT',
-            amount: parseFloat(row[4]), // Column E
-            date: row[0],              // Column A
-            status: row[5],            // Column F
-            paidDate: row[6]           // DAGDAG: Babasahin ang Column G (Payment Date)
-        });
-    });
-}
+            data.withdrawals.forEach(row => {
+                combinedHistory.push({
+                    type: 'OUT',
+                    amount: parseFloat(row[4]), 
+                    date: row[0],              
+                    status: row[5],            
+                    paidDate: row[6]           
+                });
+            });
+        }
 
         combinedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -579,62 +578,50 @@ function openAdminModal() {
             const sign = isCashIn ? '+' : '-';
             const bgColor = isCashIn ? 'transparent' : '#fff0f0';
 
-            // FEE CALCULATION PARA SA DISPLAY
             let detailsHtml = "";
-         if(isCashIn) {
-    detailsHtml = `
-        <div style="font-size:0.75em; color:#666; margin-top:3px;">
-            Gross: ₱${item.gross.toFixed(2)}<br>
-            Fee: -₱${item.fee.toFixed(2)}<br>
-            <b style="color:#2e7d32;">Net: ₱${item.net.toFixed(2)}</b>
-        </div>`;
-} else {
-    let pDate = "";
-    
-    // Kung ang status ay PAID at may laman ang Column G (paidDate)
-    if (item.status === "PAID" && item.paidDate) {
-    let formattedPaidDate = item.paidDate;
-    try {
-        let pd = new Date(item.paidDate);
-        if (!isNaN(pd.getTime())) {
-            // Ito ang format na gusto mo: April 28, 2026 12:30 PM
-            formattedPaidDate = pd.toLocaleString('en-US', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: true 
-            });
-        }
-    } catch(e) { formattedPaidDate = item.paidDate; }
+            let pDate = ""; // Initialize pDate variable
 
-    pDate = `<div style="font-size:0.85em; color:blue; font-weight:bold; margin-top:3px;">
-                ✅ Paid: ${formattedPaidDate}
-             </div>`;
-}
+            if(isCashIn) {
+                detailsHtml = `
+                    <div style="font-size:0.75em; color:#666; margin-top:3px;">
+                        Gross: ₱${item.gross.toFixed(2)}<br>
+                        Fee: -₱${item.fee.toFixed(2)}<br>
+                        <b style="color:#2e7d32;">Net: ₱${item.net.toFixed(2)}</b>
+                    </div>`;
+            } else {
+                // Logic para sa OUT/Withdrawals
+                detailsHtml = `<div style="font-size:0.85em; font-weight:bold;">Withdrawal: ₱${item.amount.toFixed(2)}</div>`;
+                
+                if (item.status === "PAID" && item.paidDate) {
+                    let formattedPaidDate = item.paidDate;
+                    try {
+                        let pd = new Date(item.paidDate);
+                        if (!isNaN(pd.getTime())) {
+                            formattedPaidDate = pd.toLocaleString('en-US', { 
+                                month: 'long', day: 'numeric', year: 'numeric',
+                                hour: 'numeric', minute: 'numeric', hour12: true 
+                            });
+                        }
+                    } catch(e) { formattedPaidDate = item.paidDate; }
 
-            // PALITAN ITONG BLOCK NA ITO:
-// --- HANAPIN ITO SA LOOB NG combinedHistory.forEach ---
-let displayDate = "";
-try {
-    let d = new Date(item.date);
-    if (!isNaN(d.getTime())) {
-        // Pinalitan ang 'short' ng 'long' para maging "April" imbes na "Apr"
-        displayDate = d.toLocaleString('en-US', { 
-            month: 'long', 
-            day: 'numeric', 
-            year: 'numeric', 
-            hour: 'numeric', 
-            minute: 'numeric', 
-            hour12: true 
-        });
-    } else {
-        displayDate = item.date; 
-    }
-} catch(e) { 
-    displayDate = item.date; 
-}
+                    pDate = `<div style="font-size:0.85em; color:blue; font-weight:bold; margin-top:3px;">
+                                ✅ Paid: ${formattedPaidDate}
+                             </div>`;
+                }
+            }
+
+            let displayDate = "";
+            try {
+                let d = new Date(item.date);
+                if (!isNaN(d.getTime())) {
+                    displayDate = d.toLocaleString('en-US', { 
+                        month: 'long', day: 'numeric', year: 'numeric', 
+                        hour: 'numeric', minute: 'numeric', hour12: true 
+                    });
+                } else {
+                    displayDate = item.date; 
+                }
+            } catch(e) { displayDate = item.date; }
 
             const proofLink = (item.proof && item.proof.includes('http')) 
                 ? `<br><a href="${item.proof}" target="_blank" style="color:#d32f2f; text-decoration:none; font-size:0.85em; font-weight:bold;">🖼️ VIEW PROOF</a>` 
@@ -644,6 +631,7 @@ try {
                         <td style="padding:10px 5px; color:${color}; vertical-align:top;"><b>${sign}</b></td>
                         <td style="padding:10px 5px;">
                             ${detailsHtml}
+                            ${pDate}
                             <div style="font-size:0.7em; color:#999; margin-top:2px;">${displayDate}</div>
                             ${proofLink}
                         </td>
