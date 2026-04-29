@@ -561,7 +561,7 @@ function openAdminModal() {
     const balanceDisplay = document.getElementById('currentBalance');
     
     logDiv.innerHTML = "Fetching history...";
-    balanceDisplay.innerText = "₱...";
+    balanceDisplay.innerText = "₱ loading...";
 
     fetch('https://script.google.com/macros/s/AKfycby_h42AKGlKrJqqyGEoOftkui9FpkOm6VoE6SuFGXYMC3shhiT4C1G1v-9qB9lxc1Kp/exec')
     .then(res => res.json())
